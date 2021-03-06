@@ -1,53 +1,37 @@
 #include "Esc.h"
 
+void Esc::rm(uint8_t e, Servo esc)
+{
+    Serial.print("arming motor ");
+    Serial.println(e);
+    Serial1.print("arming motor ");
+    Serial1.println(e);
+    esc.attach(e);
+    delay(2000);
+    esc.writeMicroseconds(1000);
+    delay(1000);
+    esc.writeMicroseconds(2000);
+    delay(8000);
+    esc.writeMicroseconds(1000);
+    delay(1000);
+}
+
 void Esc::arm()
 {
-    esc1.attach(ESC1);
-    esc2.attach(ESC2);
-    esc3.attach(ESC3);
-    esc4.attach(ESC4);
-    // arm motor 1
-    Serial.println("arming motor 1");
-    Serial1.println("arming motor 1");
-    esc1.writeMicroseconds(1000);
-    delay(1000);
-    esc1.writeMicroseconds(2000);
-    delay(2000);
-    esc1.writeMicroseconds(1000);
-    delay(1000);
-    // arm motor 2
-    Serial.println("arming motor 2");
-    Serial1.println("arming motor 2");
-    esc2.writeMicroseconds(1000);
-    delay(1000);
-    esc2.writeMicroseconds(2000);
-    delay(2000);
-    esc2.writeMicroseconds(1000);
-    delay(1000);
-    // arm motor 3
-    Serial.println("arming motor 3");
-    Serial1.println("arming motor 3");
-    esc3.writeMicroseconds(1000);
-    delay(1000);
-    esc3.writeMicroseconds(2000);
-    delay(2000);
-    esc3.writeMicroseconds(1000);
-    delay(1000);
-    // arm motor 4
-    Serial.println("arming motor 4");
-    Serial1.println("arming motor 4");
-    esc4.writeMicroseconds(1000);
-    delay(1000);
-    esc4.writeMicroseconds(2000);
-    delay(2000);
-    esc4.writeMicroseconds(1000);
-    delay(1000);
+    rm(ESC1, esc1);
+    rm(ESC2, esc2);
+    rm(ESC3, esc3);
+    rm(ESC4, esc4);
 }
 
 void Esc::setSpeed(StaticJsonDocument<ROTOR_NUM> speed)
 {
-    esc1.writeMicroseconds(speed[e1].as<uint32_t>());
-    esc2.writeMicroseconds(speed[e2].as<uint32_t>());
-    esc3.writeMicroseconds(speed[e3].as<uint32_t>());
-    esc4.writeMicroseconds(speed[e4].as<uint32_t>());
+    roll = speed["roll"].as<int16_t>();
+    pitch = speed["pitch"].as<int16_t>();
+    yaw = speed["yaw"].as<int16_t>();
+    thrust = speed["thrust"].as<int16_t>();
+    // esc1.writeMicroseconds(speed[e1].as<int32_t>());
+    // esc2.writeMicroseconds(speed[e2].as<int32_t>());
+    // esc3.writeMicroseconds(speed[e3].as<int32_t>());
+    // esc4.writeMicroseconds(speed[e4].as<int32_t>());
 }

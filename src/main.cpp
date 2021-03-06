@@ -1,72 +1,75 @@
-#define DEBUG true
-
+#define DEBUG false
+// for some reason this needs to be first - namespacing issues with deps I think
 #include "Esc.h"
 #include "Mpu.h"
+#include "Pid.h"
+/* motor layout
+      FRONT
+      3  1
+       \/
+       /\
+      4  2
+      BACK
+*/
 
-Mpu mpu;
 Esc esc;
-
-uint16_t *space;
+Mpu mpu;
+Pid pitch;
+Pid yaw;
+Pid roll;
 
 void setup()
 {
-  Serial.begin(115200);
   Serial1.begin(115200);
-  esc.arm();
+  // esc.arm();
   Serial1.flush();
-  mpu.wire();
+
+  Wire.begin();
+  Wire.setClock(400000L);
+
+  // TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
+
+  Serial.begin(9600);
+  mpu.calibrate();
 }
 
 void loop()
 {
-  mpu.setSpace();
-  space = mpu.getSpace();
-
-#if DEBUG
-  Serial.print("Accelerometer: ");
-  Serial.print("X = ");
-  Serial.print(space[mpu.AcX]);
-  Serial.print(" | Y = ");
-  Serial.print(space[mpu.AcY]);
-  Serial.print(" | Z = ");
-  Serial.println(space[mpu.AcZ]);
-  Serial.print("Gyroscope: ");
-  Serial.print("X = ");
-  Serial.print(space[mpu.GyX]);
-  Serial.print(" | Y = ");
-  Serial.print(space[mpu.GyY]);
-  Serial.print(" | Z = ");
-  Serial.println(space[mpu.GyZ]);
-  Serial.println(" ");
-#endif
   if (Serial1.available() > 0)
   {
-    StaticJsonDocument<ROTOR_NUM> speed;                          //Create a JsonDocument object
-    DeserializationError error = deserializeJson(speed, Serial1); //Deserialize JSON data
+    StaticJsonDocument<ROTOR_NUM> orientation;                          //Create a JsonDocument object
+    DeserializationError error = deserializeJson(orientation, Serial1); //Deserialize JSON data
 
     if (error)
     {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(error.f_str());
-      Serial1.print(F("deserializeJson() failed: "));
-      Serial1.println(error.f_str());
-      return;
+      // Serial1.print(F("deserializeJson() failed: "));
+      // Serial1.println(error.f_str());
     }
 
-    esc.setSpeed(speed);
+    esc.setSpeed(orientation);
+  }
+  mpu.getSpace();
 
 #if DEBUG
-    Serial.print(" | e1: ");
-    Serial.print(speed[esc.e1].as<uint32_t>());
-    Serial.print(" | e2: ");
-    Serial.print(speed[esc.e2].as<uint32_t>());
-    Serial.print(" | e3: ");
-    Serial.print(speed[esc.e3].as<uint32_t>());
-    Serial.print(" | e4: ");
-    Serial.print(speed[esc.e4].as<uint32_t>());
-    Serial.print(" | ");
-    Serial.println(' ');
+  Serial.print("ypr\t");
+  Serial.print(mpu.ypr[mpu.yaw]);
+  Serial.print("\t");
+  Serial.print(mpu.ypr[mpu.pitch]);
+  Serial.print("\t");
+  Serial.print(mpu.ypr[mpu.roll]);
+  Serial.print("\t target-ypr:\t");
+  Serial.print(esc.roll);
+  Serial.print("\t");
+  Serial.print(esc.pitch);
+  Serial.print("\t");
+  Serial.print(esc.yaw);
+  Serial.print("\t");
+  Serial.print(esc.thrust);
+  Serial.print("\t");
+  Serial.println(' ');
 #endif
-  }
-  delay(500);
+  serializeJson(mpu.doc, Serial1);
+  // Serial1.flush();
 }
