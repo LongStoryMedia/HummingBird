@@ -83,3 +83,9 @@ void Pid::processTick(int16_t pitchTarget, int16_t rollTarget, uint16_t thrust)
   // our example sets this to 12.2
   r4 = thrust + (proportionalRollTerm + proportionalPitchTerm) + (integralPitchTerm + integralRollTerm);
 }
+
+void Pid::setPitchAndRoll(int16_t pitch, int16_t roll)
+{
+  this->pitch = pitch;
+  this->roll = roll;
+}

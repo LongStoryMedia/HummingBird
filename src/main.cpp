@@ -31,6 +31,7 @@ void setup()
 
 void loop()
 {
+  mpu.setSpace();
   if (Serial1.available() > 0)
   {
     StaticJsonDocument<ROTOR_NUM> orientation;                          //Create a JsonDocument object
