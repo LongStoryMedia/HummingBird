@@ -4,6 +4,9 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <ArduinoJson.h>
+#include "Pid.h"
+#include "Mpu.h"
+
 const size_t ROTOR_NUM = JSON_OBJECT_SIZE(8);
 
 class Esc
@@ -23,7 +26,7 @@ private:
 
 public:
     void arm();
-    void setSpeed(StaticJsonDocument<ROTOR_NUM> speed);
+    void setSpeed(StaticJsonDocument<ROTOR_NUM> speed, Mpu mpu, Pid pid);
     int32_t rotors[4];
     enum ESC
     {

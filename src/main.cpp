@@ -1,8 +1,6 @@
 #define DEBUG false
 // for some reason this needs to be first - namespacing issues with deps I think
 #include "Esc.h"
-#include "Mpu.h"
-#include "Pid.h"
 /* motor layout
       FRONT
       3  1
@@ -14,9 +12,7 @@
 
 Esc esc;
 Mpu mpu;
-Pid pitch;
-Pid yaw;
-Pid roll;
+Pid pid;
 
 void setup()
 {
@@ -29,7 +25,7 @@ void setup()
 
   // TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   mpu.calibrate();
 }
 
@@ -44,13 +40,10 @@ void loop()
     {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(error.f_str());
-      // Serial1.print(F("deserializeJson() failed: "));
-      // Serial1.println(error.f_str());
     }
 
-    esc.setSpeed(orientation);
+    esc.setSpeed(orientation, mpu, pid);
   }
-  mpu.getSpace();
 
 #if DEBUG
   Serial.print("ypr\t");
@@ -70,6 +63,4 @@ void loop()
   Serial.print("\t");
   Serial.println(' ');
 #endif
-  serializeJson(mpu.doc, Serial1);
-  // Serial1.flush();
 }

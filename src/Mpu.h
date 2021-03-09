@@ -30,7 +30,7 @@ private:
     uint8_t fifoBuffer[64]; // FIFO storage buffer
 public:
     float rawYpr[3];
-    float ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+    int16_t ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
     static volatile bool mpuInterrupt; // indicates whether MPU interrupt pin has gone high
     static void dmpDataReady()
@@ -39,7 +39,7 @@ public:
     }
 
     void calibrate();
-    void getSpace();
+    void setSpace();
     enum YPR
     {
         yaw,

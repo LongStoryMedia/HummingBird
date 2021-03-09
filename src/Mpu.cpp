@@ -49,7 +49,7 @@ void Mpu::calibrate()
     }
 };
 
-void Mpu::getSpace()
+void Mpu::setSpace()
 {
     // if programming failed, don't try to do anything
     if (!dmpReady)
@@ -86,17 +86,12 @@ void Mpu::getSpace()
         // (this lets us immediately read more without waiting for an interrupt)
         fifoCount -= packetSize;
 
-        // #ifdef OUTPUT_READABLE_YAWPITCHROLL
         // display Euler angles in degrees
         mpu.dmpGetQuaternion(&q, fifoBuffer);
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(rawYpr, &q, &gravity);
-        ypr[0] = rawYpr[0] * 180 / PI;
-        ypr[1] = rawYpr[1] * 180 / PI;
-        ypr[2] = rawYpr[2] * 180 / PI;
-        doc["yaw"] = ypr[0];
-        doc["pitch"] = ypr[1];
-        doc["roll"] = ypr[2];
-        // #endif
+        ypr[yaw] = rawYpr[0] * 180 / PI;
+        ypr[pitch] = rawYpr[1] * 180 / PI;
+        ypr[roll] = rawYpr[2] * 180 / PI;
     }
 };

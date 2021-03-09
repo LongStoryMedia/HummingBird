@@ -1,41 +1,5 @@
 #include "Pid.h"
 
-void Pid::processTick(float pitchTarget, float rollTarget)
-{
-    deltaTime = millis() - time;      // milliseconds since last tick
-    time = millis();                  // milliseconds since start
-    rollError = roll - rollTarget;    // current roll error
-    pitchError = pitch - pitchTarget; // current pitch error
-
-    accumulatedRollError += rollError * deltaTime;   // for KI (accumulatedError * Ki)
-                                                     // should represent a curve fluxuating
-                                                     // around the set point
-    accumulatedPitchError += pitchError * deltaTime; // for KI (accumulatedError * Ki)
-                                                     // should represent a curve fluxuating
-                                                     // around the set point
-    proportionalTerm = (rollError * Kp) + (pitchError * Kp);
-    integralTerm = (accumulatedPitchError * Ki) + (accumulatedRollError * Ki);
-    r1 = r1correct();
-    r2 = r2correct();
-    r3 = r3correct();
-    r4 = r4correct();
-}
-
-uint16_t Pid::r1correct()
-{
-}
-
-uint16_t Pid::r2correct()
-{
-}
-
-uint16_t Pid::r3correct()
-{
-}
-
-uint16_t Pid::r4correct()
-{
-}
 // there are 3 constants: proportional, integral and derivative.
 // the first is the most important. it tells us by what value
 // the error should be multiplied in order to adjust the given throttle
@@ -71,3 +35,51 @@ uint16_t Pid::r4correct()
 // anyway... that's why there's a resetTimer() function defined
 // I wonder if the whole thing just needs to be reset once
 // the error reaches 0
+
+/* motor layout
+        +
+      pitch
+     |3| |1|
+       \ /
+     - roll +
+       / \
+     |4| |2|
+      pitch
+        -
+*/
+
+// scenario - pitchError is 1, rollError is 1, accumulatedPitchError is 1, and accumulatedRollError is 1
+// for simplicity, Kp is 1 and Ki is .1.
+
+void Pid::processTick(int16_t pitchTarget, int16_t rollTarget, uint16_t thrust)
+{
+  deltaTime = millis() - time;      // milliseconds since last tick
+  time = millis();                  // milliseconds since start
+  rollError = roll - rollTarget;    // current roll error
+  pitchError = pitch - pitchTarget; // current pitch error
+
+  accumulatedRollError += rollError * deltaTime;
+  accumulatedPitchError += pitchError * deltaTime;
+
+  // multiply with respective coefficients
+  float proportionalRollTerm = rollError * Kp;
+  float proportionalPitchTerm = pitchError * Kp;
+  float integralRollTerm = accumulatedRollError * Ki;
+  float integralPitchTerm = accumulatedPitchError * Ki;
+
+  // r1 should be directly inverse the error of both pitch and roll
+  // take the total sum and SUBTRACT it from control1. and if control1 is at 10,
+  // this would set it to 7.8
+  r1 = thrust + (-proportionalPitchTerm - proportionalRollTerm) + (-integralPitchTerm - integralRollTerm);
+  // r2 should be inverse to rollError, but directly related to pitchError
+  // so SUBTRACT roll related multipliers, and ADD pitch related multipliers.
+  // using the example from above and assuming all controls are 10,
+  // this would set control2 to 10 (no change)
+  r2 = thrust + (proportionalRollTerm - proportionalPitchTerm) + (integralRollTerm - integralPitchTerm);
+  // r3 is the opposite of r2.
+  // our example sets this also to 10 (no change)
+  r3 = thrust + (proportionalPitchTerm - proportionalRollTerm) + (integralPitchTerm - integralRollTerm);
+  // r4 is the opposite of r1
+  // our example sets this to 12.2
+  r4 = thrust + (proportionalRollTerm + proportionalPitchTerm) + (integralPitchTerm + integralRollTerm);
+}

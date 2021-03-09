@@ -2,10 +2,8 @@
 
 void Esc::rm(uint8_t e, Servo esc)
 {
-    Serial.print("arming motor ");
+    Serial.print(F("arming motor "));
     Serial.println(e);
-    Serial1.print("arming motor ");
-    Serial1.println(e);
     esc.attach(e);
     delay(2000);
     esc.writeMicroseconds(1000);
@@ -24,14 +22,17 @@ void Esc::arm()
     rm(ESC4, esc4);
 }
 
-void Esc::setSpeed(StaticJsonDocument<ROTOR_NUM> speed)
+void Esc::setSpeed(StaticJsonDocument<ROTOR_NUM> speed, Mpu mpu, Pid pid)
 {
     roll = speed["roll"].as<int16_t>();
     pitch = speed["pitch"].as<int16_t>();
     yaw = speed["yaw"].as<int16_t>();
-    thrust = speed["thrust"].as<int16_t>();
-    // esc1.writeMicroseconds(speed[e1].as<int32_t>());
-    // esc2.writeMicroseconds(speed[e2].as<int32_t>());
-    // esc3.writeMicroseconds(speed[e3].as<int32_t>());
-    // esc4.writeMicroseconds(speed[e4].as<int32_t>());
+    thrust = speed["thrust"].as<uint16_t>();
+    mpu.setSpace();
+    pid.setPitchAndRoll(mpu.ypr[mpu.pitch], mpu.ypr[mpu.roll]);
+    pid.processTick(pitch, roll, thrust);
+    esc1.writeMicroseconds(pid.r1);
+    esc2.writeMicroseconds(pid.r2);
+    esc3.writeMicroseconds(pid.r3);
+    esc4.writeMicroseconds(pid.r4);
 }
