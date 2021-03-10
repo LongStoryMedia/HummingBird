@@ -1,13 +1,17 @@
-#define DEBUG false
+#define DEBUG true
 // for some reason this needs to be first - namespacing issues with deps I think
 #include "Esc.h"
+
 /* motor layout
-      FRONT
-      3  1
-       \/
-       /\
-      4  2
-      BACK
+        +
+      pitch
+     |3| |1|
+       \ /
+     - roll +
+       / \
+     |4| |2|
+      pitch
+        -
 */
 
 Esc esc;
@@ -16,17 +20,15 @@ Pid pid;
 
 void setup()
 {
-  Serial1.begin(115200);
-  // esc.arm();
-  Serial1.flush();
+  esc.arm();
+  pid.setCoefficients(1, 0.1);
 
   Wire.begin();
   Wire.setClock(400000L);
-
-  // TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
-
-  Serial.begin(115200);
   mpu.calibrate();
+
+  Serial1.begin(115200);
+  Serial.begin(115200);
 }
 
 void loop()

@@ -89,3 +89,9 @@ void Pid::setPitchAndRoll(int16_t pitch, int16_t roll)
   this->pitch = pitch;
   this->roll = roll;
 }
+
+void Pid::setCoefficients(float proportionalCoefficient, float integralCoefficient)
+{
+  Kp = proportionalCoefficient;
+  Ki = integralCoefficient;
+}
