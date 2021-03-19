@@ -37,6 +37,7 @@ public:
     {
         mpuInterrupt = true;
     }
+    void flush();
 
     void calibrate();
     void setSpace();

@@ -95,3 +95,10 @@ void Mpu::setSpace()
         ypr[roll] = rawYpr[2] * 180 / PI;
     }
 };
+
+void Mpu::flush()
+{
+    mpu.reset();
+    mpu.resetDMP();
+    mpu.resetFIFO();
+}

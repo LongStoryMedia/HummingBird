@@ -58,8 +58,8 @@ void Pid::processTick(int16_t pitchTarget, int16_t rollTarget, uint16_t thrust)
   rollError = roll - rollTarget;    // current roll error
   pitchError = pitch - pitchTarget; // current pitch error
 
-  accumulatedRollError += rollError * deltaTime;
-  accumulatedPitchError += pitchError * deltaTime;
+  accumulatedRollError += rollError * (deltaTime / 1000);
+  accumulatedPitchError += pitchError * (deltaTime / 1000);
 
   // multiply with respective coefficients
   float proportionalRollTerm = rollError * Kp;
