@@ -1,8 +1,6 @@
 #ifndef MPU_LOCAL_H
 #define MPU_LOCAL_H
 
-#include <ArduinoJson.h>
-const size_t DOC_SIZE = JSON_OBJECT_SIZE(6);
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include <I2Cdev.h>
@@ -37,7 +35,6 @@ public:
     {
         mpuInterrupt = true;
     }
-    void flush();
 
     void calibrate();
     void setSpace();
@@ -47,6 +44,5 @@ public:
         pitch,
         roll
     };
-    StaticJsonDocument<DOC_SIZE> doc;
 };
 #endif

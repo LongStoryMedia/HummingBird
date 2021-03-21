@@ -22,16 +22,10 @@ void Esc::arm()
     rm(ESC4, esc4);
 }
 
-void Esc::setSpeed(StaticJsonDocument<96> speed, Mpu mpu, Pid pid)
+void Esc::setSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4)
 {
-    roll = speed["roll"];
-    pitch = speed["pitch"];
-    yaw = speed["yaw"];
-    thrust = speed["thrust"];
-    pid.setPitchAndRoll(mpu.ypr[mpu.pitch], mpu.ypr[mpu.roll]);
-    pid.processTick(pitch, roll, thrust);
-    esc1.writeMicroseconds(pid.r1);
-    esc2.writeMicroseconds(pid.r2);
-    esc3.writeMicroseconds(pid.r3);
-    esc4.writeMicroseconds(pid.r4);
+    esc1.writeMicroseconds(r1);
+    esc2.writeMicroseconds(r2);
+    esc3.writeMicroseconds(r3);
+    esc4.writeMicroseconds(r4);
 }

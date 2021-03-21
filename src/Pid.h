@@ -10,8 +10,6 @@ private:
     float roll;
     float pitchError;
     float rollError;
-    float accumulatedPitchError;
-    float accumulatedRollError;
     uint16_t deltaTime;
     unsigned long time;
     // coefficients
@@ -19,8 +17,7 @@ private:
     float Ki; // integral coefficient
 
 public:
-    void processTick(int16_t pitchTarget, int16_t rollTarget, uint16_t thrust);
-    void setPitchAndRoll(int16_t pitch, int16_t roll);
+    void processTick(int16_t pitch, int16_t roll, int16_t pitchTarget, int16_t rollTarget, uint16_t thrust);
     void setCoefficients(float proportionalCoefficient, float integralCoefficient);
     uint16_t r1;
     uint16_t r2;

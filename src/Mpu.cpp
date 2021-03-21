@@ -4,12 +4,16 @@ volatile bool Mpu::mpuInterrupt = false;
 
 void Mpu::calibrate()
 {
-    // initialize device
+// initialize device
+#if DEBUG
     Serial.println(F("Initializing I2C devices..."));
+#endif
     mpu.initialize();
 
-    // load and configure the DMP
+// load and configure the DMP
+#if DEBUG
     Serial.println(F("Initializing DMP..."));
+#endif
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
@@ -21,17 +25,23 @@ void Mpu::calibrate()
     // make sure it worked (returns 0 if so)
     if (devStatus == 0)
     {
-        // turn on the DMP, now that it's ready
+// turn on the DMP, now that it's ready
+#if DEBUG
         Serial.println(F("Enabling DMP..."));
+#endif
         mpu.setDMPEnabled(true);
 
-        // enable Arduino interrupt detection
+// enable Arduino interrupt detection
+#if DEBUG
         Serial.println(F("Enabling interrupt detection..."));
+#endif
         attachInterrupt(8, dmpDataReady, RISING);
         mpuIntStatus = mpu.getIntStatus();
 
-        // set our DMP Ready flag so the main loop() function knows it's okay to use it
+// set our DMP Ready flag so the main loop() function knows it's okay to use it
+#if DEBUG
         Serial.println(F("DMP ready! Waiting for first interrupt..."));
+#endif
         dmpReady = true;
 
         // get expected DMP packet size for later comparison
@@ -39,13 +49,15 @@ void Mpu::calibrate()
     }
     else
     {
-        // ERROR!
-        // 1 = initial memory load failed
-        // 2 = DMP configuration updates failed
-        // (if it's going to break, usually the code will be 1)
+// ERROR!
+// 1 = initial memory load failed
+// 2 = DMP configuration updates failed
+// (if it's going to break, usually the code will be 1)
+#if DEBUG
         Serial.print(F("DMP Initialization failed (code "));
         Serial.print(devStatus);
         Serial.println(F(")"));
+#endif
     }
 };
 
@@ -69,7 +81,9 @@ void Mpu::setSpace()
     {
         // reset so we can continue cleanly
         mpu.resetFIFO();
+#if DEBUG
         Serial.println(F("FIFO overflow!"));
+#endif
     }
     else if (mpuIntStatus & 0x02)
     {
@@ -95,10 +109,3 @@ void Mpu::setSpace()
         ypr[roll] = rawYpr[2] * 180 / PI;
     }
 };
-
-void Mpu::flush()
-{
-    mpu.reset();
-    mpu.resetDMP();
-    mpu.resetFIFO();
-}

@@ -1,23 +1,21 @@
 #define DEBUG false
 #include "Esc.h"
 
-/* motor layout
-        +
-      pitch
-     |3| |1|
-       \ /
-     - roll +
-       / \
-     |4| |2|
-      pitch
+/* motor layout`
         -
+      pitch
+     |1| |2|
+       \ /
+     + roll -
+       / \
+     |3| |4|
+      pitch
+        +
 */
 
 Esc esc;
 Mpu mpu;
 Pid pid;
-
-void deserialize(StaticJsonDocument<96> orientation);
 
 void setup()
 {
@@ -40,8 +38,21 @@ void loop()
 {
   if (Serial1.available() > 0)
   {
-    StaticJsonDocument<96> orientation; //Create a JsonDocument object
-    deserialize(orientation);
+    StaticJsonDocument<YPRT> yprt;                               //Create a JsonDocument object
+    DeserializationError error = deserializeJson(yprt, Serial1); //Deserialize JSON data
+
+    if (error)
+    {
+#if DEBUG
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.f_str());
+#endif
+      return;
+    }
+
+    pid.processTick(mpu.ypr[mpu.pitch], mpu.ypr[mpu.roll], yprt["pitch"], yprt["roll"], yprt["thrust"]);
+
+    esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
   }
   mpu.setSpace();
   Serial1.flush();
@@ -52,14 +63,6 @@ void loop()
   Serial.print(mpu.ypr[mpu.pitch]);
   Serial.print("\t");
   Serial.print(mpu.ypr[mpu.roll]);
-  Serial.print("\t target-ypr:\t");
-  Serial.print(esc.yaw);
-  Serial.print("\t");
-  Serial.print(esc.pitch);
-  Serial.print("\t");
-  Serial.print(esc.roll);
-  Serial.print("\t");
-  Serial.print(esc.thrust);
   Serial.print("\t motor speed:\t");
   Serial.print(pid.r1);
   Serial.print("\t");
@@ -70,23 +73,4 @@ void loop()
   Serial.print(pid.r4);
   Serial.println(' ');
 #endif
-}
-
-void deserialize(StaticJsonDocument<96> orientation)
-{
-  DeserializationError error = deserializeJson(orientation, Serial1); //Deserialize JSON data
-
-  if (orientation.isNull())
-  {
-    return;
-  }
-
-  if (error)
-  {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
-    return;
-  }
-
-  esc.setSpeed(orientation, mpu, pid);
 }
