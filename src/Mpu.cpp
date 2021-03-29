@@ -1,13 +1,15 @@
-#include "Mpu.h"
+#include "config.h"
 
+#if ACCGYROEXTERN
 volatile bool Mpu::mpuInterrupt = false;
+#endif
 
 void Mpu::calibrate()
 {
-// initialize device
-#if DEBUG
-    Serial.println(F("Initializing I2C devices..."));
-#endif
+#if ACCGYROEXTERN
+
+    Wire.begin();
+    Wire.setClock(400000L);
     mpu.initialize();
 
 // load and configure the DMP
@@ -35,7 +37,7 @@ void Mpu::calibrate()
 #if DEBUG
         Serial.println(F("Enabling interrupt detection..."));
 #endif
-        attachInterrupt(8, dmpDataReady, RISING);
+        attachInterrupt(0, dmpDataReady, RISING);
         mpuIntStatus = mpu.getIntStatus();
 
 // set our DMP Ready flag so the main loop() function knows it's okay to use it
@@ -59,10 +61,12 @@ void Mpu::calibrate()
         Serial.println(F(")"));
 #endif
     }
+#endif
 };
 
 void Mpu::setSpace()
 {
+#if ACCGYROEXTERN
     // if programming failed, don't try to do anything
     if (!dmpReady)
     {
@@ -84,8 +88,9 @@ void Mpu::setSpace()
 #if DEBUG
         Serial.println(F("FIFO overflow!"));
 #endif
+        return;
     }
-    else if (mpuIntStatus & 0x02)
+    if (mpuIntStatus & 0x02)
     {
         // wait for correct available data length, should be a VERY short wait
         while (fifoCount < packetSize)
@@ -104,8 +109,14 @@ void Mpu::setSpace()
         mpu.dmpGetQuaternion(&q, fifoBuffer);
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(rawYpr, &q, &gravity);
-        ypr[yaw] = rawYpr[0] * 180 / PI;
-        ypr[pitch] = rawYpr[1] * 180 / PI;
-        ypr[roll] = rawYpr[2] * 180 / PI;
+
+        // if (IMU.accelerationAvailable())
+        // {
+        //     IMU.readAcceleration(rawYpr[roll], rawYpr[pitch], rawYpr[yaw]);
+        // }
+        ypr[yaw] = rawYpr[yaw] * 180 / PI;
+        ypr[pitch] = rawYpr[pitch] * 180 / PI;
+        ypr[roll] = rawYpr[roll] * 180 / PI;
     }
+#endif
 };

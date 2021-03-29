@@ -1,15 +1,19 @@
 #ifndef PID_H
 #define PID_H
 
-#include <Arduino.h>
-
 class Pid
 {
 private:
+    int16_t yawTarget;
+    int16_t pitchTarget;
+    int16_t rollTarget;
+    uint16_t thrustTarget;
     float pitch;
     float roll;
     float pitchError;
     float rollError;
+    float previousPitchError;
+    float previousRollError;
     uint16_t deltaTime;
     unsigned long time;
     // coefficients
@@ -17,7 +21,8 @@ private:
     float Ki; // integral coefficient
 
 public:
-    void processTick(int16_t pitch, int16_t roll, int16_t pitchTarget, int16_t rollTarget, uint16_t thrust);
+    void setTargets(int16_t pitch, int16_t roll, uint16_t thrust);
+    void processTick(int16_t pitch, int16_t roll);
     void setCoefficients(float proportionalCoefficient, float integralCoefficient);
     uint16_t r1;
     uint16_t r2;

@@ -1,14 +1,6 @@
 #ifndef ESC_H
 #define ESC_H
 
-#include <Arduino.h>
-#include <Servo.h>
-#include <ArduinoJson.h>
-#include "Pid.h"
-#include "Mpu.h"
-
-const size_t YPRT = JSON_OBJECT_SIZE(4);
-
 class Esc
 {
 private:

@@ -1,4 +1,4 @@
-#include "Esc.h"
+#include "config.h"
 
 void Esc::rm(uint8_t e, Servo esc)
 {
@@ -24,8 +24,8 @@ void Esc::arm()
 
 void Esc::setSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4)
 {
-    esc1.writeMicroseconds(r1);
-    esc2.writeMicroseconds(r2);
-    esc3.writeMicroseconds(r3);
-    esc4.writeMicroseconds(r4);
+    esc1.writeMicroseconds(constrain(r1, 1000, 2000));
+    esc2.writeMicroseconds(constrain(r2, 1000, 2000));
+    esc3.writeMicroseconds(constrain(r3, 1000, 2000));
+    esc4.writeMicroseconds(constrain(r4, 1000, 2000));
 }

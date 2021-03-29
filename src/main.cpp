@@ -1,6 +1,9 @@
-#define DEBUG false
-#include "Esc.h"
+#include "config.h"
 
+Esc esc;
+Pid pid;
+Mpu mpu;
+Rx rx;
 /* motor layout`
         -
       pitch
@@ -13,48 +16,25 @@
         +
 */
 
-Esc esc;
-Mpu mpu;
-Pid pid;
-
 void setup()
 {
-#if DEBUG
-  Serial.begin(38400);
-#endif
-
+  Serial.begin(9600);
   esc.arm();
-  pid.setCoefficients(1.0, 0.01);
-
-  Wire.begin();
-  Wire.setClock(400000L);
+  pid.setCoefficients(1.25, 0.075);
+  rx.setDisconnectedThreshold(15);
+#if !defined(LSM9DS1)
   mpu.calibrate();
-
+#endif
   Serial1.begin(38400);
-  Serial1.flush();
 }
 
 void loop()
 {
-  if (Serial1.available() > 0)
-  {
-    StaticJsonDocument<YPRT> yprt;                               //Create a JsonDocument object
-    DeserializationError error = deserializeJson(yprt, Serial1); //Deserialize JSON data
-
-    if (error)
-    {
-#if DEBUG
-      Serial.print(F("deserializeJson() failed: "));
-      Serial.println(error.f_str());
-#endif
-      return;
-    }
-
-    pid.processTick(mpu.ypr[mpu.pitch], mpu.ypr[mpu.roll], yprt["pitch"], yprt["roll"], yprt["thrust"]);
-
-    esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
-  }
   mpu.setSpace();
+  pid.processTick(mpu.ypr[mpu.pitch], mpu.ypr[mpu.roll]);
+  esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
+  rx.parsePacket();
+  pid.setTargets(rx.doc["pitch"], rx.doc["roll"], rx.doc["thrust"]);
   Serial1.flush();
 #if DEBUG
   Serial.print("ypr\t");

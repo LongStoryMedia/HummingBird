@@ -1,4 +1,4 @@
-#include "Pid.h"
+#include "config.h"
 
 // there are 3 constants: proportional, integral and derivative.
 // we'll discard derivative for now to avoid windup.
@@ -29,30 +29,40 @@
         +
 */
 
-void Pid::processTick(int16_t pitch, int16_t roll, int16_t pitchTarget, int16_t rollTarget, uint16_t thrust)
+void Pid::processTick(int16_t pitch, int16_t roll)
 {
   deltaTime = millis() - time;      // milliseconds since last tick
   time = millis();                  // milliseconds since start
   rollError = roll - rollTarget;    // current roll error
   pitchError = pitch - pitchTarget; // current pitch error
 
+  previousRollError = ((rollError * (deltaTime / 1000)) * Ki) + previousRollError;
+  previousPitchError = ((pitchError * (deltaTime / 1000)) * Ki) + previousPitchError;
+
   // (rollError * Kp) + (accumulatedRollError * Ki)
-  float rollTerm = (rollError * Kp) + ((rollError * (deltaTime / 1000)) * Ki);
+  float rollTerm = (rollError * Kp) + previousRollError;
   // (pitchError * Kp) + (accumulatedPitchError * Ki)
-  float pitchTerm = (pitchError * Kp) + ((pitchError * (deltaTime / 1000)) * Ki);
+  float pitchTerm = (pitchError * Kp) + previousPitchError;
 
   // r1 should be inverse to roll and aligned with pitch
-  r1 = thrust + pitchTerm - rollTerm;
+  r1 = thrustTarget - pitchTerm - rollTerm;
   // r2 should be inverse to both
-  r2 = thrust - pitchTerm - rollTerm;
+  r2 = thrustTarget - pitchTerm + rollTerm;
   // r3 should be aligned with both
-  r3 = thrust + pitchTerm + rollTerm;
+  r3 = thrustTarget + pitchTerm - rollTerm;
   // r4 should be aligned with roll and inverse to pitch
-  r4 = thrust - pitchTerm + rollTerm;
+  r4 = thrustTarget + pitchTerm + rollTerm;
 }
 
 void Pid::setCoefficients(float proportionalCoefficient, float integralCoefficient)
 {
   Kp = proportionalCoefficient;
   Ki = integralCoefficient;
+}
+
+void Pid::setTargets(int16_t pitch, int16_t roll, uint16_t thrust)
+{
+  pitchTarget = pitch;
+  rollTarget = roll;
+  thrustTarget = thrust;
 }

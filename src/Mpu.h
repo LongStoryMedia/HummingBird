@@ -1,24 +1,15 @@
 #ifndef MPU_LOCAL_H
 #define MPU_LOCAL_H
 
-// I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
-// for both classes must be in the include path of your project
-#include <I2Cdev.h>
-#include <MPU6050_6Axis_MotionApps20.h>
-
-// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
-// is used in I2Cdev.h
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
-#endif
-
 class Mpu
 {
 private:
+#if ACCGYROEXTERN
     MPU6050 mpu;
 
     VectorFloat gravity; // [x, y, z]            gravity vector
     Quaternion q;        // [w, x, y, z]         quaternion container
+#endif
 
     bool dmpReady = false;  // set true if DMP init was successful
     uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
