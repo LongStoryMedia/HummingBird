@@ -34,21 +34,24 @@ void setup()
 void loop()
 {
   t = micros();
-  mpu.setSpace();
-  rx.parsePacket();
-  pid.setTargets(rx.packet.pitch, rx.packet.roll, rx.packet.thrust);
-  pid.processTick(mpu.ypr[mpu.pitch], mpu.ypr[mpu.roll]);
-  pid.deriveError(mpu.gx, mpu.gy);
+  Packet packet = rx.getPacket();
+  Orientation orientation = mpu.getOrientation();
+
+  pid.setTargets(packet.pitch, packet.roll, packet.thrust);
+  pid.deriveError(orientation.gx, orientation.gy);
+  pid.processTick(orientation.pitch, orientation.roll);
+
   esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
+
 #if DEBUG
   Serial.print("rx\t");
-  Serial.print(rx.packet.yaw);
+  Serial.print(packet.yaw);
   Serial.print("\t");
-  Serial.print(rx.packet.pitch);
+  Serial.print(packet.pitch);
   Serial.print("\t");
-  Serial.print(rx.packet.roll);
+  Serial.print(packet.roll);
   Serial.print("\t");
-  Serial.print(rx.packet.thrust);
+  Serial.print(packet.thrust);
   Serial.print("\t motor speed:\t");
   Serial.print(pid.r1);
   Serial.print("\t");

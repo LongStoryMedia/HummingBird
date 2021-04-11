@@ -18,17 +18,17 @@ private:
     static const uint8_t controllerRadioNumber = 1;
     static const uint8_t packetSize = sizeof(Packet);
 #endif
-    void getBle();
-    void getRc();
-    void getLora();
+    Packet getBle();
+    Packet getRc();
+    Packet getLora();
     void initRc();
     void initLora();
     uint32_t rxt;
+    Packet packet;
 
 public:
-    void parsePacket();
+    Packet getPacket();
     void init();
-    Packet packet;
 };
 
 #endif

@@ -13,15 +13,12 @@ void Rx::init()
 #endif
 }
 
-void Rx::parsePacket()
+Packet Rx::getPacket()
 {
 #if defined BLE
-    if (Serial1.available() > 0)
-    {
-        getBle();
-    }
+    return getBle();
 #elif defined RC
-    getRc();
+    return getRc();
 #elif defined LORA
 #else
 #error no comm protocol defined
@@ -31,21 +28,25 @@ void Rx::parsePacket()
 /** --------- BLE ----------- */
 #if defined BLE
 
-void Rx::getBle()
+Packet Rx::getBle()
 {
-    StaticJsonDocument<YPRT> yprt;
-    DeserializationError error = deserializeJson(yprt, Serial1); //Deserialize JSON data
 
-    if (error)
+    if (Serial1.available() > 0)
     {
+        StaticJsonDocument<YPRT> yprt;
+        DeserializationError error = deserializeJson(yprt, Serial1); //Deserialize JSON data
+
+        if (error)
+        {
 #if DEBUG
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.f_str());
 #endif
-    }
-    else
-    {
-        doc = yprt;
+        }
+        else
+        {
+            doc = yprt;
+        }
     }
 }
 
@@ -80,7 +81,7 @@ void Rx::initRc()
     rxt = micros();
 }
 
-void Rx::getRc()
+Packet Rx::getRc()
 {
     uint32_t loopTime = micros();
 
@@ -102,13 +103,14 @@ void Rx::getRc()
         radio.powerUp();
         radio.flush_rx();
         initRc();
-        return;
+        return packet;
     }
 
     if (radio.available())
     {
         radio.read(&packet, packetSize);
         rxt = loopTime;
+        return packet;
     }
 }
 

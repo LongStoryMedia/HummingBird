@@ -1,6 +1,19 @@
 #ifndef MPU_LOCAL_H
 #define MPU_LOCAL_H
 
+typedef struct
+{
+    float ax;
+    float ay;
+    float az;
+    float gx;
+    float gy;
+    float gz;
+    float yaw;
+    float pitch;
+    float roll;
+} Orientation;
+
 class Mpu
 {
 private:
@@ -23,11 +36,12 @@ private:
     uint16_t fifoCount;     // count of all bytes currently in FIFO
     uint8_t fifoBuffer[64]; // FIFO storage buffer
 
+    Orientation orientation;
+
     void correct();
 
 public:
     float rawYpr[3];
-    int16_t ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
 
     static volatile bool mpuInterrupt; // indicates whether MPU interrupt pin has gone high
     static void dmpDataReady()
@@ -36,19 +50,7 @@ public:
     }
 
     void calibrate();
-    void setSpace();
-    enum YPR
-    {
-        yaw,
-        pitch,
-        roll
-    };
-    float ax;
-    float ay;
-    float az;
-    float gx;
-    float gy;
-    float gz;
+    Orientation getOrientation();
     float AccErrorX;
     float AccErrorY;
     float AccErrorZ;

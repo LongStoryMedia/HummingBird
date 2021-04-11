@@ -124,22 +124,23 @@ void Mpu::calibrate()
 #endif
 };
 
-void Mpu::setSpace()
+Orientation Mpu::getOrientation()
 {
 #if ACCGYROEXTERN
 #if IMU_MPU9250
     if (mpu.update())
     {
-        ypr[yaw] = mpu.getYaw();
-        ypr[pitch] = mpu.getPitch();
-        ypr[roll] = mpu.getRoll();
-        ax = mpu.getAccX() - AccErrorX;
-        ay = mpu.getAccY() - AccErrorY;
-        az = mpu.getAccZ() - AccErrorZ;
-        gx = mpu.getGyroX() - GyroErrorX;
-        gy = mpu.getGyroY() - GyroErrorY;
-        gz = mpu.getGyroZ() - GyroErrorZ;
+        orientation.yaw = mpu.getYaw();
+        orientation.pitch = mpu.getPitch();
+        orientation.roll = mpu.getRoll();
+        orientation.ax = mpu.getAccX() - AccErrorX;
+        orientation.ay = mpu.getAccY() - AccErrorY;
+        orientation.az = mpu.getAccZ() - AccErrorZ;
+        orientation.gx = mpu.getGyroX() - GyroErrorX;
+        orientation.gy = mpu.getGyroY() - GyroErrorY;
+        orientation.gz = mpu.getGyroZ() - GyroErrorZ;
     }
+    return orientation;
 #else
     // if programming failed, don't try to do anything
     if (!dmpReady)
