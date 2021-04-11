@@ -1,16 +1,15 @@
 #include "config.h"
 
-void Esc::rm(uint8_t e, Servo esc)
+void Esc::rm(uint8_t e, PWMServo esc)
 {
     Serial.print(F("arming motor "));
     Serial.println(e);
     esc.attach(e);
-    delay(2000);
-    esc.writeMicroseconds(1000);
+    esc.write(0);
     delay(1000);
-    esc.writeMicroseconds(2000);
+    esc.write(180);
     delay(8000);
-    esc.writeMicroseconds(1000);
+    esc.write(0);
     delay(1000);
 }
 
@@ -24,8 +23,8 @@ void Esc::arm()
 
 void Esc::setSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4)
 {
-    esc1.writeMicroseconds(constrain(r1, 1000, 2000));
-    esc2.writeMicroseconds(constrain(r2, 1000, 2000));
-    esc3.writeMicroseconds(constrain(r3, 1000, 2000));
-    esc4.writeMicroseconds(constrain(r4, 1000, 2000));
+    esc1.write(r1);
+    esc2.write(r2);
+    esc3.write(r3);
+    esc4.write(r4);
 }

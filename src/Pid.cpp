@@ -31,33 +31,79 @@
 
 void Pid::processTick(int16_t pitch, int16_t roll)
 {
-  deltaTime = millis() - time;      // milliseconds since last tick
-  time = millis();                  // milliseconds since start
-  rollError = roll - rollTarget;    // current roll error
-  pitchError = pitch - pitchTarget; // current pitch error
+  deltaTime = millis() - time; // milliseconds since last tick
+  time = millis();             // milliseconds since start
 
-  previousRollError = ((rollError * (deltaTime / 1000)) * Ki) + previousRollError;
-  previousPitchError = ((pitchError * (deltaTime / 1000)) * Ki) + previousPitchError;
+  if (thrustTarget > 1075)
+  {
+    rollError = roll - rollTarget;    // current roll error
+    pitchError = pitch - pitchTarget; // current pitch error
+    integralRollError = constrain((rollError * deltaTime) + integralRollError, -25, 25);
+    integralPitchError = constrain((pitchError * deltaTime) + integralPitchError, -25, 25);
 
-  // (rollError * Kp) + (accumulatedRollError * Ki)
-  float rollTerm = (rollError * Kp) + previousRollError;
-  // (pitchError * Kp) + (accumulatedPitchError * Ki)
-  float pitchTerm = (pitchError * Kp) + previousPitchError;
+    float rollTerm = (rollError * Kp) + (integralRollError * Ki);
+    float pitchTerm = (pitchError * Kp) + (integralPitchError * Ki);
 
-  // r1 should be inverse to roll and aligned with pitch
-  r1 = thrustTarget - pitchTerm - rollTerm;
-  // r2 should be inverse to both
-  r2 = thrustTarget - pitchTerm + rollTerm;
-  // r3 should be aligned with both
-  r3 = thrustTarget + pitchTerm - rollTerm;
-  // r4 should be aligned with roll and inverse to pitch
-  r4 = thrustTarget + pitchTerm + rollTerm;
+    float derivedRoll = constrain(abs(derivativeRollError * Kd), 0, 20);
+    float derivedPitch = constrain(abs(derivativePitchError * Kd), 0, 20);
+
+    // r1 should be inverse to both
+    r1 = thrustTarget - pitchTerm - rollTerm;
+    // r2 should be aligned with roll and inverse to pitch
+    r2 = thrustTarget - pitchTerm + rollTerm;
+    // r3 should be inverse to roll and aligned with pitch
+    r3 = thrustTarget + pitchTerm - rollTerm;
+    // r4 should be aligned with both
+    r4 = thrustTarget + pitchTerm + rollTerm;
+
+    if (derivativePitchError > 0)
+    {
+      r1 += derivedPitch;
+      r2 += derivedPitch;
+      r3 -= derivedPitch;
+      r4 -= derivedPitch;
+    }
+    else
+    {
+      r1 -= derivedPitch;
+      r2 -= derivedPitch;
+      r3 += derivedPitch;
+      r4 += derivedPitch;
+    }
+    if (derivativeRollError > 0)
+    {
+      r1 += derivedRoll;
+      r2 -= derivedRoll;
+      r3 += derivedRoll;
+      r4 -= derivedRoll;
+    }
+    else
+    {
+      r1 -= derivedRoll;
+      r2 += derivedRoll;
+      r3 -= derivedRoll;
+      r4 += derivedRoll;
+    }
+  }
+  else
+  {
+    r1 = 0;
+    r2 = 0;
+    r3 = 0;
+    r4 = 0;
+  }
+
+  r1 = constrain(r1, 0, 180);
+  r2 = constrain(r2, 0, 180);
+  r3 = constrain(r3, 0, 180);
+  r4 = constrain(r4, 0, 180);
 }
 
-void Pid::setCoefficients(float proportionalCoefficient, float integralCoefficient)
+void Pid::setCoefficients(float proportionalCoefficient, float integralCoefficient, float derivativeCoefficient)
 {
   Kp = proportionalCoefficient;
   Ki = integralCoefficient;
+  Kd = derivativeCoefficient;
 }
 
 void Pid::setTargets(int16_t pitch, int16_t roll, uint16_t thrust)
@@ -65,4 +111,10 @@ void Pid::setTargets(int16_t pitch, int16_t roll, uint16_t thrust)
   pitchTarget = pitch;
   rollTarget = roll;
   thrustTarget = thrust;
+}
+
+void Pid::deriveError(float rollDerivative, float pitchDerivative)
+{
+  derivativePitchError = pitchDerivative;
+  derivativeRollError = rollDerivative;
 }

@@ -12,18 +12,22 @@ private:
     float roll;
     float pitchError;
     float rollError;
-    float previousPitchError;
-    float previousRollError;
+    float integralPitchError;
+    float integralRollError;
+    float derivativePitchError;
+    float derivativeRollError;
     uint16_t deltaTime;
     unsigned long time;
     // coefficients
     float Kp; // proportional coefficient
     float Ki; // integral coefficient
+    float Kd; // derivative coefficient
 
 public:
     void setTargets(int16_t pitch, int16_t roll, uint16_t thrust);
     void processTick(int16_t pitch, int16_t roll);
-    void setCoefficients(float proportionalCoefficient, float integralCoefficient);
+    void setCoefficients(float proportionalCoefficient, float integralCoefficient, float derivativeCoefficient);
+    void deriveError(float rollDerivative, float pitchDerivative);
     uint16_t r1;
     uint16_t r2;
     uint16_t r3;

@@ -4,12 +4,17 @@
 class Mpu
 {
 private:
-#if ACCGYROEXTERN
+#if defined ACCGYROEXTERN
+#if defined IMU_MPU9250
+    MPU9250 mpu;
+#else
     MPU6050 mpu;
 
     VectorFloat gravity; // [x, y, z]            gravity vector
     Quaternion q;        // [w, x, y, z]         quaternion container
 #endif
+#endif
+    void getError();
 
     bool dmpReady = false;  // set true if DMP init was successful
     uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
@@ -17,6 +22,9 @@ private:
     uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
     uint16_t fifoCount;     // count of all bytes currently in FIFO
     uint8_t fifoBuffer[64]; // FIFO storage buffer
+
+    void correct();
+
 public:
     float rawYpr[3];
     int16_t ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
@@ -35,5 +43,17 @@ public:
         pitch,
         roll
     };
+    float ax;
+    float ay;
+    float az;
+    float gx;
+    float gy;
+    float gz;
+    float AccErrorX;
+    float AccErrorY;
+    float AccErrorZ;
+    float GyroErrorX;
+    float GyroErrorY;
+    float GyroErrorZ;
 };
 #endif

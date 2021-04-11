@@ -1,27 +1,37 @@
 #include "config.h"
 
-void Rx::parsePacket()
-{
-    if (Serial1.available() > 0)
-    {
-        connected = true;
-        unavailableIterations = 0;
-        deserialize();
-        // pid.setTargets(yprt["pitch"], yprt["roll"], yprt["thrust"]);
-    }
-    else
-    {
-        unavailableIterations += 1;
-    }
+#if defined RC
+uint8_t address[][6] = {"bird", "nest"};
+#endif
 
-    if (unavailableIterations >= disconnectedThreshold)
-    {
-        StaticJsonDocument<0> emptyDoc;
-        doc = emptyDoc.to<JsonVariant>();
-    }
+void Rx::init()
+{
+#if defined RC
+    initRc();
+#elif defined LORA
+    initLora();
+#endif
 }
 
-void Rx::deserialize()
+void Rx::parsePacket()
+{
+#if defined BLE
+    if (Serial1.available() > 0)
+    {
+        getBle();
+    }
+#elif defined RC
+    getRc();
+#elif defined LORA
+#else
+#error no comm protocol defined
+#endif
+}
+
+/** --------- BLE ----------- */
+#if defined BLE
+
+void Rx::getBle()
 {
     StaticJsonDocument<YPRT> yprt;
     DeserializationError error = deserializeJson(yprt, Serial1); //Deserialize JSON data
@@ -35,11 +45,71 @@ void Rx::deserialize()
     }
     else
     {
-        doc = yprt.to<JsonVariant>();
+        doc = yprt;
     }
 }
 
-void Rx::setDisconnectedThreshold(uint8_t threshold)
+#endif
+
+/** --------- RC ----------- */
+
+#if defined RC
+
+void Rx::initRc()
 {
-    disconnectedThreshold = threshold;
+    // initialize the transceiver on the SPI bus
+    radio.begin();
+    radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
+
+    // save on transmission time by setting the radio to only transmit the
+    // number of bytes we need to transmit
+    radio.setPayloadSize(packetSize); // default value is the maximum 32 bytes
+
+    // set the TX address of the RX node into the TX pipe
+    radio.openWritingPipe(address[radioNumber]); // always uses pipe 0
+
+    // set the RX address of the TX node into a RX pipe
+    radio.openReadingPipe(controllerRadioNumber, address[controllerRadioNumber]); // using pipe 1
+
+    radio.startListening(); // put radio in RX mode
+
+    // For debugging info
+    // printf_begin();             // needed only once for printing details
+    // radio.printDetails();       // (smaller) function that prints raw register values
+    // radio.printPrettyDetails(); // (larger) function that prints human readable data
+    rxt = micros();
 }
+
+void Rx::getRc()
+{
+    uint32_t loopTime = micros();
+
+    if (loopTime > rxt + 2500000)
+    {
+        radio.failureDetected = true;
+        packet.pitch = 0;
+        packet.roll = 0;
+        packet.yaw = 0;
+        packet.thrust = 0;
+    }
+
+    if (radio.failureDetected)
+    {
+        radio.failureDetected = false;
+        Serial.println(F("Radio failure detected, restarting radio"));
+        radio.powerDown();
+        delay(250);
+        radio.powerUp();
+        radio.flush_rx();
+        initRc();
+        return;
+    }
+
+    if (radio.available())
+    {
+        radio.read(&packet, packetSize);
+        rxt = loopTime;
+    }
+}
+
+#endif

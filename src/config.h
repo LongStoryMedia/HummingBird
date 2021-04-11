@@ -1,24 +1,35 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define DEBUG false
+#define DEBUG true
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#if TEENSY40
+#include <PWMServo.h>
+#else
 #include <Servo.h>
+#endif
 #if INTEGRATED_BLE
 #include <ArduinoBLE.h>
 #endif
 
-#if ACCGYROEXTERN
+#if defined ACCGYROEXTERN
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
-#include <I2Cdev.h>
-#include <MPU6050_6Axis_MotionApps20.h>
 // Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
 // is used in I2Cdev.h
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
+#endif
+#if defined IMU_MPU9250
+#include <MPU9250.h>
+#else
+#include <I2Cdev.h>
+#include <MPU6050_6Axis_MotionApps20.h>
 #endif
 #endif
 
@@ -26,8 +37,9 @@
 #include <Arduino_LSM9DS1.h>
 #endif
 #if DEBUG
-#if !defined(Serial1)
-#define Serial1 Serial
+#ifdef Serial1
+#else
+// #define Serial1 Serial
 #endif
 #endif
 

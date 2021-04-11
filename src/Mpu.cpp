@@ -1,17 +1,77 @@
 #include "config.h"
 
+#if defined IMU_MPU6050
 #if ACCGYROEXTERN
 volatile bool Mpu::mpuInterrupt = false;
 #endif
 
+//Uncomment only one full scale gyro range (deg/sec)
+#define GYRO_250DPS //default
+//#define GYRO_500DPS
+//#define GYRO_1000DPS
+//#define GYRO_2000DPS
+
+//Uncomment only one full scale accelerometer range (G's)
+#define ACCEL_2G //default
+//#define ACCEL_4G
+//#define ACCEL_8G
+//#define ACCEL_16G
+#if defined GYRO_250DPS
+#define GYRO_SCALE GYRO_FS_SEL_250
+#define GYRO_SCALE_FACTOR 131.0
+#elif defined GYRO_500DPS
+#define GYRO_SCALE GYRO_FS_SEL_500
+#define GYRO_SCALE_FACTOR 65.5
+#elif defined GYRO_1000DPS
+#define GYRO_SCALE GYRO_FS_SEL_1000
+#define GYRO_SCALE_FACTOR 32.8
+#elif defined GYRO_2000DPS
+#define GYRO_SCALE GYRO_FS_SEL_2000
+#define GYRO_SCALE_FACTOR 16.4
+#endif
+
+#if defined ACCEL_2G
+#define ACCEL_SCALE ACCEL_FS_SEL_2
+#define ACCEL_SCALE_FACTOR 16384.0
+#elif defined ACCEL_4G
+#define ACCEL_SCALE ACCEL_FS_SEL_4
+#define ACCEL_SCALE_FACTOR 8192.0
+#elif defined ACCEL_8G
+#define ACCEL_SCALE ACCEL_FS_SEL_8
+#define ACCEL_SCALE_FACTOR 4096.0
+#elif defined ACCEL_16G
+#define ACCEL_SCALE ACCEL_FS_SEL_16
+#define ACCEL_SCALE_FACTOR 2048.0
+#endif
+#endif
+
 void Mpu::calibrate()
 {
-#if ACCGYROEXTERN
-
+#if defined ACCGYROEXTERN
     Wire.begin();
-    Wire.setClock(400000L);
-    mpu.initialize();
+    delay(2000);
 
+    // Wire.setClock(400000L);
+#if defined IMU_MPU9250
+    if (!mpu.setup(0x68))
+    { // change to your own address
+        while (1)
+        {
+            Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
+            delay(5000);
+        }
+    }
+    mpu.verbose(true);
+    mpu.calibrateAccelGyro();
+    // AccErrorX = mpu.getAccBiasX();
+    // AccErrorY = mpu.getAccBiasY();
+    // AccErrorZ = mpu.getAccBiasZ();
+    // GyroErrorX = mpu.getGyroBiasX();
+    // GyroErrorY = mpu.getGyroBiasY();
+    // GyroErrorZ = mpu.getGyroBiasZ();
+
+#else
+    mpu.initialize();
 // load and configure the DMP
 #if DEBUG
     Serial.println(F("Initializing DMP..."));
@@ -22,9 +82,7 @@ void Mpu::calibrate()
     // mpu.setXGyroOffset(220);
     // mpu.setYGyroOffset(76);
     // mpu.setZGyroOffset(-126);
-    // mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
-
-    // make sure it worked (returns 0 if so)
+    // mpu.setZAccelOffset(1788); // 1688 factory default for my test chip   // make sure it worked (returns 0 if so)
     if (devStatus == 0)
     {
 // turn on the DMP, now that it's ready
@@ -48,6 +106,7 @@ void Mpu::calibrate()
 
         // get expected DMP packet size for later comparison
         packetSize = mpu.dmpGetFIFOPacketSize();
+        getError();
     }
     else
     {
@@ -62,11 +121,26 @@ void Mpu::calibrate()
 #endif
     }
 #endif
+#endif
 };
 
 void Mpu::setSpace()
 {
 #if ACCGYROEXTERN
+#if IMU_MPU9250
+    if (mpu.update())
+    {
+        ypr[yaw] = mpu.getYaw();
+        ypr[pitch] = mpu.getPitch();
+        ypr[roll] = mpu.getRoll();
+        ax = mpu.getAccX() - AccErrorX;
+        ay = mpu.getAccY() - AccErrorY;
+        az = mpu.getAccZ() - AccErrorZ;
+        gx = mpu.getGyroX() - GyroErrorX;
+        gy = mpu.getGyroY() - GyroErrorY;
+        gz = mpu.getGyroZ() - GyroErrorZ;
+    }
+#else
     // if programming failed, don't try to do anything
     if (!dmpReady)
     {
@@ -117,6 +191,65 @@ void Mpu::setSpace()
         ypr[yaw] = rawYpr[yaw] * 180 / PI;
         ypr[pitch] = rawYpr[pitch] * 180 / PI;
         ypr[roll] = rawYpr[roll] * 180 / PI;
+        correct();
+        ax -= AccErrorX;
+        ay -= AccErrorY;
+        az -= AccErrorZ;
+        gx -= GyroErrorX;
+        gy -= GyroErrorY;
+        gz -= GyroErrorZ;
     }
 #endif
+#endif
 };
+
+void Mpu::getError()
+{
+#if defined IMU_MPU6050
+
+    //DESCRIPTION: Computes IMU accelerometer and gyro error on startup. Note: vehicle should be powered up on flat surface
+    /*
+   * Don't worry too much about what this is doing. The error values it computes are applied to the raw gyro and 
+   * accelerometer values AccX, AccY, AccZ, GyroX, GyroY, GyroZ in getIMUdata(). This eliminates drift in the
+   * measurement. 
+   */
+
+    //Read IMU values 12000 times
+    int c = 0;
+    while (c < 12000)
+    {
+        correct();
+        //     //Sum all readings
+        AccErrorX += ax;
+        AccErrorY += ay;
+        AccErrorZ += az;
+        GyroErrorX += gx;
+        GyroErrorY += gy;
+        GyroErrorZ += gz;
+        c++;
+    }
+// //Divide the sum by 12000 to get the error value
+// AccErrorX = AccErrorX / c;
+// AccErrorY = AccErrorY / c;
+// AccErrorZ = AccErrorZ / c - 1.0;
+// GyroErrorX = GyroErrorX / c;
+// GyroErrorY = GyroErrorY / c;
+// GyroErrorZ = GyroErrorZ / c;
+// }
+#endif
+};
+
+void Mpu::correct()
+{
+#if defined IMU_MPU6050
+    int16_t AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
+    mpu.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
+
+    ax /= ACCEL_SCALE_FACTOR;
+    ay /= ACCEL_SCALE_FACTOR;
+    az /= ACCEL_SCALE_FACTOR;
+    gx /= GYRO_SCALE_FACTOR;
+    gy /= GYRO_SCALE_FACTOR;
+    gz /= GYRO_SCALE_FACTOR;
+#endif
+}
