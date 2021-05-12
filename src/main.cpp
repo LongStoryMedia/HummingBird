@@ -16,35 +16,54 @@ Rx rx;
         +
 */
 
-uint32_t t;
+uint32_t t, blinkCounter, blinkDelay, startTime, blinkStart;
+bool blinkAlternate;
+
 void loopRate(int freq);
+void loopBlink();
+void setupBlink(int numBlinks, int upTime, int downTime);
 
 void setup()
 {
-  Serial.begin(9600);
-  // esc.arm();
-  pid.setCoefficients(1.50, 0.001, 0.001);
-#if !defined(LSM9DS1)
+  Serial.begin(500000);
+  // pinMode(13, OUTPUT); //pin 13 LED blinker on board, do not modify
+  esc.arm();
+  pid.setCoefficients(1.00, 0.001, 0.001);
+  // #if !defined(LSM9DS1)
   mpu.calibrate();
-#endif
+  // #endif
   rx.init();
-  Serial1.begin(38400);
+  // Serial1.begin(38400);
+  // setupBlink(3, 160, 70); //numBlinks, upTime (ms), downTime (ms)
+  startTime = micros();
 }
 
 void loop()
 {
+  // loopBlink();
   t = micros();
-  Packet packet = rx.getPacket();
   Orientation orientation = mpu.getOrientation();
+  Packet packet = rx.getPacket();
 
-  pid.setTargets(packet.pitch, packet.roll, packet.thrust);
-  pid.deriveError(orientation.gx, orientation.gy);
-  pid.processTick(orientation.pitch, orientation.roll);
+  // pid.setTargets(packet.pitch, packet.roll, packet.thrust);
+  pid.setTargets(0, 0, packet.thrust);
+  // pid.setDerivatives(orientation.gx, orientation.gy);
+  pid.processTick((int16_t)orientation.pitch, (int16_t)orientation.roll);
 
-  esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
+  // wait for mpu to calibrate
+  if (t > startTime + 60000000)
+  {
+    esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
+  }
 
 #if DEBUG
-  Serial.print("rx\t");
+  Serial.print("orientation: \t");
+  Serial.print(orientation.yaw);
+  Serial.print("\t");
+  Serial.print(orientation.pitch);
+  Serial.print("\t");
+  Serial.print(orientation.roll);
+  Serial.print("\t rx: \t");
   Serial.print(packet.yaw);
   Serial.print("\t");
   Serial.print(packet.pitch);
@@ -62,9 +81,9 @@ void loop()
   Serial.print(pid.r4);
   Serial.println(' ');
 #endif
-  loopRate(200000); //do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
+  loopRate(2000); //do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
   // delay(500);
-  Serial1.flush();
+  // Serial1.flush();
 }
 
 void loopRate(int freq)
@@ -84,5 +103,41 @@ void loopRate(int freq)
   while (invFreq > (checker - t))
   {
     checker = micros();
+  }
+}
+
+void loopBlink()
+{
+  //DESCRIPTION: Blink LED on board to indicate main loop is running
+  /*
+   * It looks cool.
+   */
+  if (t - blinkCounter > blinkDelay)
+  {
+    blinkCounter = micros();
+    digitalWrite(13, blinkAlternate); //pin 13 is built in LED
+
+    if (blinkAlternate == 1)
+    {
+      blinkAlternate = 0;
+      blinkDelay = 100000;
+    }
+    else if (blinkAlternate == 0)
+    {
+      blinkAlternate = 1;
+      blinkDelay = 2000000;
+    }
+  }
+}
+
+void setupBlink(int numBlinks, int upTime, int downTime)
+{
+  //DESCRIPTION: Simple function to make LED on board blink as desired
+  for (int j = 1; j <= numBlinks; j++)
+  {
+    digitalWrite(13, LOW);
+    delay(downTime);
+    digitalWrite(13, HIGH);
+    delay(upTime);
   }
 }

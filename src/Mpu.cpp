@@ -1,6 +1,5 @@
 #include "config.h"
 
-#if defined IMU_MPU6050
 #if ACCGYROEXTERN
 volatile bool Mpu::mpuInterrupt = false;
 #endif
@@ -43,7 +42,6 @@ volatile bool Mpu::mpuInterrupt = false;
 #define ACCEL_SCALE ACCEL_FS_SEL_16
 #define ACCEL_SCALE_FACTOR 2048.0
 #endif
-#endif
 
 void Mpu::calibrate()
 {
@@ -51,7 +49,7 @@ void Mpu::calibrate()
     Wire.begin();
     delay(2000);
 
-    // Wire.setClock(400000L);
+    Wire.setClock(400000L);
 #if defined IMU_MPU9250
     if (!mpu.setup(0x68))
     { // change to your own address
@@ -61,7 +59,7 @@ void Mpu::calibrate()
             delay(5000);
         }
     }
-    mpu.verbose(true);
+    mpu.verbose(false);
     mpu.calibrateAccelGyro();
     // AccErrorX = mpu.getAccBiasX();
     // AccErrorY = mpu.getAccBiasY();
@@ -121,6 +119,8 @@ void Mpu::calibrate()
 #endif
     }
 #endif
+#else
+    IMU.begin();
 #endif
 };
 
@@ -133,13 +133,14 @@ Orientation Mpu::getOrientation()
         orientation.yaw = mpu.getYaw();
         orientation.pitch = mpu.getPitch();
         orientation.roll = mpu.getRoll();
-        orientation.ax = mpu.getAccX() - AccErrorX;
-        orientation.ay = mpu.getAccY() - AccErrorY;
-        orientation.az = mpu.getAccZ() - AccErrorZ;
-        orientation.gx = mpu.getGyroX() - GyroErrorX;
-        orientation.gy = mpu.getGyroY() - GyroErrorY;
-        orientation.gz = mpu.getGyroZ() - GyroErrorZ;
+        orientation.ax = mpu.getAccX();
+        orientation.ay = mpu.getAccY();
+        orientation.az = mpu.getAccZ();
+        orientation.gx = mpu.getGyroX();
+        orientation.gy = mpu.getGyroY();
+        orientation.gz = mpu.getGyroZ();
     }
+    // correct();
     return orientation;
 #else
     // if programming failed, don't try to do anything
@@ -185,10 +186,6 @@ Orientation Mpu::getOrientation()
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetYawPitchRoll(rawYpr, &q, &gravity);
 
-        // if (IMU.accelerationAvailable())
-        // {
-        //     IMU.readAcceleration(rawYpr[roll], rawYpr[pitch], rawYpr[yaw]);
-        // }
         ypr[yaw] = rawYpr[yaw] * 180 / PI;
         ypr[pitch] = rawYpr[pitch] * 180 / PI;
         ypr[roll] = rawYpr[roll] * 180 / PI;
@@ -201,6 +198,15 @@ Orientation Mpu::getOrientation()
         gz -= GyroErrorZ;
     }
 #endif
+#else
+    if (IMU.accelerationAvailable())
+    {
+        IMU.readAcceleration(rawYpr[0], rawYpr[1], rawYpr[2]);
+    }
+    orientation.yaw = rawYpr[0] * 180 / PI;
+    orientation.pitch = rawYpr[1] * 180 / PI;
+    orientation.roll = rawYpr[2] * 180 / PI;
+    return orientation;
 #endif
 };
 
@@ -246,11 +252,11 @@ void Mpu::correct()
     int16_t AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
     mpu.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
 
-    ax /= ACCEL_SCALE_FACTOR;
-    ay /= ACCEL_SCALE_FACTOR;
-    az /= ACCEL_SCALE_FACTOR;
-    gx /= GYRO_SCALE_FACTOR;
-    gy /= GYRO_SCALE_FACTOR;
-    gz /= GYRO_SCALE_FACTOR;
 #endif
+    orientation.ax /= ACCEL_SCALE_FACTOR;
+    orientation.ay /= ACCEL_SCALE_FACTOR;
+    orientation.az /= ACCEL_SCALE_FACTOR;
+    orientation.gx /= GYRO_SCALE_FACTOR;
+    orientation.gy /= GYRO_SCALE_FACTOR;
+    orientation.gz /= GYRO_SCALE_FACTOR;
 }

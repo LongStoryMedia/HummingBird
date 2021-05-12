@@ -31,10 +31,17 @@
 
 void Pid::processTick(int16_t pitch, int16_t roll)
 {
+#if ESC_TEST
+  r1 = thrustTarget;
+  r2 = thrustTarget;
+  r3 = thrustTarget;
+  r4 = thrustTarget;
+#else
+
   deltaTime = millis() - time; // milliseconds since last tick
   time = millis();             // milliseconds since start
 
-  if (thrustTarget > 1075)
+  if (thrustTarget > 10)
   {
     rollError = roll - rollTarget;    // current roll error
     pitchError = pitch - pitchTarget; // current pitch error
@@ -44,8 +51,8 @@ void Pid::processTick(int16_t pitch, int16_t roll)
     float rollTerm = (rollError * Kp) + (integralRollError * Ki);
     float pitchTerm = (pitchError * Kp) + (integralPitchError * Ki);
 
-    float derivedRoll = constrain(abs(derivativeRollError * Kd), 0, 20);
-    float derivedPitch = constrain(abs(derivativePitchError * Kd), 0, 20);
+    // float derivedRoll = constrain(abs(derivativeRollError * Kd), 0, 20);
+    // float derivedPitch = constrain(abs(derivativePitchError * Kd), 0, 20);
 
     // r1 should be inverse to both
     r1 = thrustTarget - pitchTerm - rollTerm;
@@ -56,34 +63,34 @@ void Pid::processTick(int16_t pitch, int16_t roll)
     // r4 should be aligned with both
     r4 = thrustTarget + pitchTerm + rollTerm;
 
-    if (derivativePitchError > 0)
-    {
-      r1 += derivedPitch;
-      r2 += derivedPitch;
-      r3 -= derivedPitch;
-      r4 -= derivedPitch;
-    }
-    else
-    {
-      r1 -= derivedPitch;
-      r2 -= derivedPitch;
-      r3 += derivedPitch;
-      r4 += derivedPitch;
-    }
-    if (derivativeRollError > 0)
-    {
-      r1 += derivedRoll;
-      r2 -= derivedRoll;
-      r3 += derivedRoll;
-      r4 -= derivedRoll;
-    }
-    else
-    {
-      r1 -= derivedRoll;
-      r2 += derivedRoll;
-      r3 -= derivedRoll;
-      r4 += derivedRoll;
-    }
+    //   if (derivativePitchError > 0)
+    //   {
+    //     r1 += derivedPitch;
+    //     r2 += derivedPitch;
+    //     r3 -= derivedPitch;
+    //     r4 -= derivedPitch;
+    //   }
+    //   else
+    //   {
+    //     r1 -= derivedPitch;
+    //     r2 -= derivedPitch;
+    //     r3 += derivedPitch;
+    //     r4 += derivedPitch;
+    //   }
+    //   if (derivativeRollError > 0)
+    //   {
+    //     r1 += derivedRoll;
+    //     r2 -= derivedRoll;
+    //     r3 += derivedRoll;
+    //     r4 -= derivedRoll;
+    //   }
+    //   else
+    //   {
+    //     r1 -= derivedRoll;
+    //     r2 += derivedRoll;
+    //     r3 -= derivedRoll;
+    //     r4 += derivedRoll;
+    //   }
   }
   else
   {
@@ -92,11 +99,7 @@ void Pid::processTick(int16_t pitch, int16_t roll)
     r3 = 0;
     r4 = 0;
   }
-
-  r1 = constrain(r1, 0, 180);
-  r2 = constrain(r2, 0, 180);
-  r3 = constrain(r3, 0, 180);
-  r4 = constrain(r4, 0, 180);
+#endif
 }
 
 void Pid::setCoefficients(float proportionalCoefficient, float integralCoefficient, float derivativeCoefficient)
@@ -113,7 +116,7 @@ void Pid::setTargets(int16_t pitch, int16_t roll, uint16_t thrust)
   thrustTarget = thrust;
 }
 
-void Pid::deriveError(float rollDerivative, float pitchDerivative)
+void Pid::setDerivatives(float rollDerivative, float pitchDerivative)
 {
   derivativePitchError = pitchDerivative;
   derivativeRollError = rollDerivative;

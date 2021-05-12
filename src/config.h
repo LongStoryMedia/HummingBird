@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #define DEBUG true
+#define ESC_TEST false
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -37,10 +38,6 @@
 #include <Arduino_LSM9DS1.h>
 #endif
 #if DEBUG
-#ifdef Serial1
-#else
-// #define Serial1 Serial
-#endif
 #endif
 
 #include "Mpu.h"

@@ -1,4 +1,7 @@
 #include "config.h"
+#define RC 1
+#define BLE false
+#include "printf.h"
 
 #if defined RC
 uint8_t address[][6] = {"bird", "nest"};
@@ -15,9 +18,7 @@ void Rx::init()
 
 Packet Rx::getPacket()
 {
-#if defined BLE
-    return getBle();
-#elif defined RC
+#if defined RC
     return getRc();
 #elif defined LORA
 #else
@@ -26,7 +27,7 @@ Packet Rx::getPacket()
 }
 
 /** --------- BLE ----------- */
-#if defined BLE
+#if BLE
 
 Packet Rx::getBle()
 {
@@ -60,7 +61,7 @@ void Rx::initRc()
 {
     // initialize the transceiver on the SPI bus
     radio.begin();
-    radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
+    // radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
 
     // save on transmission time by setting the radio to only transmit the
     // number of bytes we need to transmit
@@ -84,6 +85,7 @@ void Rx::initRc()
 Packet Rx::getRc()
 {
     uint32_t loopTime = micros();
+    // radio.flush_rx();
 
     if (loopTime > rxt + 2500000)
     {
@@ -103,15 +105,14 @@ Packet Rx::getRc()
         radio.powerUp();
         radio.flush_rx();
         initRc();
-        return packet;
     }
 
     if (radio.available())
     {
         radio.read(&packet, packetSize);
         rxt = loopTime;
-        return packet;
     }
+    return packet;
 }
 
 #endif

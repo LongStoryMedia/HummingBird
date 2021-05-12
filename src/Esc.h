@@ -17,21 +17,29 @@ private:
 #endif
     //pins
 #if TEENSY40
-    const uint8_t ESC1 = 2;
-    const uint8_t ESC2 = 3;
-    const uint8_t ESC3 = 4;
-    const uint8_t ESC4 = 5;
+    static const uint8_t m1Pin = 2;
+    static const uint8_t m2Pin = 3;
+    static const uint8_t m3Pin = 4;
+    static const uint8_t m4Pin = 5;
 #endif
 #if XIAO
-    const uint8_t ESC1 = 1;
-    const uint8_t ESC2 = 2;
-    const uint8_t ESC3 = 3;
-    const uint8_t ESC4 = 10;
+    static const uint8_t m1Pin = 1;
+    static const uint8_t m2Pin = 2;
+    static const uint8_t m3Pin = 3;
+    static const uint8_t m4Pin = 10;
+#endif
+#if NANOBLE33
+    static const uint8_t m1Pin = 2;
+    static const uint8_t m2Pin = 3;
+    static const uint8_t m3Pin = 4;
+    static const uint8_t m4Pin = 5;
 #endif
 #if defined Servo
-    void rm(uint8_t e, Servo esc);
+    void armPmw();
+    void oneShotSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4);
 #else
-    void rm(uint8_t e, PWMServo esc);
+    void armPmw();
+    void oneShotSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4);
 #endif
 
 public:
