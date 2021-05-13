@@ -45,8 +45,8 @@ void Pid::processTick(int16_t pitch, int16_t roll)
   {
     rollError = roll - rollTarget;    // current roll error
     pitchError = pitch - pitchTarget; // current pitch error
-    integralRollError = constrain((rollError * deltaTime) + integralRollError, -25, 25);
-    integralPitchError = constrain((pitchError * deltaTime) + integralPitchError, -25, 25);
+    integralRollError = constrain((rollError * deltaTime) + integralRollError, -10, 10);
+    integralPitchError = constrain((pitchError * deltaTime) + integralPitchError, -10, 10);
 
     float rollTerm = (rollError * Kp) + (integralRollError * Ki);
     float pitchTerm = (pitchError * Kp) + (integralPitchError * Ki);
@@ -55,13 +55,13 @@ void Pid::processTick(int16_t pitch, int16_t roll)
     // float derivedPitch = constrain(abs(derivativePitchError * Kd), 0, 20);
 
     // r1 should be inverse to both
-    r1 = thrustTarget - pitchTerm - rollTerm;
+    r1 = thrustTarget + pitchTerm - rollTerm;
     // r2 should be aligned with roll and inverse to pitch
-    r2 = thrustTarget - pitchTerm + rollTerm;
+    r2 = thrustTarget + pitchTerm + rollTerm;
     // r3 should be inverse to roll and aligned with pitch
-    r3 = thrustTarget + pitchTerm - rollTerm;
+    r3 = thrustTarget - pitchTerm - rollTerm;
     // r4 should be aligned with both
-    r4 = thrustTarget + pitchTerm + rollTerm;
+    r4 = thrustTarget - pitchTerm + rollTerm;
 
     //   if (derivativePitchError > 0)
     //   {

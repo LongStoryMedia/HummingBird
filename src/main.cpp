@@ -30,8 +30,9 @@ void setup()
   esc.arm();
   pid.setCoefficients(1.00, 0.001, 0.001);
   // #if !defined(LSM9DS1)
-  mpu.calibrate();
   // #endif
+  mpu.calibrate();
+
   rx.init();
   // Serial1.begin(38400);
   // setupBlink(3, 160, 70); //numBlinks, upTime (ms), downTime (ms)

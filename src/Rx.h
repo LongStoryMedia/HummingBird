@@ -4,7 +4,7 @@
 
 #if defined TEENSY40
 #define CE 10
-#define CSN 8
+#define CSN 9
 #elif defined NANOBLE33
 #define CE D10
 #define CSN D9

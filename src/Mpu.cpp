@@ -51,13 +51,10 @@ void Mpu::calibrate()
 
     Wire.setClock(400000L);
 #if defined IMU_MPU9250
-    if (!mpu.setup(0x68))
+    while (!mpu.setup(0x68))
     { // change to your own address
-        while (1)
-        {
-            Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
-            delay(5000);
-        }
+        Serial.println("MPU connection failed. Please check your connection with `connection_check` example.");
+        delay(5000);
     }
     mpu.verbose(false);
     mpu.calibrateAccelGyro();
