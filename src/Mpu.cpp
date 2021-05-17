@@ -16,30 +16,22 @@ volatile bool Mpu::mpuInterrupt = false;
 //#define ACCEL_8G
 //#define ACCEL_16G
 #if defined GYRO_250DPS
-#define GYRO_SCALE GYRO_FS_SEL_250
 #define GYRO_SCALE_FACTOR 131.0
 #elif defined GYRO_500DPS
-#define GYRO_SCALE GYRO_FS_SEL_500
 #define GYRO_SCALE_FACTOR 65.5
 #elif defined GYRO_1000DPS
-#define GYRO_SCALE GYRO_FS_SEL_1000
 #define GYRO_SCALE_FACTOR 32.8
 #elif defined GYRO_2000DPS
-#define GYRO_SCALE GYRO_FS_SEL_2000
 #define GYRO_SCALE_FACTOR 16.4
 #endif
 
 #if defined ACCEL_2G
-#define ACCEL_SCALE ACCEL_FS_SEL_2
 #define ACCEL_SCALE_FACTOR 16384.0
 #elif defined ACCEL_4G
-#define ACCEL_SCALE ACCEL_FS_SEL_4
 #define ACCEL_SCALE_FACTOR 8192.0
 #elif defined ACCEL_8G
-#define ACCEL_SCALE ACCEL_FS_SEL_8
 #define ACCEL_SCALE_FACTOR 4096.0
 #elif defined ACCEL_16G
-#define ACCEL_SCALE ACCEL_FS_SEL_16
 #define ACCEL_SCALE_FACTOR 2048.0
 #endif
 
@@ -49,7 +41,7 @@ void Mpu::calibrate()
     Wire.begin();
     delay(2000);
 
-    Wire.setClock(400000L);
+    // Wire.setClock(400000L);
 #if defined IMU_MPU9250
     while (!mpu.setup(0x68))
     { // change to your own address
@@ -137,7 +129,7 @@ Orientation Mpu::getOrientation()
         orientation.gy = mpu.getGyroY();
         orientation.gz = mpu.getGyroZ();
     }
-    // correct();
+    correct();
     return orientation;
 #else
     // if programming failed, don't try to do anything

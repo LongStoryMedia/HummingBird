@@ -1,8 +1,12 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define DEBUG true
+#define DEBUG false
 #define ESC_TEST false
+
+#define KP 1.75f
+#define KI 0.0001f
+#define KD 0.0001f
 
 #include <Arduino.h>
 #include <ArduinoJson.h>

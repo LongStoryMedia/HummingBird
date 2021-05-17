@@ -9,9 +9,9 @@ typedef struct
     float gx;
     float gy;
     float gz;
-    float yaw;
-    float pitch;
-    float roll;
+    int16_t yaw;
+    int16_t pitch;
+    int16_t roll;
 } Orientation;
 
 class Mpu

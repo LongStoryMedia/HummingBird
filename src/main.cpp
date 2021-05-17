@@ -28,7 +28,7 @@ void setup()
   Serial.begin(500000);
   // pinMode(13, OUTPUT); //pin 13 LED blinker on board, do not modify
   esc.arm();
-  pid.setCoefficients(1.00, 0.001, 0.001);
+  pid.setCoefficients(KP, KI, KD);
   // #if !defined(LSM9DS1)
   // #endif
   mpu.calibrate();
@@ -46,9 +46,8 @@ void loop()
   Orientation orientation = mpu.getOrientation();
   Packet packet = rx.getPacket();
 
-  // pid.setTargets(packet.pitch, packet.roll, packet.thrust);
-  pid.setTargets(0, 0, packet.thrust);
-  // pid.setDerivatives(orientation.gx, orientation.gy);
+  pid.setTargets(packet.pitch, packet.roll, packet.thrust);
+  pid.setDerivatives(orientation.gx, orientation.gy);
   pid.processTick((int16_t)orientation.pitch, (int16_t)orientation.roll);
 
   // wait for mpu to calibrate
