@@ -4,19 +4,19 @@ Esc esc;
 Pid pid;
 Mpu mpu;
 Rx rx;
-/* motor layout`
+/* motor layout
         -
       pitch
-     |1| |2|
+     |1| |3|
        \ /
      + roll -
        / \
-     |3| |4|
+     |2| |4|
       pitch
         +
 */
 
-uint32_t t, blinkCounter, blinkDelay, startTime, blinkStart;
+uint32_t pt, t, dt, blinkCounter, blinkDelay, startTime, blinkStart, loopEnd, loopRateEnd;
 bool blinkAlternate;
 
 void loopRate(int freq);
@@ -26,32 +26,37 @@ void setupBlink(int numBlinks, int upTime, int downTime);
 void setup()
 {
   Serial.begin(500000);
-  // pinMode(13, OUTPUT); //pin 13 LED blinker on board, do not modify
+  pinMode(13, OUTPUT); //pin 13 LED blinker on board, do not modify
   esc.arm();
-  pid.setCoefficients(KP, KI, KD);
-  // #if !defined(LSM9DS1)
-  // #endif
+  pid.setCoefficients(KP_ROLL, KP_PITCH, KP_YAW, KI_ROLL, KI_PITCH, KI_YAW, KD_ROLL, KD_PITCH, KD_YAW, I_LIMIT);
   mpu.calibrate();
-
   rx.init();
-  // Serial1.begin(38400);
-  // setupBlink(3, 160, 70); //numBlinks, upTime (ms), downTime (ms)
+  setupBlink(3, 160, 70); //numBlinks, upTime (ms), downTime (ms)
   startTime = micros();
 }
 
 void loop()
 {
-  // loopBlink();
+  pt = t;
   t = micros();
-  Orientation orientation = mpu.getOrientation();
+  dt = t - pt;
+  loopBlink();
+#if DEBUG_HZ
+  Serial.print("\tdelta time: ");
+  Serial.print(dt);
+  Serial.print("\ttime in loop rate: ");
+  Serial.print(t - loopEnd);
+  Serial.print("\tloop speed: ");
+  Serial.println(dt - (t - loopEnd));
+#endif
+  Orientation orientation = mpu.getOrientation(dt);
   Packet packet = rx.getPacket();
 
-  pid.setTargets(packet.pitch, packet.roll, packet.thrust);
-  pid.setDerivatives(orientation.gx, orientation.gy);
-  pid.processTick((int16_t)orientation.pitch, (int16_t)orientation.roll);
+  pid.setTargets(packet.yaw, packet.pitch, packet.roll, packet.thrust);
+  pid.processTick(orientation.yaw, orientation.pitch, orientation.roll, orientation.gx, orientation.gy, orientation.gz, dt);
 
-  // wait for mpu to calibrate
-  if (t > startTime + 60000000)
+  // // // wait for imu to calibrate
+  if (t > startTime + 30000000)
   {
     esc.setSpeed(pid.r1, pid.r2, pid.r3, pid.r4);
   }
@@ -81,37 +86,25 @@ void loop()
   Serial.print(pid.r4);
   Serial.println(' ');
 #endif
+  loopEnd = micros();
   loopRate(2000); //do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
-  // delay(500);
-  // Serial1.flush();
 }
 
 void loopRate(int freq)
 {
-  //DESCRIPTION: Regulate main loop rate to specified frequency in Hz
-  /*
-   * It's good to operate at a constant loop rate for filters to remain stable and whatnot. Interrupt routines running in the
-   * background cause the loop rate to fluctuate. This function basically just waits at the end of every loop iteration until 
-   * the correct time has passed since the start of the current loop for the desired loop rate in Hz. 2kHz is a good rate to 
-   * be at because the loop nominally will run between 2.8kHz - 4.2kHz. This lets us have a little room to add extra computations
-   * and remain above 2kHz, without needing to retune all of our filtering parameters.
-   */
   float invFreq = 1.0 / freq * 1000000.0;
-  unsigned long checker = micros();
+  uint32_t checker = micros();
 
   //Sit in loop until appropriate time has passed
   while (invFreq > (checker - t))
   {
     checker = micros();
   }
+  loopRateEnd = micros();
 }
 
 void loopBlink()
 {
-  //DESCRIPTION: Blink LED on board to indicate main loop is running
-  /*
-   * It looks cool.
-   */
   if (t - blinkCounter > blinkDelay)
   {
     blinkCounter = micros();
@@ -132,7 +125,6 @@ void loopBlink()
 
 void setupBlink(int numBlinks, int upTime, int downTime)
 {
-  //DESCRIPTION: Simple function to make LED on board blink as desired
   for (int j = 1; j <= numBlinks; j++)
   {
     digitalWrite(13, LOW);

@@ -3,20 +3,20 @@
 
 void Esc::armPmw()
 {
-    esc1.attach(m4Pin, 900, 2100);
-    esc2.attach(m3Pin, 900, 2100);
-    esc3.attach(m2Pin, 900, 2100);
-    esc4.attach(m1Pin, 900, 2100);
+    esc1.attach(m1Pin, 900, 2100);
+    esc2.attach(m2Pin, 900, 2100);
+    esc3.attach(m3Pin, 900, 2100);
+    esc4.attach(m4Pin, 900, 2100);
     esc1.write(0);
     esc2.write(0);
     esc3.write(0);
     esc4.write(0);
-    delay(2000);
+    delay(1000);
     esc1.write(180);
     esc2.write(180);
     esc3.write(180);
     esc4.write(180);
-    delay(1000);
+    delay(100);
 }
 
 void Esc::oneShotSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4)
@@ -74,13 +74,13 @@ void Esc::oneShotSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4)
 void Esc::arm()
 {
     Serial.print(F("arming motors"));
-#if defined USE_PMW
-    armPmw();
-#elif defined USE_ONESHOT
     pinMode(m1Pin, OUTPUT);
     pinMode(m2Pin, OUTPUT);
     pinMode(m3Pin, OUTPUT);
     pinMode(m4Pin, OUTPUT);
+#if defined USE_PMW
+    armPmw();
+#elif defined USE_ONESHOT
     oneShotSpeed(125, 125, 125, 125);
     delay(1000);
     oneShotSpeed(125, 125, 125, 125);
@@ -93,10 +93,10 @@ void Esc::arm()
 void Esc::setSpeed(uint16_t r1, uint16_t r2, uint16_t r3, uint16_t r4)
 {
 #if defined USE_PMW
-    esc1.write(map(r1, 0, 100, 40, 140));
-    esc2.write(map(r2, 0, 100, 40, 140));
-    esc3.write(map(r3, 0, 100, 40, 140));
-    esc4.write(map(r4, 0, 100, 40, 140));
+    esc1.write(map(r1, 0, 100, 30, 180));
+    esc2.write(map(r2, 0, 100, 30, 180));
+    esc3.write(map(r3, 0, 100, 30, 180));
+    esc4.write(map(r4, 0, 100, 30, 180));
 #elif defined USE_ONESHOT
     oneShotSpeed(
         map(r1, 0, 100, 125, 250),

@@ -20,16 +20,16 @@
 /* motor layout
         -
       pitch
-     |1| |2|
+     |1| |3|
        \ /
      + roll -
        / \
-     |3| |4|
+     |2| |4|
       pitch
         +
 */
 
-void Pid::processTick(int16_t pitch, int16_t roll)
+void Pid::processTick(float yaw, float pitch, float roll, float gx, float gy, float gz, uint32_t dt)
 {
 #if ESC_TEST
   r1 = thrustTarget;
@@ -37,59 +37,41 @@ void Pid::processTick(int16_t pitch, int16_t roll)
   r3 = thrustTarget;
   r4 = thrustTarget;
 #else
-
-  deltaTime = millis() - time; // milliseconds since last tick
-  time = millis();             // milliseconds since start
-
-  if (thrustTarget > 10)
+  if (thrustTarget > 30)
   {
-    rollError = roll - rollTarget;    // current roll error
-    pitchError = pitch - pitchTarget; // current pitch error
-    integralRollError = constrain((rollError * deltaTime) + integralRollError, -10, 10);
-    integralPitchError = constrain((pitchError * deltaTime) + integralPitchError, -10, 10);
-    float derivedRoll = constrain(abs(derivativeRollError * Kd), 0, 20);
-    float derivedPitch = constrain(abs(derivativePitchError * Kd), 0, 20);
+    // scale input
+    rollError = (rollTarget * 0.85) - roll;    // current roll error
+    pitchError = (pitchTarget * 0.85) - pitch; // current pitch error
+    yawError = (yawTarget * 2) - gz;
 
-    float rollTerm = (rollError * Kp) + (integralRollError * Ki) + derivedRoll;
-    float pitchTerm = (pitchError * Kp) + (integralPitchError * Ki) + derivedPitch;
+    integralRollError = (0.01 * rollError * dt) + (0.01 * previousIntegralRollError);
+    integralPitchError = (0.01 * pitchError * dt) + (0.01 * previousIntegralPitchError);
+    integralYawError = (0.01 * yawError * dt) + (0.01 * previousIntegralYawError);
+    if (thrustTarget < 35)
+    {
+      integralRollError = 0;
+      integralPitchError = 0;
+      integralYawError = 0;
+    }
+    integralRollError = constrain(integralRollError, -integratorLimit, integratorLimit);
+    integralPitchError = constrain(integralPitchError, -integratorLimit, integratorLimit);
+    integralYawError = constrain(integralYawError, -integratorLimit, integratorLimit);
 
-    // r1 should be inverse to both
-    r1 = constrain(thrustTarget + pitchTerm - rollTerm, 10, 100);
-    // r2 should be aligned with roll and inverse to pitch
-    r2 = constrain(thrustTarget + pitchTerm + rollTerm, 10, 100);
-    // r3 should be inverse to roll and aligned with pitch
-    r3 = constrain(thrustTarget - pitchTerm - rollTerm, 10, 100);
-    // r4 should be aligned with both
-    r4 = constrain(thrustTarget - pitchTerm + rollTerm, 10, 100);
+    float derivativeYaw = (yawError - previousYawError) / dt;
 
-    //   if (derivativePitchError > 0)
-    //   {
-    //     r1 += derivedPitch;
-    //     r2 += derivedPitch;
-    //     r3 -= derivedPitch;
-    //     r4 -= derivedPitch;
-    //   }
-    //   else
-    //   {
-    //     r1 -= derivedPitch;
-    //     r2 -= derivedPitch;
-    //     r3 += derivedPitch;
-    //     r4 += derivedPitch;
-    //   }
-    //   if (derivativeRollError > 0)
-    //   {
-    //     r1 += derivedRoll;
-    //     r2 -= derivedRoll;
-    //     r3 += derivedRoll;
-    //     r4 -= derivedRoll;
-    //   }
-    //   else
-    //   {
-    //     r1 -= derivedRoll;
-    //     r2 += derivedRoll;
-    //     r3 -= derivedRoll;
-    //     r4 += derivedRoll;
-    //   }
+    float rollTerm = ((rollError * KpR) + (integralRollError * KiR) - (gx * KdR)) * 0.1;
+    float pitchTerm = ((pitchError * KpP) + (integralPitchError * KiP) - (gy * KdP)) * 0.1;
+    float yawTerm = ((yawError * KpY) + (integralYawError * KiY) + (derivativeYaw * KdY)) * 0.1;
+
+    r1 = constrain(thrustTarget + pitchTerm - rollTerm - yawTerm, 0, 100);
+    r2 = constrain(thrustTarget - pitchTerm - rollTerm + yawTerm, 0, 100);
+    r3 = constrain(thrustTarget + pitchTerm + rollTerm + yawTerm, 0, 100);
+    r4 = constrain(thrustTarget - pitchTerm + rollTerm - yawTerm, 0, 100);
+
+    previousIntegralYawError = integralYawError;
+    previousIntegralPitchError = integralPitchError;
+    previousIntegralRollError = integralRollError;
+    previousYawError = yawError;
   }
   else
   {
@@ -101,22 +83,24 @@ void Pid::processTick(int16_t pitch, int16_t roll)
 #endif
 }
 
-void Pid::setCoefficients(float proportionalCoefficient, float integralCoefficient, float derivativeCoefficient)
+void Pid::setCoefficients(float KpRoll, float KpPitch, float KpYaw, float KiRoll, float KiPitch, float KiYaw, float KdRoll, float KdPitch, float KdYaw, float iLimit)
 {
-  Kp = proportionalCoefficient;
-  Ki = integralCoefficient;
-  Kd = derivativeCoefficient;
+  KpR = KpRoll;
+  KiR = KiRoll;
+  KdR = KdRoll;
+  KpP = KpPitch;
+  KiP = KiPitch;
+  KdP = KdPitch;
+  KpY = KpYaw;
+  KiY = KiYaw;
+  KdY = KdYaw;
+  integratorLimit = iLimit;
 }
 
-void Pid::setTargets(int16_t pitch, int16_t roll, uint16_t thrust)
+void Pid::setTargets(int16_t yaw, int16_t pitch, int16_t roll, uint16_t thrust)
 {
+  yawTarget = yaw;
   pitchTarget = pitch;
-  rollTarget = roll;
+  rollTarget = roll; // imu is backwards I guess
   thrustTarget = thrust;
-}
-
-void Pid::setDerivatives(float rollDerivative, float pitchDerivative)
-{
-  derivativePitchError = pitchDerivative;
-  derivativeRollError = rollDerivative;
 }
