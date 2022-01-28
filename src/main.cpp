@@ -63,6 +63,10 @@ void loop()
   // Compute desired state
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
+  if (packet.thrust < 10)
+  {
+    commands = 125;
+  }
   esc.setSpeed(commands);
   // Regulate loop rate
   loopRate(2000); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default

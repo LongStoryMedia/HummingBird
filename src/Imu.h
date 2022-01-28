@@ -12,9 +12,6 @@ private:
 #endif
 #endif
 
-    // AccelGyro ag;
-    // AccelGyro agError;
-
 public:
     void calibrate();
     void init();

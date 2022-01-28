@@ -111,8 +111,8 @@
 #define KI_PITCH_RATE 0.2f    // Pitch I-gain - rate mode
 #define KD_PITCH_RATE 0.0002f // Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
 #define KP_YAW 0.08f          // Yaw P-gain
-#define KI_YAW 0.15f          // Yaw I-gain
-#define KD_YAW 0.00001f       // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+#define KI_YAW 0.2f           // Yaw I-gain
+#define KD_YAW 0.000025f      // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
 #define M1_PIN 4
 #define M2_PIN 2
@@ -158,14 +158,6 @@ typedef struct
 
 typedef struct
 {
-    int m1;
-    int m2;
-    int m3;
-    int m4;
-} Commands;
-
-typedef struct
-{
     float madgwick; // Madgwick filter parameter
     float accel;    // Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
     float gyro;     // Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
@@ -179,6 +171,21 @@ typedef struct
     float q2;
     float q3;
 } Quaternion;
+
+typedef struct
+{
+    int m1;
+    int m2;
+    int m3;
+    int m4;
+    void operator=(uint32_t c)
+    {
+        this->m1 = c;
+        this->m2 = c;
+        this->m3 = c;
+        this->m4 = c;
+    }
+} Commands;
 
 struct Timer
 {

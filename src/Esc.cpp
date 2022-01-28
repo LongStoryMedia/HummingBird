@@ -20,15 +20,6 @@ void Esc::setSpeed(Commands commands)
     digitalWrite(M4_PIN, HIGH);
     pulseStart = micros();
 
-    Serial.print(F("\tm1_command: "));
-    Serial.print(commands.m1);
-    Serial.print(F("\tm2_command: "));
-    Serial.print(commands.m2);
-    Serial.print(F("\tm3_command: "));
-    Serial.print(commands.m3);
-    Serial.print(F("\tm4_command: "));
-    Serial.println(commands.m4);
-
     // Write each motor pin low as correct pulse length is reached
     while (wentLow < 4)
     {
