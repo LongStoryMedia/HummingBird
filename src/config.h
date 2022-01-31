@@ -5,10 +5,6 @@
 //                                                 USER-SPECIFIED DEFINES                                                 //
 //========================================================================================================================//
 
-// Uncomment only one IMU
-#define USE_MPU6050_I2C // default
-//#define USE_MPU9250_SPI
-
 // Uncomment only one full scale gyro range (deg/sec)
 #define GYRO_250DPS // default
 //#define GYRO_500DPS
@@ -24,17 +20,26 @@
 //========================================================================================================================//
 
 #include <Arduino.h>
-#include <nRF24L01.h>
-#include <RF24.h>
 #include <Wire.h> //I2c communication
 #include <SPI.h>  //SPI communication
-#include "MPU6050/MPU6050.h"
+
+#include "nRF24L01.h"
+#include "RF24.h"
+#if IMU_MPU9250 == 1
+#include "MPU9250.h";
+#endif
+#if IMU_MPU6050 == 1
+#include "MPU6050.h"
+#endif
+#if IMU_LSM9DS1 == 1
+#include "LSM9DS1.h"
+#endif
 
 //========================================================================================================================//
 
 // Setup gyro and accel full scale value selection and scale factor
 
-#if defined USE_MPU6050_I2C
+#if defined IMU_MPU6050
 #define GYRO_FS_SEL_250 MPU6050_GYRO_FS_250
 #define GYRO_FS_SEL_500 MPU6050_GYRO_FS_500
 #define GYRO_FS_SEL_1000 MPU6050_GYRO_FS_1000
@@ -43,7 +48,7 @@
 #define ACCEL_FS_SEL_4 MPU6050_ACCEL_FS_4
 #define ACCEL_FS_SEL_8 MPU6050_ACCEL_FS_8
 #define ACCEL_FS_SEL_16 MPU6050_ACCEL_FS_16
-#elif defined USE_MPU9250_SPI
+#elif defined IMU_MPU9250
 #define GYRO_FS_SEL_250 mpu9250.GYRO_RANGE_250DPS
 #define GYRO_FS_SEL_500 mpu9250.GYRO_RANGE_500DPS
 #define GYRO_FS_SEL_1000 mpu9250.GYRO_RANGE_1000DPS
@@ -54,7 +59,10 @@
 #define ACCEL_FS_SEL_16 mpu9250.ACCEL_RANGE_16G
 #endif
 
-#if defined GYRO_250DPS
+#if defined IMU_LSM9DS1
+#define GYRO_SCALE GYRO_FS_SEL_250
+#define GYRO_SCALE_FACTOR 1
+#elif defined GYRO_250DPS
 #define GYRO_SCALE GYRO_FS_SEL_250
 #define GYRO_SCALE_FACTOR 131.0
 #elif defined GYRO_500DPS
@@ -68,7 +76,10 @@
 #define GYRO_SCALE_FACTOR 16.4
 #endif
 
-#if defined ACCEL_2G
+#if defined IMU_LSM9DS1
+#define ACCEL_SCALE ACCEL_FS_SEL_2
+#define ACCEL_SCALE_FACTOR 1
+#elif defined ACCEL_2G
 #define ACCEL_SCALE ACCEL_FS_SEL_2
 #define ACCEL_SCALE_FACTOR 16384.0
 #elif defined ACCEL_4G
@@ -84,9 +95,11 @@
 
 #ifdef ESP32
 #include <ESP32Servo.h>
-#else
+#elif defined TEENSY
 #include <PWMServo.h> //commanding any extra actuators, installed with teensyduino installer
 #define Servo PWMServo
+#else
+#include <Servo.h>
 #endif
 
 #define PID_MODE 0

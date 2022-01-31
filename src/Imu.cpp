@@ -2,7 +2,7 @@
 
 void Imu::init()
 {
-#if defined USE_MPU6050_I2C
+#if defined IMU_MPU6050
     Wire.begin();
     Wire.setClock(1000000); // Note this is 2.5 times the spec sheet 400 kHz max...
 
@@ -23,7 +23,7 @@ void Imu::init()
     mpu.setFullScaleGyroRange(GYRO_SCALE);
     mpu.setFullScaleAccelRange(ACCEL_SCALE);
 
-#elif defined USE_MPU9250_SPI
+#elif defined IMU_MPU9250
     int status = mpu.begin();
 
     if (status < 0)
@@ -47,15 +47,27 @@ void Imu::init()
     mpu.setMagCalZ(MagErrorZ, MagScaleZ);
     mpu.setSrd(0); // sets gyro and accel read to 1khz, magnetometer read to 100hz
 #endif
+#if defined IMU_LSM9DS1
+    mpu.begin();
+    mpu.setAccelFS(3);  // ± 2g
+    mpu.setGyroFS(4);   // ± 245 °/s
+    mpu.setMagnetFS(0); // ± 400 µT
+    float AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
+#else
     int16_t AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
-
+#endif
     // Read IMU values 12000 times
     int c = 0;
     while (c < 12000)
     {
-#if defined USE_MPU6050_I2C
+
+#if defined IMU_LSM9DS1
+        mpu.readAccel(AcX, AcY, AcZ); //  Accelerometer returns G Force (ms-2)
+        mpu.readGyro(GyX, GyY, GyZ);  //  Gyro rates are Degrees Per Second (DPS)
+        mpu.readMagnet(MgX, MgY, MgZ);
+#elif defined IMU_MPU6050
         mpu.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-#elif defined USE_MPU9250_SPI
+#elif defined IMU_MPU9250
         mpu.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
 #endif
 
@@ -87,7 +99,7 @@ void Imu::calibrate()
         Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
         loopRate(2000); // do not exceed 2000Hz
     }
-#if defined USE_MPU9250_SPI
+#if defined IMU_MPU9250
     float success;
     Serial.println("Beginning magnetometer calibration in");
     Serial.println("3...");
@@ -136,14 +148,19 @@ void Imu::calibrate()
 
 void Imu::getImu()
 {
+#if defined IMU_LSM9DS1
+    float AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
+    mpu.readAccel(AcX, AcY, AcZ); //  Accelerometer returns G Force (ms-2)
+    mpu.readGyro(GyX, GyY, GyZ);  //  Gyro rates are Degrees Per Second (DPS)
+    mpu.readMagnet(MgX, MgY, MgZ);
+#else
     int16_t AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
-
-#if defined USE_MPU6050_I2C
+#if defined IMU_MPU6050
     mpu.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-#elif defined USE_MPU9250_SPI
+#elif defined IMU_MPU9250
     mpu.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
 #endif
-
+#endif
     // Accelerometer
     ag.accel.roll = AcX / ACCEL_SCALE_FACTOR; // G's ex 700/16382=0.0427
     ag.accel.pitch = AcY / ACCEL_SCALE_FACTOR;
@@ -181,4 +198,16 @@ void Imu::getImu()
     ag.mag.pitch = (1.0 - filter.mag) * agPrev.mag.pitch + filter.mag * ag.mag.pitch;
     ag.mag.yaw = (1.0 - filter.mag) * agPrev.mag.yaw + filter.mag * ag.mag.yaw;
     agPrev.mag = ag.mag;
+    Serial.print("accRoll:");
+    Serial.print(ag.accel.roll);
+    Serial.print("\taccPitch:");
+    Serial.print(ag.accel.pitch);
+    Serial.print("\taccYaw:");
+    Serial.print(ag.accel.yaw);
+    Serial.print("\tgyroRoll:");
+    Serial.print(ag.gyro.roll);
+    Serial.print("\tgyroPitch:");
+    Serial.print(ag.gyro.pitch);
+    Serial.print("\tgyroYaw:");
+    Serial.println(ag.gyro.yaw);
 }

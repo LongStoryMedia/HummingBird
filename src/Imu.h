@@ -4,12 +4,12 @@
 class Imu
 {
 private:
-#if defined ACCGYROEXTERN
-#if IMU_MPU9250
+#if defined IMU_MPU9250
     MPU9250 mpu;
-#else
+#elif defined IMU_MPU6050
     MPU6050 mpu;
-#endif
+#elif defined IMU_LSM9DS1
+#define mpu IMU
 #endif
 
 public:

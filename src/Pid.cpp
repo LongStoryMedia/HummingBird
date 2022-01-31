@@ -285,5 +285,16 @@ Commands Pid::control(AccelGyro imu)
   commands.m2 = constrain(m2Scaled, 125, 250);
   commands.m3 = constrain(m3Scaled, 125, 250);
   commands.m4 = constrain(m4Scaled, 125, 250);
+  // if (timer.now > timer.prev + 2000)
+  // {
+  //   Serial.print("m1:");
+  //   Serial.print(commands.m1);
+  //   Serial.print("\tm2:");
+  //   Serial.print(commands.m2);
+  //   Serial.print("\tm3:");
+  //   Serial.print(commands.m3);
+  //   Serial.print("\tm4:");
+  //   Serial.println(commands.m4);
+  // }
   return commands;
 }

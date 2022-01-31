@@ -43,7 +43,8 @@ THE SOFTWARE.
  * @see MPU6050_ADDRESS_AD0_LOW
  * @see MPU6050_ADDRESS_AD0_HIGH
  */
-MPU6050::MPU6050(uint8_t address):devAddr(address) {
+MPU6050::MPU6050(uint8_t address) : devAddr(address)
+{
 }
 
 /** Power on and prepare for general usage.
@@ -53,7 +54,8 @@ MPU6050::MPU6050(uint8_t address):devAddr(address) {
  * the clock source to use the X Gyro for reference, which is slightly better than
  * the default internal clock source.
  */
-void MPU6050::initialize() {
+void MPU6050::initialize()
+{
     setClockSource(MPU6050_CLOCK_PLL_XGYRO);
     setFullScaleGyroRange(MPU6050_GYRO_FS_250);
     setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
@@ -64,7 +66,8 @@ void MPU6050::initialize() {
  * Make sure the device is connected and responds as expected.
  * @return True if connection is valid, false otherwise
  */
-bool MPU6050::testConnection() {
+bool MPU6050::testConnection()
+{
     return getDeviceID() == 0x34;
 }
 
@@ -76,7 +79,8 @@ bool MPU6050::testConnection() {
  * the MPU-6000, which does not have a VLOGIC pin.
  * @return I2C supply voltage level (0=VLOGIC, 1=VDD)
  */
-uint8_t MPU6050::getAuxVDDIOLevel() {
+uint8_t MPU6050::getAuxVDDIOLevel()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT, buffer);
     return buffer[0];
 }
@@ -86,7 +90,8 @@ uint8_t MPU6050::getAuxVDDIOLevel() {
  * the MPU-6000, which does not have a VLOGIC pin.
  * @param level I2C supply voltage level (0=VLOGIC, 1=VDD)
  */
-void MPU6050::setAuxVDDIOLevel(uint8_t level) {
+void MPU6050::setAuxVDDIOLevel(uint8_t level)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_PWR_MODE_BIT, level);
 }
 
@@ -113,7 +118,8 @@ void MPU6050::setAuxVDDIOLevel(uint8_t level) {
  * @return Current sample rate
  * @see MPU6050_RA_SMPLRT_DIV
  */
-uint8_t MPU6050::getRate() {
+uint8_t MPU6050::getRate()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_SMPLRT_DIV, buffer);
     return buffer[0];
 }
@@ -122,7 +128,8 @@ uint8_t MPU6050::getRate() {
  * @see getRate()
  * @see MPU6050_RA_SMPLRT_DIV
  */
-void MPU6050::setRate(uint8_t rate) {
+void MPU6050::setRate(uint8_t rate)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_SMPLRT_DIV, rate);
 }
 
@@ -155,7 +162,8 @@ void MPU6050::setRate(uint8_t rate) {
  *
  * @return FSYNC configuration value
  */
-uint8_t MPU6050::getExternalFrameSync() {
+uint8_t MPU6050::getExternalFrameSync()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_EXT_SYNC_SET_BIT, MPU6050_CFG_EXT_SYNC_SET_LENGTH, buffer);
     return buffer[0];
 }
@@ -164,7 +172,8 @@ uint8_t MPU6050::getExternalFrameSync() {
  * @see MPU6050_RA_CONFIG
  * @param sync New FSYNC configuration value
  */
-void MPU6050::setExternalFrameSync(uint8_t sync) {
+void MPU6050::setExternalFrameSync(uint8_t sync)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_EXT_SYNC_SET_BIT, MPU6050_CFG_EXT_SYNC_SET_LENGTH, sync);
 }
 /** Get digital low-pass filter configuration.
@@ -195,7 +204,8 @@ void MPU6050::setExternalFrameSync(uint8_t sync) {
  * @see MPU6050_CFG_DLPF_CFG_BIT
  * @see MPU6050_CFG_DLPF_CFG_LENGTH
  */
-uint8_t MPU6050::getDLPFMode() {
+uint8_t MPU6050::getDLPFMode()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_DLPF_CFG_BIT, MPU6050_CFG_DLPF_CFG_LENGTH, buffer);
     return buffer[0];
 }
@@ -207,7 +217,8 @@ uint8_t MPU6050::getDLPFMode() {
  * @see MPU6050_CFG_DLPF_CFG_BIT
  * @see MPU6050_CFG_DLPF_CFG_LENGTH
  */
-void MPU6050::setDLPFMode(uint8_t mode) {
+void MPU6050::setDLPFMode(uint8_t mode)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_CONFIG, MPU6050_CFG_DLPF_CFG_BIT, MPU6050_CFG_DLPF_CFG_LENGTH, mode);
 }
 
@@ -230,7 +241,8 @@ void MPU6050::setDLPFMode(uint8_t mode) {
  * @see MPU6050_GCONFIG_FS_SEL_BIT
  * @see MPU6050_GCONFIG_FS_SEL_LENGTH
  */
-uint8_t MPU6050::getFullScaleGyroRange() {
+uint8_t MPU6050::getFullScaleGyroRange()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, buffer);
     return buffer[0];
 }
@@ -242,7 +254,8 @@ uint8_t MPU6050::getFullScaleGyroRange() {
  * @see MPU6050_GCONFIG_FS_SEL_BIT
  * @see MPU6050_GCONFIG_FS_SEL_LENGTH
  */
-void MPU6050::setFullScaleGyroRange(uint8_t range) {
+void MPU6050::setFullScaleGyroRange(uint8_t range)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_GYRO_CONFIG, MPU6050_GCONFIG_FS_SEL_BIT, MPU6050_GCONFIG_FS_SEL_LENGTH, range);
 }
 
@@ -252,37 +265,41 @@ void MPU6050::setFullScaleGyroRange(uint8_t range) {
  * @return factory trim value
  * @see MPU6050_RA_SELF_TEST_X
  */
-uint8_t MPU6050::getAccelXSelfTestFactoryTrim() {
+uint8_t MPU6050::getAccelXSelfTestFactoryTrim()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_X, &buffer[0]);
-	I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_A, &buffer[1]);	
-    return (buffer[0]>>3) | ((buffer[1]>>4) & 0x03);
+    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_A, &buffer[1]);
+    return (buffer[0] >> 3) | ((buffer[1] >> 4) & 0x03);
 }
 
 /** Get self-test factory trim value for accelerometer Y axis.
  * @return factory trim value
  * @see MPU6050_RA_SELF_TEST_Y
  */
-uint8_t MPU6050::getAccelYSelfTestFactoryTrim() {
+uint8_t MPU6050::getAccelYSelfTestFactoryTrim()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_Y, &buffer[0]);
-	I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_A, &buffer[1]);	
-    return (buffer[0]>>3) | ((buffer[1]>>2) & 0x03);
+    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_A, &buffer[1]);
+    return (buffer[0] >> 3) | ((buffer[1] >> 2) & 0x03);
 }
 
 /** Get self-test factory trim value for accelerometer Z axis.
  * @return factory trim value
  * @see MPU6050_RA_SELF_TEST_Z
  */
-uint8_t MPU6050::getAccelZSelfTestFactoryTrim() {
-    I2Cdev::readBytes(devAddr, MPU6050_RA_SELF_TEST_Z, 2, buffer);	
-    return (buffer[0]>>3) | (buffer[1] & 0x03);
+uint8_t MPU6050::getAccelZSelfTestFactoryTrim()
+{
+    I2Cdev::readBytes(devAddr, MPU6050_RA_SELF_TEST_Z, 2, buffer);
+    return (buffer[0] >> 3) | (buffer[1] & 0x03);
 }
 
 /** Get self-test factory trim value for gyro X axis.
  * @return factory trim value
  * @see MPU6050_RA_SELF_TEST_X
  */
-uint8_t MPU6050::getGyroXSelfTestFactoryTrim() {
-    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_X, buffer);	
+uint8_t MPU6050::getGyroXSelfTestFactoryTrim()
+{
+    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_X, buffer);
     return (buffer[0] & 0x1F);
 }
 
@@ -290,8 +307,9 @@ uint8_t MPU6050::getGyroXSelfTestFactoryTrim() {
  * @return factory trim value
  * @see MPU6050_RA_SELF_TEST_Y
  */
-uint8_t MPU6050::getGyroYSelfTestFactoryTrim() {
-    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_Y, buffer);	
+uint8_t MPU6050::getGyroYSelfTestFactoryTrim()
+{
+    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_Y, buffer);
     return (buffer[0] & 0x1F);
 }
 
@@ -299,8 +317,9 @@ uint8_t MPU6050::getGyroYSelfTestFactoryTrim() {
  * @return factory trim value
  * @see MPU6050_RA_SELF_TEST_Z
  */
-uint8_t MPU6050::getGyroZSelfTestFactoryTrim() {
-    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_Z, buffer);	
+uint8_t MPU6050::getGyroZSelfTestFactoryTrim()
+{
+    I2Cdev::readByte(devAddr, MPU6050_RA_SELF_TEST_Z, buffer);
     return (buffer[0] & 0x1F);
 }
 
@@ -310,7 +329,8 @@ uint8_t MPU6050::getGyroZSelfTestFactoryTrim() {
  * @return Self-test enabled value
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-bool MPU6050::getAccelXSelfTest() {
+bool MPU6050::getAccelXSelfTest()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_XA_ST_BIT, buffer);
     return buffer[0];
 }
@@ -318,14 +338,16 @@ bool MPU6050::getAccelXSelfTest() {
  * @param enabled Self-test enabled value
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-void MPU6050::setAccelXSelfTest(bool enabled) {
+void MPU6050::setAccelXSelfTest(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_XA_ST_BIT, enabled);
 }
 /** Get self-test enabled value for accelerometer Y axis.
  * @return Self-test enabled value
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-bool MPU6050::getAccelYSelfTest() {
+bool MPU6050::getAccelYSelfTest()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_YA_ST_BIT, buffer);
     return buffer[0];
 }
@@ -333,14 +355,16 @@ bool MPU6050::getAccelYSelfTest() {
  * @param enabled Self-test enabled value
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-void MPU6050::setAccelYSelfTest(bool enabled) {
+void MPU6050::setAccelYSelfTest(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_YA_ST_BIT, enabled);
 }
 /** Get self-test enabled value for accelerometer Z axis.
  * @return Self-test enabled value
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-bool MPU6050::getAccelZSelfTest() {
+bool MPU6050::getAccelZSelfTest()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_ZA_ST_BIT, buffer);
     return buffer[0];
 }
@@ -348,7 +372,8 @@ bool MPU6050::getAccelZSelfTest() {
  * @param enabled Self-test enabled value
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-void MPU6050::setAccelZSelfTest(bool enabled) {
+void MPU6050::setAccelZSelfTest(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_ZA_ST_BIT, enabled);
 }
 /** Get full-scale accelerometer range.
@@ -368,7 +393,8 @@ void MPU6050::setAccelZSelfTest(bool enabled) {
  * @see MPU6050_ACONFIG_AFS_SEL_BIT
  * @see MPU6050_ACONFIG_AFS_SEL_LENGTH
  */
-uint8_t MPU6050::getFullScaleAccelRange() {
+uint8_t MPU6050::getFullScaleAccelRange()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, buffer);
     return buffer[0];
 }
@@ -376,7 +402,8 @@ uint8_t MPU6050::getFullScaleAccelRange() {
  * @param range New full-scale accelerometer range setting
  * @see getFullScaleAccelRange()
  */
-void MPU6050::setFullScaleAccelRange(uint8_t range) {
+void MPU6050::setFullScaleAccelRange(uint8_t range)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_AFS_SEL_BIT, MPU6050_ACONFIG_AFS_SEL_LENGTH, range);
 }
 /** Get the high-pass filter configuration.
@@ -414,7 +441,8 @@ void MPU6050::setFullScaleAccelRange(uint8_t range) {
  * @see MPU6050_DHPF_RESET
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-uint8_t MPU6050::getDHPFMode() {
+uint8_t MPU6050::getDHPFMode()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_ACCEL_HPF_BIT, MPU6050_ACONFIG_ACCEL_HPF_LENGTH, buffer);
     return buffer[0];
 }
@@ -424,7 +452,8 @@ uint8_t MPU6050::getDHPFMode() {
  * @see MPU6050_DHPF_RESET
  * @see MPU6050_RA_ACCEL_CONFIG
  */
-void MPU6050::setDHPFMode(uint8_t bandwidth) {
+void MPU6050::setDHPFMode(uint8_t bandwidth)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_ACCEL_CONFIG, MPU6050_ACONFIG_ACCEL_HPF_BIT, MPU6050_ACONFIG_ACCEL_HPF_LENGTH, bandwidth);
 }
 
@@ -445,7 +474,8 @@ void MPU6050::setDHPFMode(uint8_t bandwidth) {
  * @return Current free-fall acceleration threshold value (LSB = 2mg)
  * @see MPU6050_RA_FF_THR
  */
-uint8_t MPU6050::getFreefallDetectionThreshold() {
+uint8_t MPU6050::getFreefallDetectionThreshold()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_FF_THR, buffer);
     return buffer[0];
 }
@@ -454,7 +484,8 @@ uint8_t MPU6050::getFreefallDetectionThreshold() {
  * @see getFreefallDetectionThreshold()
  * @see MPU6050_RA_FF_THR
  */
-void MPU6050::setFreefallDetectionThreshold(uint8_t threshold) {
+void MPU6050::setFreefallDetectionThreshold(uint8_t threshold)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_FF_THR, threshold);
 }
 
@@ -477,7 +508,8 @@ void MPU6050::setFreefallDetectionThreshold(uint8_t threshold) {
  * @return Current free-fall duration threshold value (LSB = 1ms)
  * @see MPU6050_RA_FF_DUR
  */
-uint8_t MPU6050::getFreefallDetectionDuration() {
+uint8_t MPU6050::getFreefallDetectionDuration()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_FF_DUR, buffer);
     return buffer[0];
 }
@@ -486,7 +518,8 @@ uint8_t MPU6050::getFreefallDetectionDuration() {
  * @see getFreefallDetectionDuration()
  * @see MPU6050_RA_FF_DUR
  */
-void MPU6050::setFreefallDetectionDuration(uint8_t duration) {
+void MPU6050::setFreefallDetectionDuration(uint8_t duration)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_FF_DUR, duration);
 }
 
@@ -511,7 +544,8 @@ void MPU6050::setFreefallDetectionDuration(uint8_t duration) {
  * @return Current motion detection acceleration threshold value (LSB = 2mg)
  * @see MPU6050_RA_MOT_THR
  */
-uint8_t MPU6050::getMotionDetectionThreshold() {
+uint8_t MPU6050::getMotionDetectionThreshold()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_MOT_THR, buffer);
     return buffer[0];
 }
@@ -520,7 +554,8 @@ uint8_t MPU6050::getMotionDetectionThreshold() {
  * @see getMotionDetectionThreshold()
  * @see MPU6050_RA_MOT_THR
  */
-void MPU6050::setMotionDetectionThreshold(uint8_t threshold) {
+void MPU6050::setMotionDetectionThreshold(uint8_t threshold)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_MOT_THR, threshold);
 }
 
@@ -541,7 +576,8 @@ void MPU6050::setMotionDetectionThreshold(uint8_t threshold) {
  * @return Current motion detection duration threshold value (LSB = 1ms)
  * @see MPU6050_RA_MOT_DUR
  */
-uint8_t MPU6050::getMotionDetectionDuration() {
+uint8_t MPU6050::getMotionDetectionDuration()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_MOT_DUR, buffer);
     return buffer[0];
 }
@@ -550,7 +586,8 @@ uint8_t MPU6050::getMotionDetectionDuration() {
  * @see getMotionDetectionDuration()
  * @see MPU6050_RA_MOT_DUR
  */
-void MPU6050::setMotionDetectionDuration(uint8_t duration) {
+void MPU6050::setMotionDetectionDuration(uint8_t duration)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_MOT_DUR, duration);
 }
 
@@ -581,7 +618,8 @@ void MPU6050::setMotionDetectionDuration(uint8_t duration) {
  * @return Current zero motion detection acceleration threshold value (LSB = 2mg)
  * @see MPU6050_RA_ZRMOT_THR
  */
-uint8_t MPU6050::getZeroMotionDetectionThreshold() {
+uint8_t MPU6050::getZeroMotionDetectionThreshold()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_ZRMOT_THR, buffer);
     return buffer[0];
 }
@@ -590,7 +628,8 @@ uint8_t MPU6050::getZeroMotionDetectionThreshold() {
  * @see getZeroMotionDetectionThreshold()
  * @see MPU6050_RA_ZRMOT_THR
  */
-void MPU6050::setZeroMotionDetectionThreshold(uint8_t threshold) {
+void MPU6050::setZeroMotionDetectionThreshold(uint8_t threshold)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_ZRMOT_THR, threshold);
 }
 
@@ -612,7 +651,8 @@ void MPU6050::setZeroMotionDetectionThreshold(uint8_t threshold) {
  * @return Current zero motion detection duration threshold value (LSB = 64ms)
  * @see MPU6050_RA_ZRMOT_DUR
  */
-uint8_t MPU6050::getZeroMotionDetectionDuration() {
+uint8_t MPU6050::getZeroMotionDetectionDuration()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_ZRMOT_DUR, buffer);
     return buffer[0];
 }
@@ -621,7 +661,8 @@ uint8_t MPU6050::getZeroMotionDetectionDuration() {
  * @see getZeroMotionDetectionDuration()
  * @see MPU6050_RA_ZRMOT_DUR
  */
-void MPU6050::setZeroMotionDetectionDuration(uint8_t duration) {
+void MPU6050::setZeroMotionDetectionDuration(uint8_t duration)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_ZRMOT_DUR, duration);
 }
 
@@ -633,7 +674,8 @@ void MPU6050::setZeroMotionDetectionDuration(uint8_t duration) {
  * @return Current temperature FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getTempFIFOEnabled() {
+bool MPU6050::getTempFIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_TEMP_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -642,7 +684,8 @@ bool MPU6050::getTempFIFOEnabled() {
  * @see getTempFIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setTempFIFOEnabled(bool enabled) {
+void MPU6050::setTempFIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_TEMP_FIFO_EN_BIT, enabled);
 }
 /** Get gyroscope X-axis FIFO enabled value.
@@ -651,7 +694,8 @@ void MPU6050::setTempFIFOEnabled(bool enabled) {
  * @return Current gyroscope X-axis FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getXGyroFIFOEnabled() {
+bool MPU6050::getXGyroFIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_XG_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -660,7 +704,8 @@ bool MPU6050::getXGyroFIFOEnabled() {
  * @see getXGyroFIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setXGyroFIFOEnabled(bool enabled) {
+void MPU6050::setXGyroFIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_XG_FIFO_EN_BIT, enabled);
 }
 /** Get gyroscope Y-axis FIFO enabled value.
@@ -669,7 +714,8 @@ void MPU6050::setXGyroFIFOEnabled(bool enabled) {
  * @return Current gyroscope Y-axis FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getYGyroFIFOEnabled() {
+bool MPU6050::getYGyroFIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_YG_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -678,7 +724,8 @@ bool MPU6050::getYGyroFIFOEnabled() {
  * @see getYGyroFIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setYGyroFIFOEnabled(bool enabled) {
+void MPU6050::setYGyroFIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_YG_FIFO_EN_BIT, enabled);
 }
 /** Get gyroscope Z-axis FIFO enabled value.
@@ -687,7 +734,8 @@ void MPU6050::setYGyroFIFOEnabled(bool enabled) {
  * @return Current gyroscope Z-axis FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getZGyroFIFOEnabled() {
+bool MPU6050::getZGyroFIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_ZG_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -696,7 +744,8 @@ bool MPU6050::getZGyroFIFOEnabled() {
  * @see getZGyroFIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setZGyroFIFOEnabled(bool enabled) {
+void MPU6050::setZGyroFIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_ZG_FIFO_EN_BIT, enabled);
 }
 /** Get accelerometer FIFO enabled value.
@@ -706,7 +755,8 @@ void MPU6050::setZGyroFIFOEnabled(bool enabled) {
  * @return Current accelerometer FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getAccelFIFOEnabled() {
+bool MPU6050::getAccelFIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_ACCEL_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -715,7 +765,8 @@ bool MPU6050::getAccelFIFOEnabled() {
  * @see getAccelFIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setAccelFIFOEnabled(bool enabled) {
+void MPU6050::setAccelFIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_ACCEL_FIFO_EN_BIT, enabled);
 }
 /** Get Slave 2 FIFO enabled value.
@@ -724,7 +775,8 @@ void MPU6050::setAccelFIFOEnabled(bool enabled) {
  * @return Current Slave 2 FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getSlave2FIFOEnabled() {
+bool MPU6050::getSlave2FIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_SLV2_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -733,7 +785,8 @@ bool MPU6050::getSlave2FIFOEnabled() {
  * @see getSlave2FIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setSlave2FIFOEnabled(bool enabled) {
+void MPU6050::setSlave2FIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_SLV2_FIFO_EN_BIT, enabled);
 }
 /** Get Slave 1 FIFO enabled value.
@@ -742,7 +795,8 @@ void MPU6050::setSlave2FIFOEnabled(bool enabled) {
  * @return Current Slave 1 FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getSlave1FIFOEnabled() {
+bool MPU6050::getSlave1FIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_SLV1_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -751,7 +805,8 @@ bool MPU6050::getSlave1FIFOEnabled() {
  * @see getSlave1FIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setSlave1FIFOEnabled(bool enabled) {
+void MPU6050::setSlave1FIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_SLV1_FIFO_EN_BIT, enabled);
 }
 /** Get Slave 0 FIFO enabled value.
@@ -760,7 +815,8 @@ void MPU6050::setSlave1FIFOEnabled(bool enabled) {
  * @return Current Slave 0 FIFO enabled value
  * @see MPU6050_RA_FIFO_EN
  */
-bool MPU6050::getSlave0FIFOEnabled() {
+bool MPU6050::getSlave0FIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_SLV0_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -769,7 +825,8 @@ bool MPU6050::getSlave0FIFOEnabled() {
  * @see getSlave0FIFOEnabled()
  * @see MPU6050_RA_FIFO_EN
  */
-void MPU6050::setSlave0FIFOEnabled(bool enabled) {
+void MPU6050::setSlave0FIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_FIFO_EN, MPU6050_SLV0_FIFO_EN_BIT, enabled);
 }
 
@@ -790,7 +847,8 @@ void MPU6050::setSlave0FIFOEnabled(bool enabled) {
  * @return Current multi-master enabled value
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-bool MPU6050::getMultiMasterEnabled() {
+bool MPU6050::getMultiMasterEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_MULT_MST_EN_BIT, buffer);
     return buffer[0];
 }
@@ -799,7 +857,8 @@ bool MPU6050::getMultiMasterEnabled() {
  * @see getMultiMasterEnabled()
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-void MPU6050::setMultiMasterEnabled(bool enabled) {
+void MPU6050::setMultiMasterEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_MULT_MST_EN_BIT, enabled);
 }
 /** Get wait-for-external-sensor-data enabled value.
@@ -813,7 +872,8 @@ void MPU6050::setMultiMasterEnabled(bool enabled) {
  * @return Current wait-for-external-sensor-data enabled value
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-bool MPU6050::getWaitForExternalSensorEnabled() {
+bool MPU6050::getWaitForExternalSensorEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_WAIT_FOR_ES_BIT, buffer);
     return buffer[0];
 }
@@ -822,7 +882,8 @@ bool MPU6050::getWaitForExternalSensorEnabled() {
  * @see getWaitForExternalSensorEnabled()
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-void MPU6050::setWaitForExternalSensorEnabled(bool enabled) {
+void MPU6050::setWaitForExternalSensorEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_WAIT_FOR_ES_BIT, enabled);
 }
 /** Get Slave 3 FIFO enabled value.
@@ -831,7 +892,8 @@ void MPU6050::setWaitForExternalSensorEnabled(bool enabled) {
  * @return Current Slave 3 FIFO enabled value
  * @see MPU6050_RA_MST_CTRL
  */
-bool MPU6050::getSlave3FIFOEnabled() {
+bool MPU6050::getSlave3FIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_SLV_3_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -840,7 +902,8 @@ bool MPU6050::getSlave3FIFOEnabled() {
  * @see getSlave3FIFOEnabled()
  * @see MPU6050_RA_MST_CTRL
  */
-void MPU6050::setSlave3FIFOEnabled(bool enabled) {
+void MPU6050::setSlave3FIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_SLV_3_FIFO_EN_BIT, enabled);
 }
 /** Get slave read/write transition enabled value.
@@ -853,7 +916,8 @@ void MPU6050::setSlave3FIFOEnabled(bool enabled) {
  * @return Current slave read/write transition enabled value
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-bool MPU6050::getSlaveReadWriteTransitionEnabled() {
+bool MPU6050::getSlaveReadWriteTransitionEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_I2C_MST_P_NSR_BIT, buffer);
     return buffer[0];
 }
@@ -862,7 +926,8 @@ bool MPU6050::getSlaveReadWriteTransitionEnabled() {
  * @see getSlaveReadWriteTransitionEnabled()
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-void MPU6050::setSlaveReadWriteTransitionEnabled(bool enabled) {
+void MPU6050::setSlaveReadWriteTransitionEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_I2C_MST_P_NSR_BIT, enabled);
 }
 /** Get I2C master clock speed.
@@ -894,7 +959,8 @@ void MPU6050::setSlaveReadWriteTransitionEnabled(bool enabled) {
  * @return Current I2C master clock speed
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-uint8_t MPU6050::getMasterClockSpeed() {
+uint8_t MPU6050::getMasterClockSpeed()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_I2C_MST_CLK_BIT, MPU6050_I2C_MST_CLK_LENGTH, buffer);
     return buffer[0];
 }
@@ -902,7 +968,8 @@ uint8_t MPU6050::getMasterClockSpeed() {
  * @reparam speed Current I2C master clock speed
  * @see MPU6050_RA_I2C_MST_CTRL
  */
-void MPU6050::setMasterClockSpeed(uint8_t speed) {
+void MPU6050::setMasterClockSpeed(uint8_t speed)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_I2C_MST_CTRL, MPU6050_I2C_MST_CLK_BIT, MPU6050_I2C_MST_CLK_LENGTH, speed);
 }
 
@@ -913,7 +980,7 @@ void MPU6050::setMasterClockSpeed(uint8_t speed) {
  * operation, and if it is cleared, then it's a write operation. The remaining
  * bits (6-0) are the 7-bit device address of the slave device.
  *
- * In read mode, the result of the read is placed in the lowest available 
+ * In read mode, the result of the read is placed in the lowest available
  * EXT_SENS_DATA register. For further information regarding the allocation of
  * read results, please refer to the EXT_SENS_DATA register description
  * (Registers 73 - 96).
@@ -949,9 +1016,11 @@ void MPU6050::setMasterClockSpeed(uint8_t speed) {
  * @return Current address for specified slave
  * @see MPU6050_RA_I2C_SLV0_ADDR
  */
-uint8_t MPU6050::getSlaveAddress(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV0_ADDR + num*3, buffer);
+uint8_t MPU6050::getSlaveAddress(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV0_ADDR + num * 3, buffer);
     return buffer[0];
 }
 /** Set the I2C address of the specified slave (0-3).
@@ -960,9 +1029,11 @@ uint8_t MPU6050::getSlaveAddress(uint8_t num) {
  * @see getSlaveAddress()
  * @see MPU6050_RA_I2C_SLV0_ADDR
  */
-void MPU6050::setSlaveAddress(uint8_t num, uint8_t address) {
-    if (num > 3) return;
-    I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV0_ADDR + num*3, address);
+void MPU6050::setSlaveAddress(uint8_t num, uint8_t address)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV0_ADDR + num * 3, address);
 }
 /** Get the active internal register for the specified slave (0-3).
  * Read/write operations for this slave will be done to whatever internal
@@ -975,9 +1046,11 @@ void MPU6050::setSlaveAddress(uint8_t num, uint8_t address) {
  * @return Current active register for specified slave
  * @see MPU6050_RA_I2C_SLV0_REG
  */
-uint8_t MPU6050::getSlaveRegister(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV0_REG + num*3, buffer);
+uint8_t MPU6050::getSlaveRegister(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV0_REG + num * 3, buffer);
     return buffer[0];
 }
 /** Set the active internal register for the specified slave (0-3).
@@ -986,9 +1059,11 @@ uint8_t MPU6050::getSlaveRegister(uint8_t num) {
  * @see getSlaveRegister()
  * @see MPU6050_RA_I2C_SLV0_REG
  */
-void MPU6050::setSlaveRegister(uint8_t num, uint8_t reg) {
-    if (num > 3) return;
-    I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV0_REG + num*3, reg);
+void MPU6050::setSlaveRegister(uint8_t num, uint8_t reg)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV0_REG + num * 3, reg);
 }
 /** Get the enabled value for the specified slave (0-3).
  * When set to 1, this bit enables Slave 0 for data transfer operations. When
@@ -997,9 +1072,11 @@ void MPU6050::setSlaveRegister(uint8_t num, uint8_t reg) {
  * @return Current enabled value for specified slave
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-bool MPU6050::getSlaveEnabled(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_EN_BIT, buffer);
+bool MPU6050::getSlaveEnabled(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_EN_BIT, buffer);
     return buffer[0];
 }
 /** Set the enabled value for the specified slave (0-3).
@@ -1008,9 +1085,11 @@ bool MPU6050::getSlaveEnabled(uint8_t num) {
  * @see getSlaveEnabled()
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-void MPU6050::setSlaveEnabled(uint8_t num, bool enabled) {
-    if (num > 3) return;
-    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_EN_BIT, enabled);
+void MPU6050::setSlaveEnabled(uint8_t num, bool enabled)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_EN_BIT, enabled);
 }
 /** Get word pair byte-swapping enabled for the specified slave (0-3).
  * When set to 1, this bit enables byte swapping. When byte swapping is enabled,
@@ -1023,9 +1102,11 @@ void MPU6050::setSlaveEnabled(uint8_t num, bool enabled) {
  * @return Current word pair byte-swapping enabled value for specified slave
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-bool MPU6050::getSlaveWordByteSwap(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_BYTE_SW_BIT, buffer);
+bool MPU6050::getSlaveWordByteSwap(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_BYTE_SW_BIT, buffer);
     return buffer[0];
 }
 /** Set word pair byte-swapping enabled for the specified slave (0-3).
@@ -1034,9 +1115,11 @@ bool MPU6050::getSlaveWordByteSwap(uint8_t num) {
  * @see getSlaveWordByteSwap()
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-void MPU6050::setSlaveWordByteSwap(uint8_t num, bool enabled) {
-    if (num > 3) return;
-    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_BYTE_SW_BIT, enabled);
+void MPU6050::setSlaveWordByteSwap(uint8_t num, bool enabled)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_BYTE_SW_BIT, enabled);
 }
 /** Get write mode for the specified slave (0-3).
  * When set to 1, the transaction will read or write data only. When cleared to
@@ -1048,9 +1131,11 @@ void MPU6050::setSlaveWordByteSwap(uint8_t num, bool enabled) {
  * @return Current write mode for specified slave (0 = register address + data, 1 = data only)
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-bool MPU6050::getSlaveWriteMode(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_REG_DIS_BIT, buffer);
+bool MPU6050::getSlaveWriteMode(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_REG_DIS_BIT, buffer);
     return buffer[0];
 }
 /** Set write mode for the specified slave (0-3).
@@ -1059,9 +1144,11 @@ bool MPU6050::getSlaveWriteMode(uint8_t num) {
  * @see getSlaveWriteMode()
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-void MPU6050::setSlaveWriteMode(uint8_t num, bool mode) {
-    if (num > 3) return;
-    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_REG_DIS_BIT, mode);
+void MPU6050::setSlaveWriteMode(uint8_t num, bool mode)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_REG_DIS_BIT, mode);
 }
 /** Get word pair grouping order offset for the specified slave (0-3).
  * This sets specifies the grouping order of word pairs received from registers.
@@ -1074,9 +1161,11 @@ void MPU6050::setSlaveWriteMode(uint8_t num, bool mode) {
  * @return Current word pair grouping order offset for specified slave
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-bool MPU6050::getSlaveWordGroupOffset(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_GRP_BIT, buffer);
+bool MPU6050::getSlaveWordGroupOffset(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_GRP_BIT, buffer);
     return buffer[0];
 }
 /** Set word pair grouping order offset for the specified slave (0-3).
@@ -1085,9 +1174,11 @@ bool MPU6050::getSlaveWordGroupOffset(uint8_t num) {
  * @see getSlaveWordGroupOffset()
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-void MPU6050::setSlaveWordGroupOffset(uint8_t num, bool enabled) {
-    if (num > 3) return;
-    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_GRP_BIT, enabled);
+void MPU6050::setSlaveWordGroupOffset(uint8_t num, bool enabled)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_GRP_BIT, enabled);
 }
 /** Get number of bytes to read for the specified slave (0-3).
  * Specifies the number of bytes transferred to and from Slave 0. Clearing this
@@ -1096,9 +1187,11 @@ void MPU6050::setSlaveWordGroupOffset(uint8_t num, bool enabled) {
  * @return Number of bytes to read for specified slave
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-uint8_t MPU6050::getSlaveDataLength(uint8_t num) {
-    if (num > 3) return 0;
-    I2Cdev::readBits(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_LEN_BIT, MPU6050_I2C_SLV_LEN_LENGTH, buffer);
+uint8_t MPU6050::getSlaveDataLength(uint8_t num)
+{
+    if (num > 3)
+        return 0;
+    I2Cdev::readBits(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_LEN_BIT, MPU6050_I2C_SLV_LEN_LENGTH, buffer);
     return buffer[0];
 }
 /** Set number of bytes to read for the specified slave (0-3).
@@ -1107,9 +1200,11 @@ uint8_t MPU6050::getSlaveDataLength(uint8_t num) {
  * @see getSlaveDataLength()
  * @see MPU6050_RA_I2C_SLV0_CTRL
  */
-void MPU6050::setSlaveDataLength(uint8_t num, uint8_t length) {
-    if (num > 3) return;
-    I2Cdev::writeBits(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num*3, MPU6050_I2C_SLV_LEN_BIT, MPU6050_I2C_SLV_LEN_LENGTH, length);
+void MPU6050::setSlaveDataLength(uint8_t num, uint8_t length)
+{
+    if (num > 3)
+        return;
+    I2Cdev::writeBits(devAddr, MPU6050_RA_I2C_SLV0_CTRL + num * 3, MPU6050_I2C_SLV_LEN_BIT, MPU6050_I2C_SLV_LEN_LENGTH, length);
 }
 
 // I2C_SLV* registers (Slave 4)
@@ -1123,7 +1218,8 @@ void MPU6050::setSlaveDataLength(uint8_t num, uint8_t length) {
  * @see getSlaveAddress()
  * @see MPU6050_RA_I2C_SLV4_ADDR
  */
-uint8_t MPU6050::getSlave4Address() {
+uint8_t MPU6050::getSlave4Address()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV4_ADDR, buffer);
     return buffer[0];
 }
@@ -1132,7 +1228,8 @@ uint8_t MPU6050::getSlave4Address() {
  * @see getSlave4Address()
  * @see MPU6050_RA_I2C_SLV4_ADDR
  */
-void MPU6050::setSlave4Address(uint8_t address) {
+void MPU6050::setSlave4Address(uint8_t address)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV4_ADDR, address);
 }
 /** Get the active internal register for the Slave 4.
@@ -1142,7 +1239,8 @@ void MPU6050::setSlave4Address(uint8_t address) {
  * @return Current active register for Slave 4
  * @see MPU6050_RA_I2C_SLV4_REG
  */
-uint8_t MPU6050::getSlave4Register() {
+uint8_t MPU6050::getSlave4Register()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV4_REG, buffer);
     return buffer[0];
 }
@@ -1151,7 +1249,8 @@ uint8_t MPU6050::getSlave4Register() {
  * @see getSlave4Register()
  * @see MPU6050_RA_I2C_SLV4_REG
  */
-void MPU6050::setSlave4Register(uint8_t reg) {
+void MPU6050::setSlave4Register(uint8_t reg)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV4_REG, reg);
 }
 /** Set new byte to write to Slave 4.
@@ -1160,7 +1259,8 @@ void MPU6050::setSlave4Register(uint8_t reg) {
  * @param data New byte to write to Slave 4
  * @see MPU6050_RA_I2C_SLV4_DO
  */
-void MPU6050::setSlave4OutputByte(uint8_t data) {
+void MPU6050::setSlave4OutputByte(uint8_t data)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV4_DO, data);
 }
 /** Get the enabled value for the Slave 4.
@@ -1169,7 +1269,8 @@ void MPU6050::setSlave4OutputByte(uint8_t data) {
  * @return Current enabled value for Slave 4
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-bool MPU6050::getSlave4Enabled() {
+bool MPU6050::getSlave4Enabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_EN_BIT, buffer);
     return buffer[0];
 }
@@ -1178,7 +1279,8 @@ bool MPU6050::getSlave4Enabled() {
  * @see getSlave4Enabled()
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-void MPU6050::setSlave4Enabled(bool enabled) {
+void MPU6050::setSlave4Enabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_EN_BIT, enabled);
 }
 /** Get the enabled value for Slave 4 transaction interrupts.
@@ -1190,7 +1292,8 @@ void MPU6050::setSlave4Enabled(bool enabled) {
  * @return Current enabled value for Slave 4 transaction interrupts.
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-bool MPU6050::getSlave4InterruptEnabled() {
+bool MPU6050::getSlave4InterruptEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_INT_EN_BIT, buffer);
     return buffer[0];
 }
@@ -1199,7 +1302,8 @@ bool MPU6050::getSlave4InterruptEnabled() {
  * @see getSlave4InterruptEnabled()
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-void MPU6050::setSlave4InterruptEnabled(bool enabled) {
+void MPU6050::setSlave4InterruptEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_INT_EN_BIT, enabled);
 }
 /** Get write mode for Slave 4.
@@ -1211,7 +1315,8 @@ void MPU6050::setSlave4InterruptEnabled(bool enabled) {
  * @return Current write mode for Slave 4 (0 = register address + data, 1 = data only)
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-bool MPU6050::getSlave4WriteMode() {
+bool MPU6050::getSlave4WriteMode()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_REG_DIS_BIT, buffer);
     return buffer[0];
 }
@@ -1220,7 +1325,8 @@ bool MPU6050::getSlave4WriteMode() {
  * @see getSlave4WriteMode()
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-void MPU6050::setSlave4WriteMode(bool mode) {
+void MPU6050::setSlave4WriteMode(bool mode)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_REG_DIS_BIT, mode);
 }
 /** Get Slave 4 master delay value.
@@ -1238,7 +1344,8 @@ void MPU6050::setSlave4WriteMode(bool mode) {
  * @return Current Slave 4 master delay value
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-uint8_t MPU6050::getSlave4MasterDelay() {
+uint8_t MPU6050::getSlave4MasterDelay()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_MST_DLY_BIT, MPU6050_I2C_SLV4_MST_DLY_LENGTH, buffer);
     return buffer[0];
 }
@@ -1247,7 +1354,8 @@ uint8_t MPU6050::getSlave4MasterDelay() {
  * @see getSlave4MasterDelay()
  * @see MPU6050_RA_I2C_SLV4_CTRL
  */
-void MPU6050::setSlave4MasterDelay(uint8_t delay) {
+void MPU6050::setSlave4MasterDelay(uint8_t delay)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_I2C_SLV4_CTRL, MPU6050_I2C_SLV4_MST_DLY_BIT, MPU6050_I2C_SLV4_MST_DLY_LENGTH, delay);
 }
 /** Get last available byte read from Slave 4.
@@ -1256,7 +1364,8 @@ void MPU6050::setSlave4MasterDelay(uint8_t delay) {
  * @return Last available byte read from to Slave 4
  * @see MPU6050_RA_I2C_SLV4_DI
  */
-uint8_t MPU6050::getSlate4InputByte() {
+uint8_t MPU6050::getSlate4InputByte()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_I2C_SLV4_DI, buffer);
     return buffer[0];
 }
@@ -1272,7 +1381,8 @@ uint8_t MPU6050::getSlate4InputByte() {
  * @return FSYNC interrupt status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getPassthroughStatus() {
+bool MPU6050::getPassthroughStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_PASS_THROUGH_BIT, buffer);
     return buffer[0];
 }
@@ -1284,7 +1394,8 @@ bool MPU6050::getPassthroughStatus() {
  * @return Slave 4 transaction done status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getSlave4IsDone() {
+bool MPU6050::getSlave4IsDone()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_SLV4_DONE_BIT, buffer);
     return buffer[0];
 }
@@ -1295,7 +1406,8 @@ bool MPU6050::getSlave4IsDone() {
  * @return Master arbitration lost status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getLostArbitration() {
+bool MPU6050::getLostArbitration()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_LOST_ARB_BIT, buffer);
     return buffer[0];
 }
@@ -1306,7 +1418,8 @@ bool MPU6050::getLostArbitration() {
  * @return Slave 4 NACK interrupt status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getSlave4Nack() {
+bool MPU6050::getSlave4Nack()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_SLV4_NACK_BIT, buffer);
     return buffer[0];
 }
@@ -1317,7 +1430,8 @@ bool MPU6050::getSlave4Nack() {
  * @return Slave 3 NACK interrupt status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getSlave3Nack() {
+bool MPU6050::getSlave3Nack()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_SLV3_NACK_BIT, buffer);
     return buffer[0];
 }
@@ -1328,7 +1442,8 @@ bool MPU6050::getSlave3Nack() {
  * @return Slave 2 NACK interrupt status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getSlave2Nack() {
+bool MPU6050::getSlave2Nack()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_SLV2_NACK_BIT, buffer);
     return buffer[0];
 }
@@ -1339,7 +1454,8 @@ bool MPU6050::getSlave2Nack() {
  * @return Slave 1 NACK interrupt status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getSlave1Nack() {
+bool MPU6050::getSlave1Nack()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_SLV1_NACK_BIT, buffer);
     return buffer[0];
 }
@@ -1350,7 +1466,8 @@ bool MPU6050::getSlave1Nack() {
  * @return Slave 0 NACK interrupt status
  * @see MPU6050_RA_I2C_MST_STATUS
  */
-bool MPU6050::getSlave0Nack() {
+bool MPU6050::getSlave0Nack()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_STATUS, MPU6050_MST_I2C_SLV0_NACK_BIT, buffer);
     return buffer[0];
 }
@@ -1363,7 +1480,8 @@ bool MPU6050::getSlave0Nack() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_INT_LEVEL_BIT
  */
-bool MPU6050::getInterruptMode() {
+bool MPU6050::getInterruptMode()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_LEVEL_BIT, buffer);
     return buffer[0];
 }
@@ -1373,8 +1491,9 @@ bool MPU6050::getInterruptMode() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_INT_LEVEL_BIT
  */
-void MPU6050::setInterruptMode(bool mode) {
-   I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_LEVEL_BIT, mode);
+void MPU6050::setInterruptMode(bool mode)
+{
+    I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_LEVEL_BIT, mode);
 }
 /** Get interrupt drive mode.
  * Will be set 0 for push-pull, 1 for open-drain.
@@ -1382,7 +1501,8 @@ void MPU6050::setInterruptMode(bool mode) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_INT_OPEN_BIT
  */
-bool MPU6050::getInterruptDrive() {
+bool MPU6050::getInterruptDrive()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_OPEN_BIT, buffer);
     return buffer[0];
 }
@@ -1392,7 +1512,8 @@ bool MPU6050::getInterruptDrive() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_INT_OPEN_BIT
  */
-void MPU6050::setInterruptDrive(bool drive) {
+void MPU6050::setInterruptDrive(bool drive)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_OPEN_BIT, drive);
 }
 /** Get interrupt latch mode.
@@ -1401,7 +1522,8 @@ void MPU6050::setInterruptDrive(bool drive) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_LATCH_INT_EN_BIT
  */
-bool MPU6050::getInterruptLatch() {
+bool MPU6050::getInterruptLatch()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_LATCH_INT_EN_BIT, buffer);
     return buffer[0];
 }
@@ -1411,7 +1533,8 @@ bool MPU6050::getInterruptLatch() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_LATCH_INT_EN_BIT
  */
-void MPU6050::setInterruptLatch(bool latch) {
+void MPU6050::setInterruptLatch(bool latch)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_LATCH_INT_EN_BIT, latch);
 }
 /** Get interrupt latch clear mode.
@@ -1420,7 +1543,8 @@ void MPU6050::setInterruptLatch(bool latch) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_INT_RD_CLEAR_BIT
  */
-bool MPU6050::getInterruptLatchClear() {
+bool MPU6050::getInterruptLatchClear()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_RD_CLEAR_BIT, buffer);
     return buffer[0];
 }
@@ -1430,7 +1554,8 @@ bool MPU6050::getInterruptLatchClear() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_INT_RD_CLEAR_BIT
  */
-void MPU6050::setInterruptLatchClear(bool clear) {
+void MPU6050::setInterruptLatchClear(bool clear)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_INT_RD_CLEAR_BIT, clear);
 }
 /** Get FSYNC interrupt logic level mode.
@@ -1439,7 +1564,8 @@ void MPU6050::setInterruptLatchClear(bool clear) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_FSYNC_INT_LEVEL_BIT
  */
-bool MPU6050::getFSyncInterruptLevel() {
+bool MPU6050::getFSyncInterruptLevel()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_FSYNC_INT_LEVEL_BIT, buffer);
     return buffer[0];
 }
@@ -1449,7 +1575,8 @@ bool MPU6050::getFSyncInterruptLevel() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_FSYNC_INT_LEVEL_BIT
  */
-void MPU6050::setFSyncInterruptLevel(bool level) {
+void MPU6050::setFSyncInterruptLevel(bool level)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_FSYNC_INT_LEVEL_BIT, level);
 }
 /** Get FSYNC pin interrupt enabled setting.
@@ -1458,7 +1585,8 @@ void MPU6050::setFSyncInterruptLevel(bool level) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_FSYNC_INT_EN_BIT
  */
-bool MPU6050::getFSyncInterruptEnabled() {
+bool MPU6050::getFSyncInterruptEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_FSYNC_INT_EN_BIT, buffer);
     return buffer[0];
 }
@@ -1468,7 +1596,8 @@ bool MPU6050::getFSyncInterruptEnabled() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_FSYNC_INT_EN_BIT
  */
-void MPU6050::setFSyncInterruptEnabled(bool enabled) {
+void MPU6050::setFSyncInterruptEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_FSYNC_INT_EN_BIT, enabled);
 }
 /** Get I2C bypass enabled status.
@@ -1482,7 +1611,8 @@ void MPU6050::setFSyncInterruptEnabled(bool enabled) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_I2C_BYPASS_EN_BIT
  */
-bool MPU6050::getI2CBypassEnabled() {
+bool MPU6050::getI2CBypassEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_I2C_BYPASS_EN_BIT, buffer);
     return buffer[0];
 }
@@ -1497,7 +1627,8 @@ bool MPU6050::getI2CBypassEnabled() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_I2C_BYPASS_EN_BIT
  */
-void MPU6050::setI2CBypassEnabled(bool enabled) {
+void MPU6050::setI2CBypassEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_I2C_BYPASS_EN_BIT, enabled);
 }
 /** Get reference clock output enabled status.
@@ -1509,7 +1640,8 @@ void MPU6050::setI2CBypassEnabled(bool enabled) {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_CLKOUT_EN_BIT
  */
-bool MPU6050::getClockOutputEnabled() {
+bool MPU6050::getClockOutputEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_CLKOUT_EN_BIT, buffer);
     return buffer[0];
 }
@@ -1522,7 +1654,8 @@ bool MPU6050::getClockOutputEnabled() {
  * @see MPU6050_RA_INT_PIN_CFG
  * @see MPU6050_INTCFG_CLKOUT_EN_BIT
  */
-void MPU6050::setClockOutputEnabled(bool enabled) {
+void MPU6050::setClockOutputEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_PIN_CFG, MPU6050_INTCFG_CLKOUT_EN_BIT, enabled);
 }
 
@@ -1535,7 +1668,8 @@ void MPU6050::setClockOutputEnabled(bool enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_FF_BIT
  **/
-uint8_t MPU6050::getIntEnabled() {
+uint8_t MPU6050::getIntEnabled()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_INT_ENABLE, buffer);
     return buffer[0];
 }
@@ -1547,7 +1681,8 @@ uint8_t MPU6050::getIntEnabled() {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_FF_BIT
  **/
-void MPU6050::setIntEnabled(uint8_t enabled) {
+void MPU6050::setIntEnabled(uint8_t enabled)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_INT_ENABLE, enabled);
 }
 /** Get Free Fall interrupt enabled status.
@@ -1556,7 +1691,8 @@ void MPU6050::setIntEnabled(uint8_t enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_FF_BIT
  **/
-bool MPU6050::getIntFreefallEnabled() {
+bool MPU6050::getIntFreefallEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_FF_BIT, buffer);
     return buffer[0];
 }
@@ -1566,7 +1702,8 @@ bool MPU6050::getIntFreefallEnabled() {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_FF_BIT
  **/
-void MPU6050::setIntFreefallEnabled(bool enabled) {
+void MPU6050::setIntFreefallEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_FF_BIT, enabled);
 }
 /** Get Motion Detection interrupt enabled status.
@@ -1575,7 +1712,8 @@ void MPU6050::setIntFreefallEnabled(bool enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_MOT_BIT
  **/
-bool MPU6050::getIntMotionEnabled() {
+bool MPU6050::getIntMotionEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_MOT_BIT, buffer);
     return buffer[0];
 }
@@ -1585,7 +1723,8 @@ bool MPU6050::getIntMotionEnabled() {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_MOT_BIT
  **/
-void MPU6050::setIntMotionEnabled(bool enabled) {
+void MPU6050::setIntMotionEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_MOT_BIT, enabled);
 }
 /** Get Zero Motion Detection interrupt enabled status.
@@ -1594,7 +1733,8 @@ void MPU6050::setIntMotionEnabled(bool enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_ZMOT_BIT
  **/
-bool MPU6050::getIntZeroMotionEnabled() {
+bool MPU6050::getIntZeroMotionEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_ZMOT_BIT, buffer);
     return buffer[0];
 }
@@ -1604,7 +1744,8 @@ bool MPU6050::getIntZeroMotionEnabled() {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_ZMOT_BIT
  **/
-void MPU6050::setIntZeroMotionEnabled(bool enabled) {
+void MPU6050::setIntZeroMotionEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_ZMOT_BIT, enabled);
 }
 /** Get FIFO Buffer Overflow interrupt enabled status.
@@ -1613,7 +1754,8 @@ void MPU6050::setIntZeroMotionEnabled(bool enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_FIFO_OFLOW_BIT
  **/
-bool MPU6050::getIntFIFOBufferOverflowEnabled() {
+bool MPU6050::getIntFIFOBufferOverflowEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_FIFO_OFLOW_BIT, buffer);
     return buffer[0];
 }
@@ -1623,7 +1765,8 @@ bool MPU6050::getIntFIFOBufferOverflowEnabled() {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_FIFO_OFLOW_BIT
  **/
-void MPU6050::setIntFIFOBufferOverflowEnabled(bool enabled) {
+void MPU6050::setIntFIFOBufferOverflowEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_FIFO_OFLOW_BIT, enabled);
 }
 /** Get I2C Master interrupt enabled status.
@@ -1633,7 +1776,8 @@ void MPU6050::setIntFIFOBufferOverflowEnabled(bool enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_I2C_MST_INT_BIT
  **/
-bool MPU6050::getIntI2CMasterEnabled() {
+bool MPU6050::getIntI2CMasterEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_I2C_MST_INT_BIT, buffer);
     return buffer[0];
 }
@@ -1643,7 +1787,8 @@ bool MPU6050::getIntI2CMasterEnabled() {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_I2C_MST_INT_BIT
  **/
-void MPU6050::setIntI2CMasterEnabled(bool enabled) {
+void MPU6050::setIntI2CMasterEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_I2C_MST_INT_BIT, enabled);
 }
 /** Get Data Ready interrupt enabled setting.
@@ -1653,7 +1798,8 @@ void MPU6050::setIntI2CMasterEnabled(bool enabled) {
  * @see MPU6050_RA_INT_ENABLE
  * @see MPU6050_INTERRUPT_DATA_RDY_BIT
  */
-bool MPU6050::getIntDataReadyEnabled() {
+bool MPU6050::getIntDataReadyEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_DATA_RDY_BIT, buffer);
     return buffer[0];
 }
@@ -1663,7 +1809,8 @@ bool MPU6050::getIntDataReadyEnabled() {
  * @see MPU6050_RA_INT_CFG
  * @see MPU6050_INTERRUPT_DATA_RDY_BIT
  */
-void MPU6050::setIntDataReadyEnabled(bool enabled) {
+void MPU6050::setIntDataReadyEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_DATA_RDY_BIT, enabled);
 }
 
@@ -1676,7 +1823,8 @@ void MPU6050::setIntDataReadyEnabled(bool enabled) {
  * @return Current interrupt status
  * @see MPU6050_RA_INT_STATUS
  */
-uint8_t MPU6050::getIntStatus() {
+uint8_t MPU6050::getIntStatus()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_INT_STATUS, buffer);
     return buffer[0];
 }
@@ -1687,7 +1835,8 @@ uint8_t MPU6050::getIntStatus() {
  * @see MPU6050_RA_INT_STATUS
  * @see MPU6050_INTERRUPT_FF_BIT
  */
-bool MPU6050::getIntFreefallStatus() {
+bool MPU6050::getIntFreefallStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_FF_BIT, buffer);
     return buffer[0];
 }
@@ -1698,7 +1847,8 @@ bool MPU6050::getIntFreefallStatus() {
  * @see MPU6050_RA_INT_STATUS
  * @see MPU6050_INTERRUPT_MOT_BIT
  */
-bool MPU6050::getIntMotionStatus() {
+bool MPU6050::getIntMotionStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_MOT_BIT, buffer);
     return buffer[0];
 }
@@ -1709,7 +1859,8 @@ bool MPU6050::getIntMotionStatus() {
  * @see MPU6050_RA_INT_STATUS
  * @see MPU6050_INTERRUPT_ZMOT_BIT
  */
-bool MPU6050::getIntZeroMotionStatus() {
+bool MPU6050::getIntZeroMotionStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_ZMOT_BIT, buffer);
     return buffer[0];
 }
@@ -1720,7 +1871,8 @@ bool MPU6050::getIntZeroMotionStatus() {
  * @see MPU6050_RA_INT_STATUS
  * @see MPU6050_INTERRUPT_FIFO_OFLOW_BIT
  */
-bool MPU6050::getIntFIFOBufferOverflowStatus() {
+bool MPU6050::getIntFIFOBufferOverflowStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_FIFO_OFLOW_BIT, buffer);
     return buffer[0];
 }
@@ -1732,7 +1884,8 @@ bool MPU6050::getIntFIFOBufferOverflowStatus() {
  * @see MPU6050_RA_INT_STATUS
  * @see MPU6050_INTERRUPT_I2C_MST_INT_BIT
  */
-bool MPU6050::getIntI2CMasterStatus() {
+bool MPU6050::getIntI2CMasterStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_I2C_MST_INT_BIT, buffer);
     return buffer[0];
 }
@@ -1743,7 +1896,8 @@ bool MPU6050::getIntI2CMasterStatus() {
  * @see MPU6050_RA_INT_STATUS
  * @see MPU6050_INTERRUPT_DATA_RDY_BIT
  */
-bool MPU6050::getIntDataReadyStatus() {
+bool MPU6050::getIntDataReadyStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_DATA_RDY_BIT, buffer);
     return buffer[0];
 }
@@ -1766,7 +1920,8 @@ bool MPU6050::getIntDataReadyStatus() {
  * @see getRotation()
  * @see MPU6050_RA_ACCEL_XOUT_H
  */
-void MPU6050::getMotion9(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int16_t* mx, int16_t* my, int16_t* mz) {
+void MPU6050::getMotion9(int16_t *ax, int16_t *ay, int16_t *az, int16_t *gx, int16_t *gy, int16_t *gz, int16_t *mx, int16_t *my, int16_t *mz)
+{
     getMotion6(ax, ay, az, gx, gy, gz);
     // TODO: magnetometer integration
 }
@@ -1782,7 +1937,8 @@ void MPU6050::getMotion9(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int
  * @see getRotation()
  * @see MPU6050_RA_ACCEL_XOUT_H
  */
-void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz) {
+void MPU6050::getMotion6(int16_t *ax, int16_t *ay, int16_t *az, int16_t *gx, int16_t *gy, int16_t *gz)
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 14, buffer);
     *ax = (((int16_t)buffer[0]) << 8) | buffer[1];
     *ay = (((int16_t)buffer[2]) << 8) | buffer[3];
@@ -1827,7 +1983,8 @@ void MPU6050::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int
  * @param z 16-bit signed integer container for Z-axis acceleration
  * @see MPU6050_RA_GYRO_XOUT_H
  */
-void MPU6050::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
+void MPU6050::getAcceleration(int16_t *x, int16_t *y, int16_t *z)
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 6, buffer);
     *x = (((int16_t)buffer[0]) << 8) | buffer[1];
     *y = (((int16_t)buffer[2]) << 8) | buffer[3];
@@ -1838,7 +1995,8 @@ void MPU6050::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
  * @see getMotion6()
  * @see MPU6050_RA_ACCEL_XOUT_H
  */
-int16_t MPU6050::getAccelerationX() {
+int16_t MPU6050::getAccelerationX()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_XOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -1847,7 +2005,8 @@ int16_t MPU6050::getAccelerationX() {
  * @see getMotion6()
  * @see MPU6050_RA_ACCEL_YOUT_H
  */
-int16_t MPU6050::getAccelerationY() {
+int16_t MPU6050::getAccelerationY()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_YOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -1856,7 +2015,8 @@ int16_t MPU6050::getAccelerationY() {
  * @see getMotion6()
  * @see MPU6050_RA_ACCEL_ZOUT_H
  */
-int16_t MPU6050::getAccelerationZ() {
+int16_t MPU6050::getAccelerationZ()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_ACCEL_ZOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -1867,7 +2027,8 @@ int16_t MPU6050::getAccelerationZ() {
  * @return Temperature reading in 16-bit 2's complement format
  * @see MPU6050_RA_TEMP_OUT_H
  */
-int16_t MPU6050::getTemperature() {
+int16_t MPU6050::getTemperature()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_TEMP_OUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -1906,7 +2067,8 @@ int16_t MPU6050::getTemperature() {
  * @see getMotion6()
  * @see MPU6050_RA_GYRO_XOUT_H
  */
-void MPU6050::getRotation(int16_t* x, int16_t* y, int16_t* z) {
+void MPU6050::getRotation(int16_t *x, int16_t *y, int16_t *z)
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_XOUT_H, 6, buffer);
     *x = (((int16_t)buffer[0]) << 8) | buffer[1];
     *y = (((int16_t)buffer[2]) << 8) | buffer[3];
@@ -1917,7 +2079,8 @@ void MPU6050::getRotation(int16_t* x, int16_t* y, int16_t* z) {
  * @see getMotion6()
  * @see MPU6050_RA_GYRO_XOUT_H
  */
-int16_t MPU6050::getRotationX() {
+int16_t MPU6050::getRotationX()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_XOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -1926,7 +2089,8 @@ int16_t MPU6050::getRotationX() {
  * @see getMotion6()
  * @see MPU6050_RA_GYRO_YOUT_H
  */
-int16_t MPU6050::getRotationY() {
+int16_t MPU6050::getRotationY()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_YOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -1935,7 +2099,8 @@ int16_t MPU6050::getRotationY() {
  * @see getMotion6()
  * @see MPU6050_RA_GYRO_ZOUT_H
  */
-int16_t MPU6050::getRotationZ() {
+int16_t MPU6050::getRotationZ()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_GYRO_ZOUT_H, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -2016,7 +2181,8 @@ int16_t MPU6050::getRotationZ() {
  * @param position Starting position (0-23)
  * @return Byte read from register
  */
-uint8_t MPU6050::getExternalSensorByte(int position) {
+uint8_t MPU6050::getExternalSensorByte(int position)
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_EXT_SENS_DATA_00 + position, buffer);
     return buffer[0];
 }
@@ -2025,7 +2191,8 @@ uint8_t MPU6050::getExternalSensorByte(int position) {
  * @return Word read from register
  * @see getExternalSensorByte()
  */
-uint16_t MPU6050::getExternalSensorWord(int position) {
+uint16_t MPU6050::getExternalSensorWord(int position)
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_EXT_SENS_DATA_00 + position, 2, buffer);
     return (((uint16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -2034,7 +2201,8 @@ uint16_t MPU6050::getExternalSensorWord(int position) {
  * @return Double word read from registers
  * @see getExternalSensorByte()
  */
-uint32_t MPU6050::getExternalSensorDWord(int position) {
+uint32_t MPU6050::getExternalSensorDWord(int position)
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_EXT_SENS_DATA_00 + position, 4, buffer);
     return (((uint32_t)buffer[0]) << 24) | (((uint32_t)buffer[1]) << 16) | (((uint16_t)buffer[2]) << 8) | buffer[3];
 }
@@ -2045,7 +2213,8 @@ uint32_t MPU6050::getExternalSensorDWord(int position) {
  * @return Motion detection status byte
  * @see MPU6050_RA_MOT_DETECT_STATUS
  */
-uint8_t MPU6050::getMotionStatus() {
+uint8_t MPU6050::getMotionStatus()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_MOT_DETECT_STATUS, buffer);
     return buffer[0];
 }
@@ -2054,7 +2223,8 @@ uint8_t MPU6050::getMotionStatus() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_XNEG_BIT
  */
-bool MPU6050::getXNegMotionDetected() {
+bool MPU6050::getXNegMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_XNEG_BIT, buffer);
     return buffer[0];
 }
@@ -2063,7 +2233,8 @@ bool MPU6050::getXNegMotionDetected() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_XPOS_BIT
  */
-bool MPU6050::getXPosMotionDetected() {
+bool MPU6050::getXPosMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_XPOS_BIT, buffer);
     return buffer[0];
 }
@@ -2072,7 +2243,8 @@ bool MPU6050::getXPosMotionDetected() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_YNEG_BIT
  */
-bool MPU6050::getYNegMotionDetected() {
+bool MPU6050::getYNegMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_YNEG_BIT, buffer);
     return buffer[0];
 }
@@ -2081,7 +2253,8 @@ bool MPU6050::getYNegMotionDetected() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_YPOS_BIT
  */
-bool MPU6050::getYPosMotionDetected() {
+bool MPU6050::getYPosMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_YPOS_BIT, buffer);
     return buffer[0];
 }
@@ -2090,7 +2263,8 @@ bool MPU6050::getYPosMotionDetected() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_ZNEG_BIT
  */
-bool MPU6050::getZNegMotionDetected() {
+bool MPU6050::getZNegMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_ZNEG_BIT, buffer);
     return buffer[0];
 }
@@ -2099,7 +2273,8 @@ bool MPU6050::getZNegMotionDetected() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_ZPOS_BIT
  */
-bool MPU6050::getZPosMotionDetected() {
+bool MPU6050::getZPosMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_ZPOS_BIT, buffer);
     return buffer[0];
 }
@@ -2108,7 +2283,8 @@ bool MPU6050::getZPosMotionDetected() {
  * @see MPU6050_RA_MOT_DETECT_STATUS
  * @see MPU6050_MOTION_MOT_ZRMOT_BIT
  */
-bool MPU6050::getZeroMotionDetected() {
+bool MPU6050::getZeroMotionDetected()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_MOT_DETECT_STATUS, MPU6050_MOTION_MOT_ZRMOT_BIT, buffer);
     return buffer[0];
 }
@@ -2123,8 +2299,10 @@ bool MPU6050::getZeroMotionDetected() {
  * @param data Byte to write
  * @see MPU6050_RA_I2C_SLV0_DO
  */
-void MPU6050::setSlaveOutputByte(uint8_t num, uint8_t data) {
-    if (num > 3) return;
+void MPU6050::setSlaveOutputByte(uint8_t num, uint8_t data)
+{
+    if (num > 3)
+        return;
     I2Cdev::writeByte(devAddr, MPU6050_RA_I2C_SLV0_DO + num, data);
 }
 
@@ -2138,7 +2316,8 @@ void MPU6050::setSlaveOutputByte(uint8_t num, uint8_t data) {
  * @see MPU6050_RA_I2C_MST_DELAY_CTRL
  * @see MPU6050_DELAYCTRL_DELAY_ES_SHADOW_BIT
  */
-bool MPU6050::getExternalShadowDelayEnabled() {
+bool MPU6050::getExternalShadowDelayEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_DELAY_CTRL, MPU6050_DELAYCTRL_DELAY_ES_SHADOW_BIT, buffer);
     return buffer[0];
 }
@@ -2148,7 +2327,8 @@ bool MPU6050::getExternalShadowDelayEnabled() {
  * @see MPU6050_RA_I2C_MST_DELAY_CTRL
  * @see MPU6050_DELAYCTRL_DELAY_ES_SHADOW_BIT
  */
-void MPU6050::setExternalShadowDelayEnabled(bool enabled) {
+void MPU6050::setExternalShadowDelayEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_MST_DELAY_CTRL, MPU6050_DELAYCTRL_DELAY_ES_SHADOW_BIT, enabled);
 }
 /** Get slave delay enabled status.
@@ -2169,9 +2349,11 @@ void MPU6050::setExternalShadowDelayEnabled(bool enabled) {
  * @see MPU6050_RA_I2C_MST_DELAY_CTRL
  * @see MPU6050_DELAYCTRL_I2C_SLV0_DLY_EN_BIT
  */
-bool MPU6050::getSlaveDelayEnabled(uint8_t num) {
+bool MPU6050::getSlaveDelayEnabled(uint8_t num)
+{
     // MPU6050_DELAYCTRL_I2C_SLV4_DLY_EN_BIT is 4, SLV3 is 3, etc.
-    if (num > 4) return 0;
+    if (num > 4)
+        return 0;
     I2Cdev::readBit(devAddr, MPU6050_RA_I2C_MST_DELAY_CTRL, num, buffer);
     return buffer[0];
 }
@@ -2181,7 +2363,8 @@ bool MPU6050::getSlaveDelayEnabled(uint8_t num) {
  * @see MPU6050_RA_I2C_MST_DELAY_CTRL
  * @see MPU6050_DELAYCTRL_I2C_SLV0_DLY_EN_BIT
  */
-void MPU6050::setSlaveDelayEnabled(uint8_t num, bool enabled) {
+void MPU6050::setSlaveDelayEnabled(uint8_t num, bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_I2C_MST_DELAY_CTRL, num, enabled);
 }
 
@@ -2193,7 +2376,8 @@ void MPU6050::setSlaveDelayEnabled(uint8_t num, bool enabled) {
  * @see MPU6050_RA_SIGNAL_PATH_RESET
  * @see MPU6050_PATHRESET_GYRO_RESET_BIT
  */
-void MPU6050::resetGyroscopePath() {
+void MPU6050::resetGyroscopePath()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_SIGNAL_PATH_RESET, MPU6050_PATHRESET_GYRO_RESET_BIT, true);
 }
 /** Reset accelerometer signal path.
@@ -2202,7 +2386,8 @@ void MPU6050::resetGyroscopePath() {
  * @see MPU6050_RA_SIGNAL_PATH_RESET
  * @see MPU6050_PATHRESET_ACCEL_RESET_BIT
  */
-void MPU6050::resetAccelerometerPath() {
+void MPU6050::resetAccelerometerPath()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_SIGNAL_PATH_RESET, MPU6050_PATHRESET_ACCEL_RESET_BIT, true);
 }
 /** Reset temperature sensor signal path.
@@ -2211,7 +2396,8 @@ void MPU6050::resetAccelerometerPath() {
  * @see MPU6050_RA_SIGNAL_PATH_RESET
  * @see MPU6050_PATHRESET_TEMP_RESET_BIT
  */
-void MPU6050::resetTemperaturePath() {
+void MPU6050::resetTemperaturePath()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_SIGNAL_PATH_RESET, MPU6050_PATHRESET_TEMP_RESET_BIT, true);
 }
 
@@ -2231,7 +2417,8 @@ void MPU6050::resetTemperaturePath() {
  * @see MPU6050_RA_MOT_DETECT_CTRL
  * @see MPU6050_DETECT_ACCEL_ON_DELAY_BIT
  */
-uint8_t MPU6050::getAccelerometerPowerOnDelay() {
+uint8_t MPU6050::getAccelerometerPowerOnDelay()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_MOT_DETECT_CTRL, MPU6050_DETECT_ACCEL_ON_DELAY_BIT, MPU6050_DETECT_ACCEL_ON_DELAY_LENGTH, buffer);
     return buffer[0];
 }
@@ -2241,7 +2428,8 @@ uint8_t MPU6050::getAccelerometerPowerOnDelay() {
  * @see MPU6050_RA_MOT_DETECT_CTRL
  * @see MPU6050_DETECT_ACCEL_ON_DELAY_BIT
  */
-void MPU6050::setAccelerometerPowerOnDelay(uint8_t delay) {
+void MPU6050::setAccelerometerPowerOnDelay(uint8_t delay)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_MOT_DETECT_CTRL, MPU6050_DETECT_ACCEL_ON_DELAY_BIT, MPU6050_DETECT_ACCEL_ON_DELAY_LENGTH, delay);
 }
 /** Get Free Fall detection counter decrement configuration.
@@ -2270,7 +2458,8 @@ void MPU6050::setAccelerometerPowerOnDelay(uint8_t delay) {
  * @see MPU6050_RA_MOT_DETECT_CTRL
  * @see MPU6050_DETECT_FF_COUNT_BIT
  */
-uint8_t MPU6050::getFreefallDetectionCounterDecrement() {
+uint8_t MPU6050::getFreefallDetectionCounterDecrement()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_MOT_DETECT_CTRL, MPU6050_DETECT_FF_COUNT_BIT, MPU6050_DETECT_FF_COUNT_LENGTH, buffer);
     return buffer[0];
 }
@@ -2280,7 +2469,8 @@ uint8_t MPU6050::getFreefallDetectionCounterDecrement() {
  * @see MPU6050_RA_MOT_DETECT_CTRL
  * @see MPU6050_DETECT_FF_COUNT_BIT
  */
-void MPU6050::setFreefallDetectionCounterDecrement(uint8_t decrement) {
+void MPU6050::setFreefallDetectionCounterDecrement(uint8_t decrement)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_MOT_DETECT_CTRL, MPU6050_DETECT_FF_COUNT_BIT, MPU6050_DETECT_FF_COUNT_LENGTH, decrement);
 }
 /** Get Motion detection counter decrement configuration.
@@ -2306,7 +2496,8 @@ void MPU6050::setFreefallDetectionCounterDecrement(uint8_t decrement) {
  * please refer to Registers 29 to 32.
  *
  */
-uint8_t MPU6050::getMotionDetectionCounterDecrement() {
+uint8_t MPU6050::getMotionDetectionCounterDecrement()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_MOT_DETECT_CTRL, MPU6050_DETECT_MOT_COUNT_BIT, MPU6050_DETECT_MOT_COUNT_LENGTH, buffer);
     return buffer[0];
 }
@@ -2316,7 +2507,8 @@ uint8_t MPU6050::getMotionDetectionCounterDecrement() {
  * @see MPU6050_RA_MOT_DETECT_CTRL
  * @see MPU6050_DETECT_MOT_COUNT_BIT
  */
-void MPU6050::setMotionDetectionCounterDecrement(uint8_t decrement) {
+void MPU6050::setMotionDetectionCounterDecrement(uint8_t decrement)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_MOT_DETECT_CTRL, MPU6050_DETECT_MOT_COUNT_BIT, MPU6050_DETECT_MOT_COUNT_LENGTH, decrement);
 }
 
@@ -2330,7 +2522,8 @@ void MPU6050::setMotionDetectionCounterDecrement(uint8_t decrement) {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_FIFO_EN_BIT
  */
-bool MPU6050::getFIFOEnabled() {
+bool MPU6050::getFIFOEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_EN_BIT, buffer);
     return buffer[0];
 }
@@ -2340,7 +2533,8 @@ bool MPU6050::getFIFOEnabled() {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_FIFO_EN_BIT
  */
-void MPU6050::setFIFOEnabled(bool enabled) {
+void MPU6050::setFIFOEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_EN_BIT, enabled);
 }
 /** Get I2C Master Mode enabled status.
@@ -2354,7 +2548,8 @@ void MPU6050::setFIFOEnabled(bool enabled) {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_I2C_MST_EN_BIT
  */
-bool MPU6050::getI2CMasterModeEnabled() {
+bool MPU6050::getI2CMasterModeEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_I2C_MST_EN_BIT, buffer);
     return buffer[0];
 }
@@ -2364,14 +2559,16 @@ bool MPU6050::getI2CMasterModeEnabled() {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_I2C_MST_EN_BIT
  */
-void MPU6050::setI2CMasterModeEnabled(bool enabled) {
+void MPU6050::setI2CMasterModeEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_I2C_MST_EN_BIT, enabled);
 }
 /** Switch from I2C to SPI mode (MPU-6000 only)
  * If this is set, the primary SPI interface will be enabled in place of the
  * disabled primary I2C interface.
  */
-void MPU6050::switchSPIEnabled(bool enabled) {
+void MPU6050::switchSPIEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_I2C_IF_DIS_BIT, enabled);
 }
 /** Reset the FIFO.
@@ -2380,7 +2577,8 @@ void MPU6050::switchSPIEnabled(bool enabled) {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_FIFO_RESET_BIT
  */
-void MPU6050::resetFIFO() {
+void MPU6050::resetFIFO()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_FIFO_RESET_BIT, true);
 }
 /** Reset the I2C Master.
@@ -2389,7 +2587,8 @@ void MPU6050::resetFIFO() {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_I2C_MST_RESET_BIT
  */
-void MPU6050::resetI2CMaster() {
+void MPU6050::resetI2CMaster()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_I2C_MST_RESET_BIT, true);
 }
 /** Reset all sensor registers and signal paths.
@@ -2404,7 +2603,8 @@ void MPU6050::resetI2CMaster() {
  * @see MPU6050_RA_USER_CTRL
  * @see MPU6050_USERCTRL_SIG_COND_RESET_BIT
  */
-void MPU6050::resetSensors() {
+void MPU6050::resetSensors()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_SIG_COND_RESET_BIT, true);
 }
 
@@ -2415,7 +2615,8 @@ void MPU6050::resetSensors() {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_DEVICE_RESET_BIT
  */
-void MPU6050::reset() {
+void MPU6050::reset()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_DEVICE_RESET_BIT, true);
 }
 /** Get sleep mode status.
@@ -2429,7 +2630,8 @@ void MPU6050::reset() {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_SLEEP_BIT
  */
-bool MPU6050::getSleepEnabled() {
+bool MPU6050::getSleepEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, buffer);
     return buffer[0];
 }
@@ -2439,7 +2641,8 @@ bool MPU6050::getSleepEnabled() {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_SLEEP_BIT
  */
-void MPU6050::setSleepEnabled(bool enabled) {
+void MPU6050::setSleepEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_SLEEP_BIT, enabled);
 }
 /** Get wake cycle enabled status.
@@ -2450,7 +2653,8 @@ void MPU6050::setSleepEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_CYCLE_BIT
  */
-bool MPU6050::getWakeCycleEnabled() {
+bool MPU6050::getWakeCycleEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CYCLE_BIT, buffer);
     return buffer[0];
 }
@@ -2460,7 +2664,8 @@ bool MPU6050::getWakeCycleEnabled() {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_CYCLE_BIT
  */
-void MPU6050::setWakeCycleEnabled(bool enabled) {
+void MPU6050::setWakeCycleEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CYCLE_BIT, enabled);
 }
 /** Get temperature sensor enabled status.
@@ -2474,7 +2679,8 @@ void MPU6050::setWakeCycleEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_TEMP_DIS_BIT
  */
-bool MPU6050::getTempSensorEnabled() {
+bool MPU6050::getTempSensorEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_TEMP_DIS_BIT, buffer);
     return buffer[0] == 0; // 1 is actually disabled here
 }
@@ -2488,7 +2694,8 @@ bool MPU6050::getTempSensorEnabled() {
  * @see MPU6050_RA_PWR_MGMT_1
  * @see MPU6050_PWR1_TEMP_DIS_BIT
  */
-void MPU6050::setTempSensorEnabled(bool enabled) {
+void MPU6050::setTempSensorEnabled(bool enabled)
+{
     // 1 is actually disabled here
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_TEMP_DIS_BIT, !enabled);
 }
@@ -2498,7 +2705,8 @@ void MPU6050::setTempSensorEnabled(bool enabled) {
  * @see MPU6050_PWR1_CLKSEL_BIT
  * @see MPU6050_PWR1_CLKSEL_LENGTH
  */
-uint8_t MPU6050::getClockSource() {
+uint8_t MPU6050::getClockSource()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, buffer);
     return buffer[0];
 }
@@ -2532,7 +2740,8 @@ uint8_t MPU6050::getClockSource() {
  * @see MPU6050_PWR1_CLKSEL_BIT
  * @see MPU6050_PWR1_CLKSEL_LENGTH
  */
-void MPU6050::setClockSource(uint8_t source) {
+void MPU6050::setClockSource(uint8_t source)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_PWR_MGMT_1, MPU6050_PWR1_CLKSEL_BIT, MPU6050_PWR1_CLKSEL_LENGTH, source);
 }
 
@@ -2561,7 +2770,8 @@ void MPU6050::setClockSource(uint8_t source) {
  * @return Current wake frequency
  * @see MPU6050_RA_PWR_MGMT_2
  */
-uint8_t MPU6050::getWakeFrequency() {
+uint8_t MPU6050::getWakeFrequency()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_LP_WAKE_CTRL_BIT, MPU6050_PWR2_LP_WAKE_CTRL_LENGTH, buffer);
     return buffer[0];
 }
@@ -2569,7 +2779,8 @@ uint8_t MPU6050::getWakeFrequency() {
  * @param frequency New wake frequency
  * @see MPU6050_RA_PWR_MGMT_2
  */
-void MPU6050::setWakeFrequency(uint8_t frequency) {
+void MPU6050::setWakeFrequency(uint8_t frequency)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_LP_WAKE_CTRL_BIT, MPU6050_PWR2_LP_WAKE_CTRL_LENGTH, frequency);
 }
 
@@ -2579,7 +2790,8 @@ void MPU6050::setWakeFrequency(uint8_t frequency) {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_XA_BIT
  */
-bool MPU6050::getStandbyXAccelEnabled() {
+bool MPU6050::getStandbyXAccelEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_XA_BIT, buffer);
     return buffer[0];
 }
@@ -2589,7 +2801,8 @@ bool MPU6050::getStandbyXAccelEnabled() {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_XA_BIT
  */
-void MPU6050::setStandbyXAccelEnabled(bool enabled) {
+void MPU6050::setStandbyXAccelEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_XA_BIT, enabled);
 }
 /** Get Y-axis accelerometer standby enabled status.
@@ -2598,7 +2811,8 @@ void MPU6050::setStandbyXAccelEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_YA_BIT
  */
-bool MPU6050::getStandbyYAccelEnabled() {
+bool MPU6050::getStandbyYAccelEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_YA_BIT, buffer);
     return buffer[0];
 }
@@ -2608,7 +2822,8 @@ bool MPU6050::getStandbyYAccelEnabled() {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_YA_BIT
  */
-void MPU6050::setStandbyYAccelEnabled(bool enabled) {
+void MPU6050::setStandbyYAccelEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_YA_BIT, enabled);
 }
 /** Get Z-axis accelerometer standby enabled status.
@@ -2617,7 +2832,8 @@ void MPU6050::setStandbyYAccelEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_ZA_BIT
  */
-bool MPU6050::getStandbyZAccelEnabled() {
+bool MPU6050::getStandbyZAccelEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_ZA_BIT, buffer);
     return buffer[0];
 }
@@ -2627,7 +2843,8 @@ bool MPU6050::getStandbyZAccelEnabled() {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_ZA_BIT
  */
-void MPU6050::setStandbyZAccelEnabled(bool enabled) {
+void MPU6050::setStandbyZAccelEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_ZA_BIT, enabled);
 }
 /** Get X-axis gyroscope standby enabled status.
@@ -2636,7 +2853,8 @@ void MPU6050::setStandbyZAccelEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_XG_BIT
  */
-bool MPU6050::getStandbyXGyroEnabled() {
+bool MPU6050::getStandbyXGyroEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_XG_BIT, buffer);
     return buffer[0];
 }
@@ -2646,7 +2864,8 @@ bool MPU6050::getStandbyXGyroEnabled() {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_XG_BIT
  */
-void MPU6050::setStandbyXGyroEnabled(bool enabled) {
+void MPU6050::setStandbyXGyroEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_XG_BIT, enabled);
 }
 /** Get Y-axis gyroscope standby enabled status.
@@ -2655,7 +2874,8 @@ void MPU6050::setStandbyXGyroEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_YG_BIT
  */
-bool MPU6050::getStandbyYGyroEnabled() {
+bool MPU6050::getStandbyYGyroEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_YG_BIT, buffer);
     return buffer[0];
 }
@@ -2665,7 +2885,8 @@ bool MPU6050::getStandbyYGyroEnabled() {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_YG_BIT
  */
-void MPU6050::setStandbyYGyroEnabled(bool enabled) {
+void MPU6050::setStandbyYGyroEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_YG_BIT, enabled);
 }
 /** Get Z-axis gyroscope standby enabled status.
@@ -2674,7 +2895,8 @@ void MPU6050::setStandbyYGyroEnabled(bool enabled) {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_ZG_BIT
  */
-bool MPU6050::getStandbyZGyroEnabled() {
+bool MPU6050::getStandbyZGyroEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_ZG_BIT, buffer);
     return buffer[0];
 }
@@ -2684,7 +2906,8 @@ bool MPU6050::getStandbyZGyroEnabled() {
  * @see MPU6050_RA_PWR_MGMT_2
  * @see MPU6050_PWR2_STBY_ZG_BIT
  */
-void MPU6050::setStandbyZGyroEnabled(bool enabled) {
+void MPU6050::setStandbyZGyroEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_PWR_MGMT_2, MPU6050_PWR2_STBY_ZG_BIT, enabled);
 }
 
@@ -2697,7 +2920,8 @@ void MPU6050::setStandbyZGyroEnabled(bool enabled) {
  * set of sensor data bound to be stored in the FIFO (register 35 and 36).
  * @return Current FIFO buffer size
  */
-uint16_t MPU6050::getFIFOCount() {
+uint16_t MPU6050::getFIFOCount()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_FIFO_COUNTH, 2, buffer);
     return (((uint16_t)buffer[0]) << 8) | buffer[1];
 }
@@ -2729,22 +2953,28 @@ uint16_t MPU6050::getFIFOCount() {
  *
  * @return Byte from FIFO buffer
  */
-uint8_t MPU6050::getFIFOByte() {
+uint8_t MPU6050::getFIFOByte()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_FIFO_R_W, buffer);
     return buffer[0];
 }
-void MPU6050::getFIFOBytes(uint8_t *data, uint8_t length) {
-    if(length > 0){
+void MPU6050::getFIFOBytes(uint8_t *data, uint8_t length)
+{
+    if (length > 0)
+    {
         I2Cdev::readBytes(devAddr, MPU6050_RA_FIFO_R_W, length, data);
-    } else {
-    	*data = 0;
+    }
+    else
+    {
+        *data = 0;
     }
 }
 /** Write byte to FIFO buffer.
  * @see getFIFOByte()
  * @see MPU6050_RA_FIFO_R_W
  */
-void MPU6050::setFIFOByte(uint8_t data) {
+void MPU6050::setFIFOByte(uint8_t data)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_FIFO_R_W, data);
 }
 
@@ -2757,7 +2987,8 @@ void MPU6050::setFIFOByte(uint8_t data) {
  * @see MPU6050_WHO_AM_I_BIT
  * @see MPU6050_WHO_AM_I_LENGTH
  */
-uint8_t MPU6050::getDeviceID() {
+uint8_t MPU6050::getDeviceID()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, buffer);
     return buffer[0];
 }
@@ -2770,7 +3001,8 @@ uint8_t MPU6050::getDeviceID() {
  * @see MPU6050_WHO_AM_I_BIT
  * @see MPU6050_WHO_AM_I_LENGTH
  */
-void MPU6050::setDeviceID(uint8_t id) {
+void MPU6050::setDeviceID(uint8_t id)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_WHO_AM_I, MPU6050_WHO_AM_I_BIT, MPU6050_WHO_AM_I_LENGTH, id);
 }
 
@@ -2778,246 +3010,297 @@ void MPU6050::setDeviceID(uint8_t id) {
 
 // XG_OFFS_TC register
 
-uint8_t MPU6050::getOTPBankValid() {
+uint8_t MPU6050::getOTPBankValid()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_XG_OFFS_TC, MPU6050_TC_OTP_BNK_VLD_BIT, buffer);
     return buffer[0];
 }
-void MPU6050::setOTPBankValid(bool enabled) {
+void MPU6050::setOTPBankValid(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_XG_OFFS_TC, MPU6050_TC_OTP_BNK_VLD_BIT, enabled);
 }
-int8_t MPU6050::getXGyroOffsetTC() {
+int8_t MPU6050::getXGyroOffsetTC()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_XG_OFFS_TC, MPU6050_TC_OFFSET_BIT, MPU6050_TC_OFFSET_LENGTH, buffer);
     return buffer[0];
 }
-void MPU6050::setXGyroOffsetTC(int8_t offset) {
+void MPU6050::setXGyroOffsetTC(int8_t offset)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_XG_OFFS_TC, MPU6050_TC_OFFSET_BIT, MPU6050_TC_OFFSET_LENGTH, offset);
 }
 
 // YG_OFFS_TC register
 
-int8_t MPU6050::getYGyroOffsetTC() {
+int8_t MPU6050::getYGyroOffsetTC()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_OFFSET_BIT, MPU6050_TC_OFFSET_LENGTH, buffer);
     return buffer[0];
 }
-void MPU6050::setYGyroOffsetTC(int8_t offset) {
+void MPU6050::setYGyroOffsetTC(int8_t offset)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_YG_OFFS_TC, MPU6050_TC_OFFSET_BIT, MPU6050_TC_OFFSET_LENGTH, offset);
 }
 
 // ZG_OFFS_TC register
 
-int8_t MPU6050::getZGyroOffsetTC() {
+int8_t MPU6050::getZGyroOffsetTC()
+{
     I2Cdev::readBits(devAddr, MPU6050_RA_ZG_OFFS_TC, MPU6050_TC_OFFSET_BIT, MPU6050_TC_OFFSET_LENGTH, buffer);
     return buffer[0];
 }
-void MPU6050::setZGyroOffsetTC(int8_t offset) {
+void MPU6050::setZGyroOffsetTC(int8_t offset)
+{
     I2Cdev::writeBits(devAddr, MPU6050_RA_ZG_OFFS_TC, MPU6050_TC_OFFSET_BIT, MPU6050_TC_OFFSET_LENGTH, offset);
 }
 
 // X_FINE_GAIN register
 
-int8_t MPU6050::getXFineGain() {
+int8_t MPU6050::getXFineGain()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_X_FINE_GAIN, buffer);
     return buffer[0];
 }
-void MPU6050::setXFineGain(int8_t gain) {
+void MPU6050::setXFineGain(int8_t gain)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_X_FINE_GAIN, gain);
 }
 
 // Y_FINE_GAIN register
 
-int8_t MPU6050::getYFineGain() {
+int8_t MPU6050::getYFineGain()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_Y_FINE_GAIN, buffer);
     return buffer[0];
 }
-void MPU6050::setYFineGain(int8_t gain) {
+void MPU6050::setYFineGain(int8_t gain)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_Y_FINE_GAIN, gain);
 }
 
 // Z_FINE_GAIN register
 
-int8_t MPU6050::getZFineGain() {
+int8_t MPU6050::getZFineGain()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_Z_FINE_GAIN, buffer);
     return buffer[0];
 }
-void MPU6050::setZFineGain(int8_t gain) {
+void MPU6050::setZFineGain(int8_t gain)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_Z_FINE_GAIN, gain);
 }
 
 // XA_OFFS_* registers
 
-int16_t MPU6050::getXAccelOffset() {
-	uint8_t SaveAddress = ((getDeviceID() < 0x38 )? MPU6050_RA_XA_OFFS_H:0x77); // MPU6050,MPU9150 Vs MPU6500,MPU9250
-	I2Cdev::readBytes(devAddr, SaveAddress, 2, buffer);
-	return (((int16_t)buffer[0]) << 8) | buffer[1];
+int16_t MPU6050::getXAccelOffset()
+{
+    uint8_t SaveAddress = ((getDeviceID() < 0x38) ? MPU6050_RA_XA_OFFS_H : 0x77); // MPU6050,MPU9150 Vs MPU6500,MPU9250
+    I2Cdev::readBytes(devAddr, SaveAddress, 2, buffer);
+    return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
-void MPU6050::setXAccelOffset(int16_t offset) {
-	uint8_t SaveAddress = ((getDeviceID() < 0x38 )? MPU6050_RA_XA_OFFS_H:0x77); // MPU6050,MPU9150 Vs MPU6500,MPU9250
-	I2Cdev::writeWord(devAddr, SaveAddress, offset);
+void MPU6050::setXAccelOffset(int16_t offset)
+{
+    uint8_t SaveAddress = ((getDeviceID() < 0x38) ? MPU6050_RA_XA_OFFS_H : 0x77); // MPU6050,MPU9150 Vs MPU6500,MPU9250
+    I2Cdev::writeWord(devAddr, SaveAddress, offset);
 }
 
 // YA_OFFS_* register
 
-int16_t MPU6050::getYAccelOffset() {
-	uint8_t SaveAddress = ((getDeviceID() < 0x38 )? MPU6050_RA_YA_OFFS_H:0x7A); // MPU6050,MPU9150 Vs MPU6500,MPU9250
-	I2Cdev::readBytes(devAddr, SaveAddress, 2, buffer);
-	return (((int16_t)buffer[0]) << 8) | buffer[1];
+int16_t MPU6050::getYAccelOffset()
+{
+    uint8_t SaveAddress = ((getDeviceID() < 0x38) ? MPU6050_RA_YA_OFFS_H : 0x7A); // MPU6050,MPU9150 Vs MPU6500,MPU9250
+    I2Cdev::readBytes(devAddr, SaveAddress, 2, buffer);
+    return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
-void MPU6050::setYAccelOffset(int16_t offset) {
-	uint8_t SaveAddress = ((getDeviceID() < 0x38 )? MPU6050_RA_YA_OFFS_H:0x7A); // MPU6050,MPU9150 Vs MPU6500,MPU9250
-	I2Cdev::writeWord(devAddr, SaveAddress, offset);
+void MPU6050::setYAccelOffset(int16_t offset)
+{
+    uint8_t SaveAddress = ((getDeviceID() < 0x38) ? MPU6050_RA_YA_OFFS_H : 0x7A); // MPU6050,MPU9150 Vs MPU6500,MPU9250
+    I2Cdev::writeWord(devAddr, SaveAddress, offset);
 }
 
 // ZA_OFFS_* register
 
-int16_t MPU6050::getZAccelOffset() {
-	uint8_t SaveAddress = ((getDeviceID() < 0x38 )? MPU6050_RA_ZA_OFFS_H:0x7D); // MPU6050,MPU9150 Vs MPU6500,MPU9250
-	I2Cdev::readBytes(devAddr, SaveAddress, 2, buffer);
-	return (((int16_t)buffer[0]) << 8) | buffer[1];
+int16_t MPU6050::getZAccelOffset()
+{
+    uint8_t SaveAddress = ((getDeviceID() < 0x38) ? MPU6050_RA_ZA_OFFS_H : 0x7D); // MPU6050,MPU9150 Vs MPU6500,MPU9250
+    I2Cdev::readBytes(devAddr, SaveAddress, 2, buffer);
+    return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
-void MPU6050::setZAccelOffset(int16_t offset) {
-	uint8_t SaveAddress = ((getDeviceID() < 0x38 )? MPU6050_RA_ZA_OFFS_H:0x7D); // MPU6050,MPU9150 Vs MPU6500,MPU9250
-	I2Cdev::writeWord(devAddr, SaveAddress, offset);
+void MPU6050::setZAccelOffset(int16_t offset)
+{
+    uint8_t SaveAddress = ((getDeviceID() < 0x38) ? MPU6050_RA_ZA_OFFS_H : 0x7D); // MPU6050,MPU9150 Vs MPU6500,MPU9250
+    I2Cdev::writeWord(devAddr, SaveAddress, offset);
 }
 
 // XG_OFFS_USR* registers
 
-int16_t MPU6050::getXGyroOffset() {
+int16_t MPU6050::getXGyroOffset()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_XG_OFFS_USRH, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
-void MPU6050::setXGyroOffset(int16_t offset) {
+void MPU6050::setXGyroOffset(int16_t offset)
+{
     I2Cdev::writeWord(devAddr, MPU6050_RA_XG_OFFS_USRH, offset);
 }
 
 // YG_OFFS_USR* register
 
-int16_t MPU6050::getYGyroOffset() {
+int16_t MPU6050::getYGyroOffset()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_YG_OFFS_USRH, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
-void MPU6050::setYGyroOffset(int16_t offset) {
+void MPU6050::setYGyroOffset(int16_t offset)
+{
     I2Cdev::writeWord(devAddr, MPU6050_RA_YG_OFFS_USRH, offset);
 }
 
 // ZG_OFFS_USR* register
 
-int16_t MPU6050::getZGyroOffset() {
+int16_t MPU6050::getZGyroOffset()
+{
     I2Cdev::readBytes(devAddr, MPU6050_RA_ZG_OFFS_USRH, 2, buffer);
     return (((int16_t)buffer[0]) << 8) | buffer[1];
 }
-void MPU6050::setZGyroOffset(int16_t offset) {
+void MPU6050::setZGyroOffset(int16_t offset)
+{
     I2Cdev::writeWord(devAddr, MPU6050_RA_ZG_OFFS_USRH, offset);
 }
 
 // INT_ENABLE register (DMP functions)
 
-bool MPU6050::getIntPLLReadyEnabled() {
+bool MPU6050::getIntPLLReadyEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_PLL_RDY_INT_BIT, buffer);
     return buffer[0];
 }
-void MPU6050::setIntPLLReadyEnabled(bool enabled) {
+void MPU6050::setIntPLLReadyEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_PLL_RDY_INT_BIT, enabled);
 }
-bool MPU6050::getIntDMPEnabled() {
+bool MPU6050::getIntDMPEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_DMP_INT_BIT, buffer);
     return buffer[0];
 }
-void MPU6050::setIntDMPEnabled(bool enabled) {
+void MPU6050::setIntDMPEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_INT_ENABLE, MPU6050_INTERRUPT_DMP_INT_BIT, enabled);
 }
 
 // DMP_INT_STATUS
 
-bool MPU6050::getDMPInt5Status() {
+bool MPU6050::getDMPInt5Status()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_DMP_INT_STATUS, MPU6050_DMPINT_5_BIT, buffer);
     return buffer[0];
 }
-bool MPU6050::getDMPInt4Status() {
+bool MPU6050::getDMPInt4Status()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_DMP_INT_STATUS, MPU6050_DMPINT_4_BIT, buffer);
     return buffer[0];
 }
-bool MPU6050::getDMPInt3Status() {
+bool MPU6050::getDMPInt3Status()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_DMP_INT_STATUS, MPU6050_DMPINT_3_BIT, buffer);
     return buffer[0];
 }
-bool MPU6050::getDMPInt2Status() {
+bool MPU6050::getDMPInt2Status()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_DMP_INT_STATUS, MPU6050_DMPINT_2_BIT, buffer);
     return buffer[0];
 }
-bool MPU6050::getDMPInt1Status() {
+bool MPU6050::getDMPInt1Status()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_DMP_INT_STATUS, MPU6050_DMPINT_1_BIT, buffer);
     return buffer[0];
 }
-bool MPU6050::getDMPInt0Status() {
+bool MPU6050::getDMPInt0Status()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_DMP_INT_STATUS, MPU6050_DMPINT_0_BIT, buffer);
     return buffer[0];
 }
 
 // INT_STATUS register (DMP functions)
 
-bool MPU6050::getIntPLLReadyStatus() {
+bool MPU6050::getIntPLLReadyStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_PLL_RDY_INT_BIT, buffer);
     return buffer[0];
 }
-bool MPU6050::getIntDMPStatus() {
+bool MPU6050::getIntDMPStatus()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_DMP_INT_BIT, buffer);
     return buffer[0];
 }
 
 // USER_CTRL register (DMP functions)
 
-bool MPU6050::getDMPEnabled() {
+bool MPU6050::getDMPEnabled()
+{
     I2Cdev::readBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_DMP_EN_BIT, buffer);
     return buffer[0];
 }
-void MPU6050::setDMPEnabled(bool enabled) {
+void MPU6050::setDMPEnabled(bool enabled)
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_DMP_EN_BIT, enabled);
 }
-void MPU6050::resetDMP() {
+void MPU6050::resetDMP()
+{
     I2Cdev::writeBit(devAddr, MPU6050_RA_USER_CTRL, MPU6050_USERCTRL_DMP_RESET_BIT, true);
 }
 
 // BANK_SEL register
 
-void MPU6050::setMemoryBank(uint8_t bank, bool prefetchEnabled, bool userBank) {
+void MPU6050::setMemoryBank(uint8_t bank, bool prefetchEnabled, bool userBank)
+{
     bank &= 0x1F;
-    if (userBank) bank |= 0x20;
-    if (prefetchEnabled) bank |= 0x40;
+    if (userBank)
+        bank |= 0x20;
+    if (prefetchEnabled)
+        bank |= 0x40;
     I2Cdev::writeByte(devAddr, MPU6050_RA_BANK_SEL, bank);
 }
 
 // MEM_START_ADDR register
 
-void MPU6050::setMemoryStartAddress(uint8_t address) {
+void MPU6050::setMemoryStartAddress(uint8_t address)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_MEM_START_ADDR, address);
 }
 
 // MEM_R_W register
 
-uint8_t MPU6050::readMemoryByte() {
+uint8_t MPU6050::readMemoryByte()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_MEM_R_W, buffer);
     return buffer[0];
 }
-void MPU6050::writeMemoryByte(uint8_t data) {
+void MPU6050::writeMemoryByte(uint8_t data)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_MEM_R_W, data);
 }
-void MPU6050::readMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address) {
+void MPU6050::readMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address)
+{
     setMemoryBank(bank);
     setMemoryStartAddress(address);
     uint8_t chunkSize;
-    for (uint16_t i = 0; i < dataSize;) {
+    for (uint16_t i = 0; i < dataSize;)
+    {
         // determine correct chunk size according to bank position and data size
         chunkSize = MPU6050_DMP_MEMORY_CHUNK_SIZE;
 
         // make sure we don't go past the data size
-        if (i + chunkSize > dataSize) chunkSize = dataSize - i;
+        if (i + chunkSize > dataSize)
+            chunkSize = dataSize - i;
 
         // make sure this chunk doesn't go past the bank boundary (256 bytes)
-        if (chunkSize > 256 - address) chunkSize = 256 - address;
+        if (chunkSize > 256 - address)
+            chunkSize = 256 - address;
 
         // read the chunk of data as specified
         I2Cdev::readBytes(devAddr, MPU6050_RA_MEM_R_W, chunkSize, data + i);
-        
+
         // increase byte index by [chunkSize]
         i += chunkSize;
 
@@ -3025,37 +3308,49 @@ void MPU6050::readMemoryBlock(uint8_t *data, uint16_t dataSize, uint8_t bank, ui
         address += chunkSize;
 
         // if we aren't done, update bank (if necessary) and address
-        if (i < dataSize) {
-            if (address == 0) bank++;
+        if (i < dataSize)
+        {
+            if (address == 0)
+                bank++;
             setMemoryBank(bank);
             setMemoryStartAddress(address);
         }
     }
 }
-bool MPU6050::writeMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify, bool useProgMem) {
+bool MPU6050::writeMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify, bool useProgMem)
+{
     setMemoryBank(bank);
     setMemoryStartAddress(address);
     uint8_t chunkSize;
-    uint8_t *verifyBuffer=0;
-    uint8_t *progBuffer=0;
+    uint8_t *verifyBuffer = 0;
+    uint8_t *progBuffer = 0;
     uint16_t i;
     uint8_t j;
-    if (verify) verifyBuffer = (uint8_t *)malloc(MPU6050_DMP_MEMORY_CHUNK_SIZE);
-    if (useProgMem) progBuffer = (uint8_t *)malloc(MPU6050_DMP_MEMORY_CHUNK_SIZE);
-    for (i = 0; i < dataSize;) {
+    if (verify)
+        verifyBuffer = (uint8_t *)malloc(MPU6050_DMP_MEMORY_CHUNK_SIZE);
+    if (useProgMem)
+        progBuffer = (uint8_t *)malloc(MPU6050_DMP_MEMORY_CHUNK_SIZE);
+    for (i = 0; i < dataSize;)
+    {
         // determine correct chunk size according to bank position and data size
         chunkSize = MPU6050_DMP_MEMORY_CHUNK_SIZE;
 
         // make sure we don't go past the data size
-        if (i + chunkSize > dataSize) chunkSize = dataSize - i;
+        if (i + chunkSize > dataSize)
+            chunkSize = dataSize - i;
 
         // make sure this chunk doesn't go past the bank boundary (256 bytes)
-        if (chunkSize > 256 - address) chunkSize = 256 - address;
-        
-        if (useProgMem) {
+        if (chunkSize > 256 - address)
+            chunkSize = 256 - address;
+
+        if (useProgMem)
+        {
             // write the chunk of data as specified
-            for (j = 0; j < chunkSize; j++) progBuffer[j] = pgm_read_byte(data + i + j);
-        } else {
+            for (j = 0; j < chunkSize; j++)
+                progBuffer[j] = pgm_read_byte(data + i + j);
+        }
+        else
+        {
             // write the chunk of data as specified
             progBuffer = (uint8_t *)data + i;
         }
@@ -3063,11 +3358,13 @@ bool MPU6050::writeMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t b
         I2Cdev::writeBytes(devAddr, MPU6050_RA_MEM_R_W, chunkSize, progBuffer);
 
         // verify data if needed
-        if (verify && verifyBuffer) {
+        if (verify && verifyBuffer)
+        {
             setMemoryBank(bank);
             setMemoryStartAddress(address);
             I2Cdev::readBytes(devAddr, MPU6050_RA_MEM_R_W, chunkSize, verifyBuffer);
-            if (memcmp(progBuffer, verifyBuffer, chunkSize) != 0) {
+            if (memcmp(progBuffer, verifyBuffer, chunkSize) != 0)
+            {
                 /*Serial.print("Block write verification error, bank ");
                 Serial.print(bank, DEC);
                 Serial.print(", address ");
@@ -3086,7 +3383,8 @@ bool MPU6050::writeMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t b
                 }
                 Serial.print("\n");*/
                 free(verifyBuffer);
-                if (useProgMem) free(progBuffer);
+                if (useProgMem)
+                    free(progBuffer);
                 return false; // uh oh.
             }
         }
@@ -3098,43 +3396,55 @@ bool MPU6050::writeMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t b
         address += chunkSize;
 
         // if we aren't done, update bank (if necessary) and address
-        if (i < dataSize) {
-            if (address == 0) bank++;
+        if (i < dataSize)
+        {
+            if (address == 0)
+                bank++;
             setMemoryBank(bank);
             setMemoryStartAddress(address);
         }
     }
-    if (verify) free(verifyBuffer);
-    if (useProgMem) free(progBuffer);
+    if (verify)
+        free(verifyBuffer);
+    if (useProgMem)
+        free(progBuffer);
     return true;
 }
-bool MPU6050::writeProgMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify) {
+bool MPU6050::writeProgMemoryBlock(const uint8_t *data, uint16_t dataSize, uint8_t bank, uint8_t address, bool verify)
+{
     return writeMemoryBlock(data, dataSize, bank, address, verify, true);
 }
-bool MPU6050::writeDMPConfigurationSet(const uint8_t *data, uint16_t dataSize, bool useProgMem) {
+bool MPU6050::writeDMPConfigurationSet(const uint8_t *data, uint16_t dataSize, bool useProgMem)
+{
     uint8_t *progBuffer = 0;
-	uint8_t success, special;
+    uint8_t success, special;
     uint16_t i, j;
-    if (useProgMem) {
+    if (useProgMem)
+    {
         progBuffer = (uint8_t *)malloc(8); // assume 8-byte blocks, realloc later if necessary
     }
 
     // config set data is a long string of blocks with the following structure:
     // [bank] [offset] [length] [byte[0], byte[1], ..., byte[length]]
     uint8_t bank, offset, length;
-    for (i = 0; i < dataSize;) {
-        if (useProgMem) {
+    for (i = 0; i < dataSize;)
+    {
+        if (useProgMem)
+        {
             bank = pgm_read_byte(data + i++);
             offset = pgm_read_byte(data + i++);
             length = pgm_read_byte(data + i++);
-        } else {
+        }
+        else
+        {
             bank = data[i++];
             offset = data[i++];
             length = data[i++];
         }
 
         // write data or perform special action
-        if (length > 0) {
+        if (length > 0)
+        {
             // regular block of data to write
             /*Serial.print("Writing config block to bank ");
             Serial.print(bank);
@@ -3142,75 +3452,95 @@ bool MPU6050::writeDMPConfigurationSet(const uint8_t *data, uint16_t dataSize, b
             Serial.print(offset);
             Serial.print(", length=");
             Serial.println(length);*/
-            if (useProgMem) {
-                if (sizeof(progBuffer) < length) progBuffer = (uint8_t *)realloc(progBuffer, length);
-                for (j = 0; j < length; j++) progBuffer[j] = pgm_read_byte(data + i + j);
-            } else {
+            if (useProgMem)
+            {
+                if (sizeof(progBuffer) < length)
+                    progBuffer = (uint8_t *)realloc(progBuffer, length);
+                for (j = 0; j < length; j++)
+                    progBuffer[j] = pgm_read_byte(data + i + j);
+            }
+            else
+            {
                 progBuffer = (uint8_t *)data + i;
             }
             success = writeMemoryBlock(progBuffer, length, bank, offset, true);
             i += length;
-        } else {
+        }
+        else
+        {
             // special instruction
             // NOTE: this kind of behavior (what and when to do certain things)
             // is totally undocumented. This code is in here based on observed
             // behavior only, and exactly why (or even whether) it has to be here
             // is anybody's guess for now.
-            if (useProgMem) {
+            if (useProgMem)
+            {
                 special = pgm_read_byte(data + i++);
-            } else {
+            }
+            else
+            {
                 special = data[i++];
             }
             /*Serial.print("Special command code ");
             Serial.print(special, HEX);
             Serial.println(" found...");*/
-            if (special == 0x01) {
+            if (special == 0x01)
+            {
                 // enable DMP-related interrupts
-                
-                //setIntZeroMotionEnabled(true);
-                //setIntFIFOBufferOverflowEnabled(true);
-                //setIntDMPEnabled(true);
-                I2Cdev::writeByte(devAddr, MPU6050_RA_INT_ENABLE, 0x32);  // single operation
+
+                // setIntZeroMotionEnabled(true);
+                // setIntFIFOBufferOverflowEnabled(true);
+                // setIntDMPEnabled(true);
+                I2Cdev::writeByte(devAddr, MPU6050_RA_INT_ENABLE, 0x32); // single operation
 
                 success = true;
-            } else {
+            }
+            else
+            {
                 // unknown special command
                 success = false;
             }
         }
-        
-        if (!success) {
-            if (useProgMem) free(progBuffer);
+
+        if (!success)
+        {
+            if (useProgMem)
+                free(progBuffer);
             return false; // uh oh
         }
     }
-    if (useProgMem) free(progBuffer);
+    if (useProgMem)
+        free(progBuffer);
     return true;
 }
-bool MPU6050::writeProgDMPConfigurationSet(const uint8_t *data, uint16_t dataSize) {
+bool MPU6050::writeProgDMPConfigurationSet(const uint8_t *data, uint16_t dataSize)
+{
     return writeDMPConfigurationSet(data, dataSize, true);
 }
 
 // DMP_CFG_1 register
 
-uint8_t MPU6050::getDMPConfig1() {
+uint8_t MPU6050::getDMPConfig1()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_DMP_CFG_1, buffer);
     return buffer[0];
 }
-void MPU6050::setDMPConfig1(uint8_t config) {
+void MPU6050::setDMPConfig1(uint8_t config)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_DMP_CFG_1, config);
 }
 
 // DMP_CFG_2 register
 
-uint8_t MPU6050::getDMPConfig2() {
+uint8_t MPU6050::getDMPConfig2()
+{
     I2Cdev::readByte(devAddr, MPU6050_RA_DMP_CFG_2, buffer);
     return buffer[0];
 }
-void MPU6050::setDMPConfig2(uint8_t config) {
+void MPU6050::setDMPConfig2(uint8_t config)
+{
     I2Cdev::writeByte(devAddr, MPU6050_RA_DMP_CFG_2, config);
 }
-
 
 //***************************************************************************************
 //**********************           Calibration Routines            **********************
@@ -3218,113 +3548,146 @@ void MPU6050::setDMPConfig2(uint8_t config) {
 /**
   @brief      Fully calibrate Gyro from ZERO in about 6-7 Loops 600-700 readings
 */
-void MPU6050::CalibrateGyro(uint8_t Loops ) {
-  double kP = 0.3;
-  double kI = 90;
-  float x;
-  x = (100 - map(Loops, 1, 5, 20, 0)) * .01;
-  kP *= x;
-  kI *= x;
-  
-  PID( 0x43,  kP, kI,  Loops);
+void MPU6050::CalibrateGyro(uint8_t Loops)
+{
+    double kP = 0.3;
+    double kI = 90;
+    float x;
+    x = (100 - map(Loops, 1, 5, 20, 0)) * .01;
+    kP *= x;
+    kI *= x;
+
+    PID(0x43, kP, kI, Loops);
 }
 
 /**
   @brief      Fully calibrate Accel from ZERO in about 6-7 Loops 600-700 readings
 */
-void MPU6050::CalibrateAccel(uint8_t Loops ) {
+void MPU6050::CalibrateAccel(uint8_t Loops)
+{
 
-	float kP = 0.3;
-	float kI = 20;
-	float x;
-	x = (100 - map(Loops, 1, 5, 20, 0)) * .01;
-	kP *= x;
-	kI *= x;
-	PID( 0x3B, kP, kI,  Loops);
+    float kP = 0.3;
+    float kI = 20;
+    float x;
+    x = (100 - map(Loops, 1, 5, 20, 0)) * .01;
+    kP *= x;
+    kI *= x;
+    PID(0x3B, kP, kI, Loops);
 }
 
-void MPU6050::PID(uint8_t ReadAddress, float kP,float kI, uint8_t Loops){
-	uint8_t SaveAddress = (ReadAddress == 0x3B)?((getDeviceID() < 0x38 )? 0x06:0x77):0x13;
+void MPU6050::PID(uint8_t ReadAddress, float kP, float kI, uint8_t Loops)
+{
+    uint8_t SaveAddress = (ReadAddress == 0x3B) ? ((getDeviceID() < 0x38) ? 0x06 : 0x77) : 0x13;
 
-	int16_t  Data;
-	float Reading;
-	int16_t BitZero[3];
-	uint8_t shift =(SaveAddress == 0x77)?3:2;
-	float Error, PTerm, ITerm[3];
-	int16_t eSample;
-	uint32_t eSum ;
-	Serial.write('>');
-	for (int i = 0; i < 3; i++) {
-		I2Cdev::readWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data); // reads 1 or more 16 bit integers (Word)
-		Reading = Data;
-		if(SaveAddress != 0x13){
-			BitZero[i] = Data & 1;										 // Capture Bit Zero to properly handle Accelerometer calibration
-			ITerm[i] = ((float)Reading) * 8;
-			} else {
-			ITerm[i] = Reading * 4;
-		}
-	}
-	for (int L = 0; L < Loops; L++) {
-		eSample = 0;
-		for (int c = 0; c < 100; c++) {// 100 PI Calculations
-			eSum = 0;
-			for (int i = 0; i < 3; i++) {
-				I2Cdev::readWords(devAddr, ReadAddress + (i * 2), 1, (uint16_t *)&Data); // reads 1 or more 16 bit integers (Word)
-				Reading = Data;
-				if ((ReadAddress == 0x3B)&&(i == 2)) Reading -= 16384;	//remove Gravity
-				Error = -Reading;
-				eSum += abs(Reading);
-				PTerm = kP * Error;
-				ITerm[i] += (Error * 0.001) * kI;				// Integral term 1000 Calculations a second = 0.001
-				if(SaveAddress != 0x13){
-					Data = round((PTerm + ITerm[i] ) / 8);		//Compute PID Output
-					Data = ((Data)&0xFFFE) |BitZero[i];			// Insert Bit0 Saved at beginning
-				} else Data = round((PTerm + ITerm[i] ) / 4);	//Compute PID Output
-				I2Cdev::writeWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data);
-			}
-			if((c == 99) && eSum > 1000){						// Error is still to great to continue 
-				c = 0;
-				Serial.write('*');
-			}
-			if((eSum * ((ReadAddress == 0x3B)?.05: 1)) < 5) eSample++;	// Successfully found offsets prepare to  advance
-			if((eSum < 100) && (c > 10) && (eSample >= 10)) break;		// Advance to next Loop
-			delay(1);
-		}
-		Serial.write('.');
-		kP *= .75;
-		kI *= .75;
-		for (int i = 0; i < 3; i++){
-			if(SaveAddress != 0x13) {
-				Data = round((ITerm[i] ) / 8);		//Compute PID Output
-				Data = ((Data)&0xFFFE) |BitZero[i];	// Insert Bit0 Saved at beginning
-			} else Data = round((ITerm[i]) / 4);
-			I2Cdev::writeWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data);
-		}
-	}
-	resetFIFO();
-	resetDMP();
+    int16_t Data;
+    float Reading;
+    int16_t BitZero[3];
+    uint8_t shift = (SaveAddress == 0x77) ? 3 : 2;
+    float Error, PTerm, ITerm[3];
+    int16_t eSample;
+    uint32_t eSum;
+    Serial.write('>');
+    for (int i = 0; i < 3; i++)
+    {
+        I2Cdev::readWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data); // reads 1 or more 16 bit integers (Word)
+        Reading = Data;
+        if (SaveAddress != 0x13)
+        {
+            BitZero[i] = Data & 1; // Capture Bit Zero to properly handle Accelerometer calibration
+            ITerm[i] = ((float)Reading) * 8;
+        }
+        else
+        {
+            ITerm[i] = Reading * 4;
+        }
+    }
+    for (int L = 0; L < Loops; L++)
+    {
+        eSample = 0;
+        for (int c = 0; c < 100; c++)
+        { // 100 PI Calculations
+            eSum = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                I2Cdev::readWords(devAddr, ReadAddress + (i * 2), 1, (uint16_t *)&Data); // reads 1 or more 16 bit integers (Word)
+                Reading = Data;
+                if ((ReadAddress == 0x3B) && (i == 2))
+                    Reading -= 16384; // remove Gravity
+                Error = -Reading;
+                eSum += abs(Reading);
+                PTerm = kP * Error;
+                ITerm[i] += (Error * 0.001) * kI; // Integral term 1000 Calculations a second = 0.001
+                if (SaveAddress != 0x13)
+                {
+                    Data = round((PTerm + ITerm[i]) / 8); // Compute PID Output
+                    Data = ((Data)&0xFFFE) | BitZero[i];  // Insert Bit0 Saved at beginning
+                }
+                else
+                    Data = round((PTerm + ITerm[i]) / 4); // Compute PID Output
+                I2Cdev::writeWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data);
+            }
+            if ((c == 99) && eSum > 1000)
+            { // Error is still to great to continue
+                c = 0;
+                Serial.write('*');
+            }
+            if ((eSum * ((ReadAddress == 0x3B) ? .05 : 1)) < 5)
+                eSample++; // Successfully found offsets prepare to  advance
+            if ((eSum < 100) && (c > 10) && (eSample >= 10))
+                break; // Advance to next Loop
+            delay(1);
+        }
+        Serial.write('.');
+        kP *= .75;
+        kI *= .75;
+        for (int i = 0; i < 3; i++)
+        {
+            if (SaveAddress != 0x13)
+            {
+                Data = round((ITerm[i]) / 8);        // Compute PID Output
+                Data = ((Data)&0xFFFE) | BitZero[i]; // Insert Bit0 Saved at beginning
+            }
+            else
+                Data = round((ITerm[i]) / 4);
+            I2Cdev::writeWords(devAddr, SaveAddress + (i * shift), 1, (uint16_t *)&Data);
+        }
+    }
+    resetFIFO();
+    resetDMP();
 }
 
-#define printfloatx(Name,Variable,Spaces,Precision,EndTxt) { Serial.print(F(Name)); {char S[(Spaces + Precision + 3)];Serial.print(F(" ")); Serial.print(dtostrf((float)Variable,Spaces,Precision ,S));}Serial.print(F(EndTxt)); }//Name,Variable,Spaces,Precision,EndTxt
-void MPU6050::PrintActiveOffsets() {
-	uint8_t AOffsetRegister = (getDeviceID() < 0x38 )? MPU6050_RA_XA_OFFS_H:0x77;
-	int16_t Data[3];
-	//Serial.print(F("Offset Register 0x"));
-	//Serial.print(AOffsetRegister>>4,HEX);Serial.print(AOffsetRegister&0x0F,HEX);
-	Serial.print(F("\n//           X Accel  Y Accel  Z Accel   X Gyro   Y Gyro   Z Gyro\n//OFFSETS   "));
-	if(AOffsetRegister == 0x06)	I2Cdev::readWords(devAddr, AOffsetRegister, 3, (uint16_t *)Data);
-	else {
-		I2Cdev::readWords(devAddr, AOffsetRegister, 1, (uint16_t *)Data);
-		I2Cdev::readWords(devAddr, AOffsetRegister+3, 1, (uint16_t *)Data+1);
-		I2Cdev::readWords(devAddr, AOffsetRegister+6, 1, (uint16_t *)Data+2);
-	}
-	//	A_OFFSET_H_READ_A_OFFS(Data);
-	printfloatx("", Data[0], 5, 0, ",  ");
-	printfloatx("", Data[1], 5, 0, ",  ");
-	printfloatx("", Data[2], 5, 0, ",  ");
-	I2Cdev::readWords(devAddr, 0x13, 3, (uint16_t *)Data);
-	//	XG_OFFSET_H_READ_OFFS_USR(Data);
-	printfloatx("", Data[0], 5, 0, ",  ");
-	printfloatx("", Data[1], 5, 0, ",  ");
-	printfloatx("", Data[2], 5, 0, "\n");
+#define printfloatx(Name, Variable, Spaces, Precision, EndTxt)            \
+    {                                                                     \
+        Serial.print(F(Name));                                            \
+        {                                                                 \
+            char S[(Spaces + Precision + 3)];                             \
+            Serial.print(F(" "));                                         \
+            Serial.print(dtostrf((float)Variable, Spaces, Precision, S)); \
+        }                                                                 \
+        Serial.print(F(EndTxt));                                          \
+    } // Name,Variable,Spaces,Precision,EndTxt
+void MPU6050::PrintActiveOffsets()
+{
+    uint8_t AOffsetRegister = (getDeviceID() < 0x38) ? MPU6050_RA_XA_OFFS_H : 0x77;
+    int16_t Data[3];
+    // Serial.print(F("Offset Register 0x"));
+    // Serial.print(AOffsetRegister>>4,HEX);Serial.print(AOffsetRegister&0x0F,HEX);
+    Serial.print(F("\n//           X Accel  Y Accel  Z Accel   X Gyro   Y Gyro   Z Gyro\n//OFFSETS   "));
+    if (AOffsetRegister == 0x06)
+        I2Cdev::readWords(devAddr, AOffsetRegister, 3, (uint16_t *)Data);
+    else
+    {
+        I2Cdev::readWords(devAddr, AOffsetRegister, 1, (uint16_t *)Data);
+        I2Cdev::readWords(devAddr, AOffsetRegister + 3, 1, (uint16_t *)Data + 1);
+        I2Cdev::readWords(devAddr, AOffsetRegister + 6, 1, (uint16_t *)Data + 2);
+    }
+    //	A_OFFSET_H_READ_A_OFFS(Data);
+    printfloatx("", Data[0], 5, 0, ",  ");
+    printfloatx("", Data[1], 5, 0, ",  ");
+    printfloatx("", Data[2], 5, 0, ",  ");
+    I2Cdev::readWords(devAddr, 0x13, 3, (uint16_t *)Data);
+    //	XG_OFFSET_H_READ_OFFS_USR(Data);
+    printfloatx("", Data[0], 5, 0, ",  ");
+    printfloatx("", Data[1], 5, 0, ",  ");
+    printfloatx("", Data[2], 5, 0, "\n");
 }
