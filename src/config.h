@@ -25,13 +25,12 @@
 
 #include "nRF24L01.h"
 #include "RF24.h"
-#if IMU_MPU9250 == 1
-#include "MPU9250.h";
-#endif
-#if IMU_MPU6050 == 1
-#include "MPU6050.h"
-#endif
-#if IMU_LSM9DS1 == 1
+
+#if defined(IMU_MPU6050)
+// #include "MPU6050.h"
+#elif defined(IMU_MPU9250)
+// #include "MPU9250.h"
+#elif defined(IMU_LSM9DS1)
 #include "LSM9DS1.h"
 #endif
 

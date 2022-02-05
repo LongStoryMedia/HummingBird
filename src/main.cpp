@@ -60,10 +60,14 @@ void loop()
   imu.getImu();                                                                                                                               // pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw); // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
   State packet = rx.getPacket();
-  packet.pitch = 0;
-  packet.roll = 0;
-  packet.yaw = 0;
-  packet.thrust = 300;
+  Serial.print("thrust: ");
+  Serial.print(packet.thrust);
+  Serial.print("\tpitch: ");
+  Serial.print(packet.pitch);
+  Serial.print("\troll: ");
+  Serial.print(packet.roll);
+  Serial.print("\tyaw: ");
+  Serial.println(packet.yaw);
   // pulls current available radio commands
   // Compute desired state
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits

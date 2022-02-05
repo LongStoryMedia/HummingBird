@@ -2,7 +2,7 @@
 #define RX_H
 #define RC 1
 
-#define CE 10
+#define CE 8
 #define CSN 9
 
 class Rx

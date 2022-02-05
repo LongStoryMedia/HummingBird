@@ -198,16 +198,16 @@ void Imu::getImu()
     ag.mag.pitch = (1.0 - filter.mag) * agPrev.mag.pitch + filter.mag * ag.mag.pitch;
     ag.mag.yaw = (1.0 - filter.mag) * agPrev.mag.yaw + filter.mag * ag.mag.yaw;
     agPrev.mag = ag.mag;
-    Serial.print("accRoll:");
-    Serial.print(ag.accel.roll);
-    Serial.print("\taccPitch:");
-    Serial.print(ag.accel.pitch);
-    Serial.print("\taccYaw:");
-    Serial.print(ag.accel.yaw);
-    Serial.print("\tgyroRoll:");
-    Serial.print(ag.gyro.roll);
-    Serial.print("\tgyroPitch:");
-    Serial.print(ag.gyro.pitch);
-    Serial.print("\tgyroYaw:");
-    Serial.println(ag.gyro.yaw);
+    // Serial.print("accRoll:");
+    // Serial.print(ag.accel.roll);
+    // Serial.print("\taccPitch:");
+    // Serial.print(ag.accel.pitch);
+    // Serial.print("\taccYaw:");
+    // Serial.print(ag.accel.yaw);
+    // Serial.print("\tgyroRoll:");
+    // Serial.print(ag.gyro.roll);
+    // Serial.print("\tgyroPitch:");
+    // Serial.print(ag.gyro.pitch);
+    // Serial.print("\tgyroYaw:");
+    // Serial.println(ag.gyro.yaw);
 }
