@@ -27,9 +27,9 @@
 #include "RF24.h"
 
 #if defined(IMU_MPU6050)
-// #include "MPU6050.h"
+#include "MPU6050.h"
 #elif defined(IMU_MPU9250)
-// #include "MPU9250.h"
+#include "MPU9250.h"
 #elif defined(IMU_LSM9DS1)
 #include "LSM9DS1.h"
 #endif
