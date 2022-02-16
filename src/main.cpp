@@ -26,7 +26,9 @@ Rx rx;
 Esc esc;
 Pid pid;
 Imu imu;
-
+#if defined(USE_MPL3115A2)
+Alt alt;
+#endif
 //========================================================================================================================//
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
@@ -48,6 +50,11 @@ void setup()
   // Initialize IMU communication
   imu.init();
   delay(10);
+#if defined(USE_MPL3115A2)
+  // Initialize Baro communication
+  alt.init();
+  delay(10);
+#endif
   esc.arm();
   delay(100);
   // Warm up the loop
@@ -65,11 +72,9 @@ void loop()
   timer.update();
   loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
   // Get vehicle state
-  imu.getImu();                                                                                                                               // pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
+  imu.getImu();
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw); // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
   State packet = rx.getPacket();
-  // pulls current available radio commands
-  // Compute desired state
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
   if (packet.thrust < 10)
@@ -163,4 +168,14 @@ float invSqrt(float x)
   float tmp = *(float *)&i;
   float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
   return y;
+}
+
+template <class T>
+void debug(T data)
+{
+  if (timer.now - print_counter > 10000)
+  {
+    print_counter = micros();
+    Serial.println(data);
+  }
 }

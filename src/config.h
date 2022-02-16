@@ -34,13 +34,20 @@
 #include "LSM9DS1.h"
 #endif
 
-#ifdef ESP32
+#if defined(USE_PWM)
+#if defined(ESP32)
 #include <ESP32Servo.h>
-#elif defined TEENSY
+#elif defined(TEENSY)
 #include <PWMServo.h> //commanding any extra actuators, installed with teensyduino installer
 #define Servo PWMServo
 #else
 #include <Servo.h>
+#endif
+#endif
+
+#if defined(USE_MPL3115A2)
+#include "MPL3115A2.h"
+#include "Alt.h"
 #endif
 
 #include "Imu.h"
@@ -68,7 +75,9 @@ extern Rx rx;
 extern Esc esc;
 extern Pid pid;
 extern Imu imu;
-
+#if defined(USE_MPL3115A2)
+extern Alt alt;
+#endif
 //========================================================================================================================//
 
 // Setup gyro and accel full scale value selection and scale factor
@@ -165,5 +174,7 @@ float invSqrt(float x);
 void setupBlink(int numBlinks, int upTime, int downTime);
 void loopBlink();
 void loopRate(int freq);
+template <class T>
+void debug(T data);
 
 #endif
