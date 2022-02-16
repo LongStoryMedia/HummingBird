@@ -1,9 +1,19 @@
 #include "config.h"
 
+//========================================================================================================================//
+//                                                 GLOBALS                                                                //
+//========================================================================================================================//
+#if defined IMU_MPU9250
+MPU9250 mpu(SPI1, 0);
+#elif defined IMU_MPU6050
+MPU6050 mpu;
+#elif defined IMU_LSM9DS1
+#define mpu IMU
+#endif
+
 uint32_t print_counter, serial_counter;
 uint32_t blink_counter, blink_delay;
 bool blinkAlternate;
-
 Timer timer;
 Filter filter{0.04, 0.14, 0.1, 1.0};
 Quaternion q{1.0f, 0.0f, 0.0f, 0.0f};
@@ -12,11 +22,14 @@ AccelGyro agPrev;
 AccelGyro agError;
 AccelGyro agImu;
 AccelGyro agImuPrev;
-
 Rx rx;
 Esc esc;
 Pid pid;
 Imu imu;
+
+//========================================================================================================================//
+//                                                 SETUP                                                                  //
+//========================================================================================================================//
 
 void setup()
 {
@@ -24,11 +37,6 @@ void setup()
 
   // Initialize all pins
   pinMode(13, OUTPUT); // pin 13 LED blinker on board, do not modify
-
-  pinMode(M1_PIN, OUTPUT);
-  pinMode(M2_PIN, OUTPUT);
-  pinMode(M3_PIN, OUTPUT);
-  pinMode(M4_PIN, OUTPUT);
 
   // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
   digitalWrite(13, HIGH);
@@ -60,14 +68,6 @@ void loop()
   imu.getImu();                                                                                                                               // pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw); // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
   State packet = rx.getPacket();
-  Serial.print("thrust: ");
-  Serial.print(packet.thrust);
-  Serial.print("\tpitch: ");
-  Serial.print(packet.pitch);
-  Serial.print("\troll: ");
-  Serial.print(packet.roll);
-  Serial.print("\tyaw: ");
-  Serial.println(packet.yaw);
   // pulls current available radio commands
   // Compute desired state
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
@@ -114,7 +114,7 @@ void loopBlink()
   if (timer.now - blink_counter > blink_delay)
   {
     blink_counter = micros();
-    digitalWrite(13, blinkAlternate); // pin 13 is built in LED
+    digitalWrite(13, blinkAlternate ? HIGH : LOW); // pin 13 is built in LED
 
     if (blinkAlternate == 1)
     {

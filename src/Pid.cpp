@@ -31,7 +31,21 @@
 
 void Pid::init()
 {
-  if (PID_MODE == pidMode::simpleRate)
+#if defined(X1_CONFIG)
+  propConfig.p1.rotation = propConfig.p1.clockwise;
+  propConfig.p2.rotation = propConfig.p2.counterClockwise;
+  propConfig.p3.rotation = propConfig.p3.clockwise;
+  propConfig.p4.rotation = propConfig.p4.counterClockwise;
+#elif defined(X2_CONFIG)
+  propConfig.p1.rotation = propConfig.p1.counterClockwise;
+  propConfig.p2.rotation = propConfig.p2.clockwise;
+  propConfig.p3.rotation = propConfig.p3.counterClockwise;
+  propConfig.p4.rotation = propConfig.p4.clockwise;
+#else
+#error "no prop config defined"
+#endif
+
+  if (PID_MODE == simpleRateMode)
   {
     roll.Kp = KP_ROLL_RATE;
     roll.Ki = KI_ROLL_RATE;
@@ -254,15 +268,15 @@ Commands Pid::control(AccelGyro imu)
 {
   switch (PID_MODE)
   {
-  case pidMode::simpleAngle:
+  case simpleAngleMode:
     simpleAngle(imu);
     break;
 
-  case pidMode::cascadingAngle:
+  case cascadingAngleMode:
     cascadingAngle(imu);
     break;
 
-  case pidMode::simpleRate:
+  case simpleRateMode:
     simpleRate(imu);
     break;
 
@@ -271,10 +285,10 @@ Commands Pid::control(AccelGyro imu)
     break;
   }
 
-  float m1 = desiredState.thrust - out.pitch + out.roll - out.yaw;
-  float m2 = desiredState.thrust - out.pitch - out.roll + out.yaw;
-  float m3 = desiredState.thrust + out.pitch - out.roll - out.yaw;
-  float m4 = desiredState.thrust + out.pitch + out.roll + out.yaw;
+  float m1 = desiredState.thrust + propConfig.mix(out, propConfig.p1);
+  float m2 = desiredState.thrust + propConfig.mix(out, propConfig.p2);
+  float m3 = desiredState.thrust + propConfig.mix(out, propConfig.p3);
+  float m4 = desiredState.thrust + propConfig.mix(out, propConfig.p4);
 
   int m1Scaled = m1 * 125 + 125;
   int m2Scaled = m2 * 125 + 125;
@@ -285,16 +299,5 @@ Commands Pid::control(AccelGyro imu)
   commands.m2 = constrain(m2Scaled, 125, 250);
   commands.m3 = constrain(m3Scaled, 125, 250);
   commands.m4 = constrain(m4Scaled, 125, 250);
-  // if (timer.now > timer.prev + 2000)
-  // {
-  //   Serial.print("m1:");
-  //   Serial.print(commands.m1);
-  //   Serial.print("\tm2:");
-  //   Serial.print(commands.m2);
-  //   Serial.print("\tm3:");
-  //   Serial.print(commands.m3);
-  //   Serial.print("\tm4:");
-  //   Serial.println(commands.m4);
-  // }
   return commands;
 }

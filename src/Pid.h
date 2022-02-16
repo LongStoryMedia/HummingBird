@@ -23,6 +23,7 @@ private:
     void cascadingAngle(AccelGyro imu);
     void simpleRate(AccelGyro imu);
     Commands commands;
+    PropConfig propConfig;
 
 public:
     void init();
@@ -32,6 +33,13 @@ public:
     uint16_t r4;
     void setDesiredState(State packet);
     Commands control(AccelGyro imu);
+
+    enum mode
+    {
+        simpleAngleMode,
+        cascadingAngleMode,
+        simpleRateMode
+    };
 };
 
 #endif

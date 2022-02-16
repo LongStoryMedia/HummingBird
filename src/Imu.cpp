@@ -42,9 +42,9 @@ void Imu::init()
     // do is set the desired fullscale ranges
     mpu.setGyroRange(GYRO_SCALE);
     mpu.setAccelRange(ACCEL_SCALE);
-    mpu.setMagCalX(MagErrorX, MagScaleX);
-    mpu.setMagCalY(MagErrorY, MagScaleY);
-    mpu.setMagCalZ(MagErrorZ, MagScaleZ);
+    mpu.setMagCalX(agError.mag.roll, 1.0);
+    mpu.setMagCalY(agError.mag.pitch, 1.0);
+    mpu.setMagCalZ(agError.mag.yaw, 1.0);
     mpu.setSrd(0); // sets gyro and accel read to 1khz, magnetometer read to 100hz
 #endif
 #if defined IMU_LSM9DS1

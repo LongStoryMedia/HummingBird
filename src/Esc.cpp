@@ -6,6 +6,12 @@
  */
 void Esc::setSpeed(Commands commands)
 {
+#if defined(USE_PWM)
+    m1.write(map(commands.m1, 125, 250, 0, 180));
+    m2.write(map(commands.m2, 125, 250, 0, 180));
+    m3.write(map(commands.m3, 125, 250, 0, 180));
+    m4.write(map(commands.m4, 125, 250, 0, 180));
+#else
     int wentLow = 0;
     int pulseStart, timer;
     int flagM1 = 0;
@@ -49,15 +55,24 @@ void Esc::setSpeed(Commands commands)
             flagM4 = 1;
         }
     }
+#endif
 }
 
 void Esc::arm()
 {
     Serial.print(F("arming motors"));
     Commands commands;
-    commands.m1 = 125;
-    commands.m2 = 125;
-    commands.m3 = 125;
-    commands.m4 = 125;
+    commands = 125;
+#if defined(USE_PWM)
+    m1.attach(M1_PIN, 900, 2100);
+    m2.attach(M2_PIN, 900, 2100);
+    m3.attach(M3_PIN, 900, 2100);
+    m4.attach(M4_PIN, 900, 2100);
+#else
+    pinMode(M1_PIN, OUTPUT);
+    pinMode(M2_PIN, OUTPUT);
+    pinMode(M3_PIN, OUTPUT);
+    pinMode(M4_PIN, OUTPUT);
+#endif
     setSpeed(commands);
 }

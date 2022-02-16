@@ -18,8 +18,8 @@
 //#define ACCEL_16G
 
 //========================================================================================================================//
+#include "types.h"
 
-#include <Arduino.h>
 #include <Wire.h> //I2c communication
 #include <SPI.h>  //SPI communication
 
@@ -33,6 +33,41 @@
 #elif defined(IMU_LSM9DS1)
 #include "LSM9DS1.h"
 #endif
+
+#ifdef ESP32
+#include <ESP32Servo.h>
+#elif defined TEENSY
+#include <PWMServo.h> //commanding any extra actuators, installed with teensyduino installer
+#define Servo PWMServo
+#else
+#include <Servo.h>
+#endif
+
+#include "Imu.h"
+#include "Rx.h"
+#include "Esc.h"
+#include "Pid.h"
+#include "Madgwick.h"
+
+//========================================================================================================================//
+//                                                 GLOBALS                                                                //
+//========================================================================================================================//
+
+extern uint32_t print_counter, serial_counter;
+extern uint32_t blink_counter, blink_delay;
+extern bool blinkAlternate;
+extern Timer timer;
+extern AccelGyro ag;
+extern AccelGyro agPrev;
+extern AccelGyro agError;
+extern AccelGyro agImu;
+extern AccelGyro agImuPrev;
+extern Quaternion q;
+extern Filter filter;
+extern Rx rx;
+extern Esc esc;
+extern Pid pid;
+extern Imu imu;
 
 //========================================================================================================================//
 
@@ -48,14 +83,14 @@
 #define ACCEL_FS_SEL_8 MPU6050_ACCEL_FS_8
 #define ACCEL_FS_SEL_16 MPU6050_ACCEL_FS_16
 #elif defined IMU_MPU9250
-#define GYRO_FS_SEL_250 mpu9250.GYRO_RANGE_250DPS
-#define GYRO_FS_SEL_500 mpu9250.GYRO_RANGE_500DPS
-#define GYRO_FS_SEL_1000 mpu9250.GYRO_RANGE_1000DPS
-#define GYRO_FS_SEL_2000 mpu9250.GYRO_RANGE_2000DPS
-#define ACCEL_FS_SEL_2 mpu9250.ACCEL_RANGE_2G
-#define ACCEL_FS_SEL_4 mpu9250.ACCEL_RANGE_4G
-#define ACCEL_FS_SEL_8 mpu9250.ACCEL_RANGE_8G
-#define ACCEL_FS_SEL_16 mpu9250.ACCEL_RANGE_16G
+#define GYRO_FS_SEL_250 imu.GYRO_RANGE_250DPS
+#define GYRO_FS_SEL_500 imu.GYRO_RANGE_500DPS
+#define GYRO_FS_SEL_1000 imu.GYRO_RANGE_1000DPS
+#define GYRO_FS_SEL_2000 imu.GYRO_RANGE_2000DPS
+#define ACCEL_FS_SEL_2 imu.ACCEL_RANGE_2G
+#define ACCEL_FS_SEL_4 imu.ACCEL_RANGE_4G
+#define ACCEL_FS_SEL_8 imu.ACCEL_RANGE_8G
+#define ACCEL_FS_SEL_16 imu.ACCEL_RANGE_16G
 #endif
 
 #if defined IMU_LSM9DS1
@@ -92,17 +127,6 @@
 #define ACCEL_SCALE_FACTOR 2048.0
 #endif
 
-#ifdef ESP32
-#include <ESP32Servo.h>
-#elif defined TEENSY
-#include <PWMServo.h> //commanding any extra actuators, installed with teensyduino installer
-#define Servo PWMServo
-#else
-#include <Servo.h>
-#endif
-
-#define PID_MODE 0
-
 // Controller parameters (take note of defaults before modifying!):
 #define I_LIMIT 20.0f         // Integrator saturation level, mostly for safety (default 25.0)
 #define MAX_ROLL 30.0f        // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
@@ -126,6 +150,8 @@
 #define KI_YAW 0.2f           // Yaw I-gain
 #define KD_YAW 0.000025f      // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
+#define PID_MODE pid.simpleAngleMode
+
 #define M1_PIN 4
 #define M2_PIN 2
 #define M3_PIN 3
@@ -135,289 +161,9 @@
 //                                                      PROTOTYPES                                                        //
 //========================================================================================================================//
 
-void setupBlink(int numBlinks, int upTime, int downTime);
-void loopBlink();
-void loopRate(int freq);
-typedef struct
-{
-    int32_t yaw;
-    int32_t pitch;
-    int32_t roll;
-    int32_t thrust;
-} State;
-
-typedef struct
-{
-    float yaw;
-    float pitch;
-    float roll;
-    float thrust;
-} ScaledState;
-
-typedef struct
-{
-    float Kp;
-    float Ki;
-    float Kd;
-} Coefficients;
-
-typedef struct
-{
-    Coefficients yaw;
-    Coefficients pitch;
-    Coefficients roll;
-} CoefficientSet;
-
-typedef struct
-{
-    float madgwick; // Madgwick filter parameter
-    float accel;    // Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
-    float gyro;     // Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
-    float mag;      // Magnetometer LP filter parameter
-} Filter;
-
-typedef struct
-{
-    float q0;
-    float q1;
-    float q2;
-    float q3;
-} Quaternion;
-
-typedef struct
-{
-    int m1;
-    int m2;
-    int m3;
-    int m4;
-    void operator=(uint32_t c)
-    {
-        this->m1 = c;
-        this->m2 = c;
-        this->m3 = c;
-        this->m4 = c;
-    }
-} Commands;
-
-struct Timer
-{
-    float delta;
-    uint32_t now;
-    uint32_t prev;
-    void update()
-    {
-        prev = now;
-        now = micros();
-        delta = (now - prev) / 1000000.0;
-    }
-};
-
-struct YPR
-{
-    float yaw;
-    float pitch;
-    float roll;
-    YPR operator+=(YPR ypr)
-    {
-        yaw += ypr.yaw;
-        pitch += ypr.pitch;
-        roll += ypr.roll;
-        return *this;
-    }
-    YPR operator-=(YPR ypr)
-    {
-        yaw -= ypr.yaw;
-        pitch -= ypr.pitch;
-        roll -= ypr.roll;
-        return *this;
-    }
-    YPR operator*=(YPR ypr)
-    {
-        yaw *= ypr.yaw;
-        pitch *= ypr.pitch;
-        roll *= ypr.roll;
-        return *this;
-    }
-    YPR operator/=(YPR ypr)
-    {
-        yaw /= ypr.yaw;
-        pitch /= ypr.pitch;
-        roll /= ypr.roll;
-        return *this;
-    }
-    YPR operator/=(float yprMultiplier)
-    {
-        yaw /= yprMultiplier;
-        pitch /= yprMultiplier;
-        roll /= yprMultiplier;
-        return *this;
-    }
-    YPR operator*=(float yprMultiplier)
-    {
-        yaw *= yprMultiplier;
-        pitch *= yprMultiplier;
-        roll *= yprMultiplier;
-        return *this;
-    }
-    YPR operator+(YPR ypr)
-    {
-        yaw += ypr.yaw;
-        pitch += ypr.pitch;
-        roll += ypr.roll;
-        return *this;
-    }
-    YPR operator-(YPR ypr)
-    {
-        yaw -= ypr.yaw;
-        pitch -= ypr.pitch;
-        roll -= ypr.roll;
-        return *this;
-    }
-    YPR operator*(YPR ypr)
-    {
-        yaw *= ypr.yaw;
-        pitch *= ypr.pitch;
-        roll *= ypr.roll;
-        return *this;
-    }
-    YPR operator*(float yprMultiplier)
-    {
-        yaw *= yprMultiplier;
-        pitch *= yprMultiplier;
-        roll *= yprMultiplier;
-        return *this;
-    }
-    YPR operator/(YPR ypr)
-    {
-        yaw /= ypr.yaw;
-        pitch /= ypr.pitch;
-        roll /= ypr.roll;
-        return *this;
-    }
-    YPR operator/(float yprMultiplier)
-    {
-        yaw /= yprMultiplier;
-        pitch /= yprMultiplier;
-        roll /= yprMultiplier;
-        return *this;
-    }
-};
-
-struct AccelGyro
-{
-    YPR accel;
-    YPR gyro;
-    YPR mag;
-    AccelGyro operator+=(AccelGyro ag)
-    {
-        accel += ag.accel;
-        gyro += ag.gyro;
-        mag += ag.mag;
-        return *this;
-    }
-    AccelGyro operator-=(AccelGyro ag)
-    {
-        accel -= ag.accel;
-        gyro -= ag.gyro;
-        mag -= ag.mag;
-        return *this;
-    }
-    AccelGyro operator*=(AccelGyro ag)
-    {
-        accel *= ag.accel;
-        gyro *= ag.gyro;
-        mag *= ag.mag;
-        return *this;
-    }
-    AccelGyro operator/=(AccelGyro ag)
-    {
-        accel /= ag.accel;
-        gyro /= ag.gyro;
-        mag /= ag.mag;
-        return *this;
-    }
-    AccelGyro operator*=(float yprMultiplier)
-    {
-        accel *= yprMultiplier;
-        gyro *= yprMultiplier;
-        mag *= yprMultiplier;
-        return *this;
-    }
-    AccelGyro operator/=(float yprMultiplier)
-    {
-        accel /= yprMultiplier;
-        gyro /= yprMultiplier;
-        mag /= yprMultiplier;
-        return *this;
-    }
-    AccelGyro operator+(AccelGyro ag)
-    {
-        accel += ag.accel;
-        gyro += ag.gyro;
-        mag += ag.mag;
-        return *this;
-    }
-    AccelGyro operator-(AccelGyro ag)
-    {
-        accel -= ag.accel;
-        gyro -= ag.gyro;
-        mag -= ag.mag;
-        return *this;
-    }
-    AccelGyro operator*(AccelGyro ag)
-    {
-        accel *= ag.accel;
-        gyro *= ag.gyro;
-        mag *= ag.mag;
-        return *this;
-    }
-    AccelGyro operator/(AccelGyro ag)
-    {
-        accel /= ag.accel;
-        gyro /= ag.gyro;
-        mag /= ag.mag;
-        return *this;
-    }
-    AccelGyro operator/(float yprMultiplier)
-    {
-        accel /= yprMultiplier;
-        gyro /= yprMultiplier;
-        mag /= yprMultiplier;
-        return *this;
-    }
-    AccelGyro operator*(float yprMultiplier)
-    {
-        accel *= yprMultiplier;
-        gyro *= yprMultiplier;
-        mag *= yprMultiplier;
-        return *this;
-    }
-};
-
-enum pidMode
-{
-    simpleAngle,
-    cascadingAngle,
-    simpleRate
-};
-extern Timer timer;
-extern AccelGyro ag;
-extern AccelGyro agPrev;
-extern AccelGyro agError;
-extern AccelGyro agImu;
-extern AccelGyro agImuPrev;
-extern Quaternion q;
-extern Filter filter;
-
 float invSqrt(float x);
 void setupBlink(int numBlinks, int upTime, int downTime);
 void loopBlink();
 void loopRate(int freq);
-
-#include "Imu.h"
-#include "Rx.h"
-#include "Esc.h"
-#include "Pid.h"
-#include "Madgwick.h"
 
 #endif
