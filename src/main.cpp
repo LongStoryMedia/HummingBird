@@ -73,7 +73,8 @@ void loop()
   loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
   // Get vehicle state
   imu.getImu();
-  Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw); // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
+  Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
+  // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
   State packet = rx.getPacket();
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
@@ -82,6 +83,7 @@ void loop()
     commands = 125;
   }
   esc.setSpeed(commands);
+  debug(alt.getAlt());
   // Regulate loop rate
   loopRate(2000); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
 }

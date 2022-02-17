@@ -3,6 +3,8 @@
 
 void Alt::init()
 {
+    Wire1.begin();
+    Wire1.setClock(1000000);
     bool baroInit = baro.begin(&Wire1);
     if (!baroInit)
     {
@@ -24,4 +26,9 @@ bool Alt::setAltLock(bool locked)
         lockedAlt = baro.getAltitude();
     }
     return altLocked;
+}
+
+float Alt::getAlt()
+{
+    return baro.getAltitude();
 }

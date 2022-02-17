@@ -30,6 +30,10 @@
 
 #include "MPL3115A2.h"
 
+int steps = 0;
+unsigned long pauseTimer = 0;
+float currentAlt = 0.0;
+
 /*!
     @brief  Instantiates a new MPL3115A2 class
 */
@@ -107,26 +111,51 @@ float MPL3115A2::getPressure()
  */
 float MPL3115A2::getAltitude()
 {
-    // wait for one-shot to clear before proceeding
-    while (read8(MPL3115A2_CTRL_REG1) & MPL3115A2_CTRL_REG1_OST)
-        delay(10);
+    if (steps == 0)
+    {
+        pauseTimer = millis();
+        steps = 1;
+        return currentAlt;
+    }
 
-    // configure and initiate measurement
-    _ctrl_reg1.bit.ALT = 1; // altimeter mode
-    _ctrl_reg1.bit.OST = 1; // initatiate a one-shot measurement
-    write8(MPL3115A2_CTRL_REG1, _ctrl_reg1.reg);
+    if (millis() < pauseTimer + 10000 && (read8(MPL3115A2_CTRL_REG1) & MPL3115A2_CTRL_REG1_OST))
+    {
+        return currentAlt;
+    }
+
+    if (steps == 1)
+    {
+        pauseTimer = millis();
+        steps = 2;
+        // wait for one-shot to clear before proceeding
+        // while (read8(MPL3115A2_CTRL_REG1) & MPL3115A2_CTRL_REG1_OST)
+        //     delay(10);
+
+        // configure and initiate measurement
+        _ctrl_reg1.bit.ALT = 1; // altimeter mode
+        _ctrl_reg1.bit.OST = 1; // initatiate a one-shot measurement
+        write8(MPL3115A2_CTRL_REG1, _ctrl_reg1.reg);
+        return currentAlt;
+    }
+
+    if (steps == 2 && millis() < pauseTimer + 10000 && !(read8(MPL3115A2_REGISTER_STATUS) & MPL3115A2_REGISTER_STATUS_PDR))
+    {
+        return currentAlt;
+    }
 
     // poll status to wait for conversion complete
-    while (!(read8(MPL3115A2_REGISTER_STATUS) & MPL3115A2_REGISTER_STATUS_PDR))
-        delay(10);
-
+    // while (!(read8(MPL3115A2_REGISTER_STATUS) & MPL3115A2_REGISTER_STATUS_PDR))
+    //     delay(10);
     // read data
-    int32_t alt;
+    int32_t
+        alt;
     uint8_t buffer[5] = {MPL3115A2_REGISTER_PRESSURE_MSB, 0, 0, 0, 0};
     i2c_dev->write_then_read(buffer, 1, buffer, 5);
     alt = uint32_t(buffer[0]) << 24 | uint32_t(buffer[1]) << 16 |
           uint32_t(buffer[2]) << 8;
-    return float(alt) / 65536.0;
+    currentAlt = float(alt) / 65536.0;
+    steps = 0;
+    return currentAlt;
 }
 
 /*!

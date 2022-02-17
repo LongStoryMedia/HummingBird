@@ -11,6 +11,7 @@ private:
 public:
     void init();
     bool setAltLock(bool locked);
+    float getAlt();
     float lockedAlt;
 };
 

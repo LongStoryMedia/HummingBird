@@ -45,6 +45,7 @@ void Pid::init()
 #error "no prop config defined"
 #endif
 
+  integratorThreashold = I_TH;
   if (PID_MODE == simpleRateMode)
   {
     roll.Kp = KP_ROLL_RATE;
