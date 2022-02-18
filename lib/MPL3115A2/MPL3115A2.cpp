@@ -38,9 +38,9 @@
 // Begin
 /*******************************************************************************************/
 // Start I2C communication
-bool MPL3115A2::begin(TwoWire &wire)
+bool MPL3115A2::begin()
 {
-    Wire.begin();
+    Wire1.begin();
 }
 
 // Returns the number of meters above sea level
@@ -59,14 +59,14 @@ float MPL3115A2::readAltitude()
     }
 
     // Read pressure registers
-    Wire.beginTransmission(MPL3115A2_ADDRESS);
-    Wire.write(OUT_P_MSB);                  // Address of data to get
-    Wire.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire.requestFrom(MPL3115A2_ADDRESS, 3); // Request three bytes
+    Wire1.beginTransmission(MPL3115A2_ADDRESS);
+    Wire1.write(OUT_P_MSB);                  // Address of data to get
+    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
+    Wire1.requestFrom(MPL3115A2_ADDRESS, 3); // Request three bytes
 
     // Wait for data to become available
     counter = 0;
-    while (Wire.available() < 3)
+    while (Wire1.available() < 3)
     {
         if (counter++ > 100)
             return (-999); // Error out
@@ -74,9 +74,9 @@ float MPL3115A2::readAltitude()
     }
 
     byte msb, csb, lsb;
-    msb = Wire.read();
-    csb = Wire.read();
-    lsb = Wire.read();
+    msb = Wire1.read();
+    csb = Wire1.read();
+    lsb = Wire1.read();
 
     // The least significant bytes l_altitude and l_temp are 4-bit,
     // fractional values, so you must cast the calulation in (float),
@@ -114,14 +114,14 @@ float MPL3115A2::readPressure()
     }
 
     // Read pressure registers
-    Wire.beginTransmission(MPL3115A2_ADDRESS);
-    Wire.write(OUT_P_MSB);                  // Address of data to get
-    Wire.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire.requestFrom(MPL3115A2_ADDRESS, 3); // Request three bytes
+    Wire1.beginTransmission(MPL3115A2_ADDRESS);
+    Wire1.write(OUT_P_MSB);                  // Address of data to get
+    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
+    Wire1.requestFrom(MPL3115A2_ADDRESS, 3); // Request three bytes
 
     // Wait for data to become available
     counter = 0;
-    while (Wire.available() < 3)
+    while (Wire1.available() < 3)
     {
         if (counter++ > 100)
             return (-999); // Error out
@@ -129,9 +129,9 @@ float MPL3115A2::readPressure()
     }
 
     byte msb, csb, lsb;
-    msb = Wire.read();
-    csb = Wire.read();
-    lsb = Wire.read();
+    msb = Wire1.read();
+    csb = Wire1.read();
+    lsb = Wire1.read();
 
     toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
 
@@ -163,14 +163,14 @@ float MPL3115A2::readTemp()
     }
 
     // Read temperature registers
-    Wire.beginTransmission(MPL3115A2_ADDRESS);
-    Wire.write(OUT_T_MSB);                  // Address of data to get
-    Wire.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire.requestFrom(MPL3115A2_ADDRESS, 2); // Request two bytes
+    Wire1.beginTransmission(MPL3115A2_ADDRESS);
+    Wire1.write(OUT_T_MSB);                  // Address of data to get
+    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
+    Wire1.requestFrom(MPL3115A2_ADDRESS, 2); // Request two bytes
 
     // Wait for data to become available
     counter = 0;
-    while (Wire.available() < 2)
+    while (Wire1.available() < 2)
     {
         if (counter++ > 100)
             return (-999); // Error out
@@ -178,8 +178,8 @@ float MPL3115A2::readTemp()
     }
 
     byte msb, lsb;
-    msb = Wire.read();
-    lsb = Wire.read();
+    msb = Wire1.read();
+    lsb = Wire1.read();
 
     toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
 
@@ -292,18 +292,18 @@ void MPL3115A2::toggleOneShot(void)
 byte MPL3115A2::IIC_Read(byte regAddr)
 {
     // This function reads one byte over IIC
-    Wire.beginTransmission(MPL3115A2_ADDRESS);
-    Wire.write(regAddr);                    // Address of CTRL_REG1
-    Wire.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire.requestFrom(MPL3115A2_ADDRESS, 1); // Request the data...
-    return Wire.read();
+    Wire1.beginTransmission(MPL3115A2_ADDRESS);
+    Wire1.write(regAddr);                    // Address of CTRL_REG1
+    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
+    Wire1.requestFrom(MPL3115A2_ADDRESS, 1); // Request the data...
+    return Wire1.read();
 }
 
 void MPL3115A2::IIC_Write(byte regAddr, byte value)
 {
     // This function writes one byto over IIC
-    Wire.beginTransmission(MPL3115A2_ADDRESS);
-    Wire.write(regAddr);
-    Wire.write(value);
-    Wire.endTransmission(true);
+    Wire1.beginTransmission(MPL3115A2_ADDRESS);
+    Wire1.write(regAddr);
+    Wire1.write(value);
+    Wire1.endTransmission(true);
 }

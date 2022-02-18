@@ -290,4 +290,14 @@ typedef struct
     }
 } PropConfig;
 
+//========================================================================================================================//
+//                                                      PROTOTYPES                                                        //
+//========================================================================================================================//
+
+float invSqrt(float x);
+void setupBlink(int numBlinks, int upTime, int downTime);
+void loopBlink();
+void loopRate(int freq);
+template <class T>
+void debug(T data);
 #endif

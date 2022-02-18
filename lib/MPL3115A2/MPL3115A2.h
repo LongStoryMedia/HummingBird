@@ -62,8 +62,6 @@ class MPL3115A2
 {
 
 public:
-    MPL3115A2();
-
     // Public Functions
     bool begin();                 // Gets sensor on the I2C bus.
     float readAltitude();         // Returns float with meters above sealevel. Ex: 1638.94
@@ -86,8 +84,6 @@ private:
     void toggleOneShot();
     byte IIC_Read(byte regAddr);
     void IIC_Write(byte regAddr, byte value);
-    TwoWire wire;
-
     // Private Variables
 };
 

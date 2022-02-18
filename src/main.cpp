@@ -84,6 +84,7 @@ void loop()
   }
   esc.setSpeed(commands);
   debug(alt.getAlt());
+  // debug(timer.delta * 1000000);
   // Regulate loop rate
   loopRate(2000); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
 }
