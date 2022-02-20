@@ -74,5 +74,7 @@ void Esc::arm()
     pinMode(M3_PIN, OUTPUT);
     pinMode(M4_PIN, OUTPUT);
 #endif
+#if !defined(ESC_PROGRAM_MODE)
     setSpeed(commands);
+#endif
 }

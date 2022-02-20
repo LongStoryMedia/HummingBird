@@ -6,7 +6,6 @@ class Alt
 {
 private:
     MPL3115A2 baro;
-    bool altLocked;
     float alt;
     float prevAlt;
     const float filterParam = 0.00008;
@@ -16,6 +15,7 @@ public:
     bool setAltLock(bool locked);
     float getAlt();
     float lockedAlt;
+    bool altLocked;
 };
 
 #endif

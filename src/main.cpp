@@ -3,13 +3,6 @@
 //========================================================================================================================//
 //                                                 GLOBALS                                                                //
 //========================================================================================================================//
-#if defined IMU_MPU9250
-MPU9250 mpu(SPI1, 0);
-#elif defined IMU_MPU6050
-MPU6050 mpu;
-#elif defined IMU_LSM9DS1
-#define mpu IMU
-#endif
 
 uint32_t print_counter, serial_counter;
 uint32_t blink_counter, blink_delay;
@@ -76,14 +69,24 @@ void loop()
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
   // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
   State packet = rx.getPacket();
+  debug(alt.getAlt());
+  if (alt.altLocked)
+  {
+    packet.thrust = pid.lockAlt(packet.thrust);
+  }
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
   if (packet.thrust < 10)
   {
     commands = 125;
   }
+#if defined(ESC_PROGRAM_MODE)
+  if (packet.thrust > 50)
+  {
+    commands = 250;
+  }
+#endif
   esc.setSpeed(commands);
-  debug(alt.getAlt());
   // debug(timer.delta * 1000000);
   // Regulate loop rate
   loopRate(2000); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default

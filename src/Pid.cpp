@@ -79,6 +79,18 @@ void Pid::setDesiredState(State packet)
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
   desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
   desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
+  desiredState.alt = alt.lockedAlt;
+}
+
+float Pid::lockAlt(float thrust)
+{
+  float realAlt = alt.getAlt();
+  errorAlt = desiredState.alt - realAlt;
+  integralAlt = prevIntegralAlt + errorAlt * timer.delta;
+  integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
+  float _thrust = 0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt);       // scaled by .01 to bring within -1 to 1 range
+  prevIntegralAlt = integralAlt;
+  return _thrust;
 }
 
 void Pid::simpleAngle(AccelGyro imu)

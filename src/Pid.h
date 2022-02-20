@@ -24,6 +24,10 @@ private:
     void simpleRate(AccelGyro imu);
     Commands commands;
     PropConfig propConfig;
+    float errorAlt;
+    float integralAlt;
+    float derivativeAlt;
+    float prevIntegralAlt;
 
 public:
     void init();
@@ -33,6 +37,7 @@ public:
     uint16_t r4;
     void setDesiredState(State packet);
     Commands control(AccelGyro imu);
+    float lockAlt(float thrust);
 
     enum mode
     {

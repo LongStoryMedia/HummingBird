@@ -17,6 +17,7 @@ typedef struct
     float pitch;
     float roll;
     float thrust;
+    float alt;
 } ScaledState;
 
 typedef struct
