@@ -8,7 +8,7 @@ private:
     MPL3115A2 baro;
     float alt;
     float prevAlt;
-    const float filterParam = 0.00008;
+    const float filterParam = 0.0008;
 
 public:
     void init();

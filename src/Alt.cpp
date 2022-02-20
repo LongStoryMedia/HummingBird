@@ -10,7 +10,7 @@ void Alt::init()
     // this is needed for accurate altitude measurement
     // STD SLP = 1013.26 hPa
     baro.setModeAltimeter();
-    // baro.setModeActive();
+    baro.setModeActive();
 }
 
 bool Alt::setAltLock(bool locked)
@@ -25,14 +25,11 @@ bool Alt::setAltLock(bool locked)
 
 float Alt::getAlt()
 {
-    // float norm, err, ig;
     alt = baro.readAltitudeFt();
     if (prevAlt == 0)
     {
         prevAlt = baro.readAltitudeFt();
     }
-    // norm = invSqrt(alt * alt);
-    // alt *= norm;
     float err = alt - prevAlt;
     // LP filter alt data
     alt = (1.0 - filterParam) * prevAlt + filterParam * alt;
