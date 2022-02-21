@@ -69,11 +69,13 @@ void loop()
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
   // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
   State packet = rx.getPacket();
-  debug(alt.getAlt());
+#if defined(USE_MPL3115A2)
+  // debug(alt.getAlt());
   if (alt.altLocked)
   {
     packet.thrust = pid.lockAlt(packet.thrust);
   }
+#endif
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
   if (packet.thrust < 10)

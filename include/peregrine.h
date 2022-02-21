@@ -10,6 +10,10 @@
 //#define ACCEL_8G
 //#define ACCEL_16G
 
+// #define USE_PWM
+#define X2_CONFIG
+#define I_TH 200
+
 #define I_LIMIT 20.0f         // Integrator saturation level, mostly for safety (default 25.0)
 #define MAX_ROLL 30.0f        // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_PITCH 30.0f       // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode

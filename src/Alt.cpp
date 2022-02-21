@@ -5,10 +5,12 @@ void Alt::init()
 {
     Wire1.begin();
     Wire1.setClock(1000000);
-    baro.setOversampleRate(0);
+    baro.begin(&Wire1);
     // use to set sea level pressure for current location
     // this is needed for accurate altitude measurement
     // STD SLP = 1013.26 hPa
+    baro.setSeaPressure(1013.26);
+    baro.setOversampleRate(0);
     baro.setModeAltimeter();
     baro.setModeActive();
 }

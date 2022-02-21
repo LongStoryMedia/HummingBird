@@ -35,14 +35,6 @@
 
 #include "MPL3115A2.h"
 
-// Begin
-/*******************************************************************************************/
-// Start I2C communication
-bool MPL3115A2::begin()
-{
-    Wire1.begin();
-}
-
 // Returns the number of meters above sea level
 // Returns -1 if no new data is available
 float MPL3115A2::readAltitude()
@@ -306,4 +298,87 @@ void MPL3115A2::IIC_Write(byte regAddr, byte value)
     Wire1.write(regAddr);
     Wire1.write(value);
     Wire1.endTransmission(true);
+}
+
+/*!
+ *   @brief  Setups the HW (reads coefficients values, etc.)
+ *   @param  twoWire
+ *           Optional TwoWire I2C object
+ *   @return true on successful startup, false otherwise
+ */
+boolean MPL3115A2::begin(TwoWire *twoWire)
+{
+    if (i2c_dev)
+        delete i2c_dev;
+    i2c_dev = new I2C(MPL3115A2_ADDRESS, twoWire);
+    if (!i2c_dev->begin())
+        return false;
+
+    // sanity check
+    uint8_t whoami = read8(MPL3115A2_WHOAMI);
+    if (whoami != 0xC4)
+    {
+        return false;
+    }
+
+    // software reset
+    write8(MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_RST);
+    while (read8(MPL3115A2_CTRL_REG1) & MPL3115A2_CTRL_REG1_RST)
+        delay(10);
+
+    // set oversampling and altitude mode
+    _ctrl_reg1.reg = MPL3115A2_CTRL_REG1_OS128 | MPL3115A2_CTRL_REG1_ALT;
+    write8(MPL3115A2_CTRL_REG1, _ctrl_reg1.reg);
+
+    // enable data ready events for pressure/altitude and temperature
+    write8(MPL3115A2_PT_DATA_CFG, MPL3115A2_PT_DATA_CFG_TDEFE |
+                                      MPL3115A2_PT_DATA_CFG_PDEFE |
+                                      MPL3115A2_PT_DATA_CFG_DREM);
+
+    return true;
+}
+
+/*!
+ *  @brief  Set the local sea level pressure
+ *  @param SLP sea level pressure in hPa
+ */
+void MPL3115A2::setSeaPressure(float SLP)
+{
+    // multiply by 100 to convert hPa to Pa
+    // divide by 2 to convert to 2 Pa per LSB
+    // convert to integer
+    uint16_t bar = SLP * 50;
+
+    // write result to register
+    uint8_t buffer[3];
+    buffer[0] = MPL3115A2_BAR_IN_MSB;
+    buffer[1] = bar >> 8;
+    buffer[2] = bar & 0xFF;
+    i2c_dev->write(buffer, 3);
+}
+
+/*!
+ *  @brief  read 1 byte of data at the specified address
+ *  @param  a
+ *          the address to read
+ *  @return the read data byte
+ */
+uint8_t MPL3115A2::read8(uint8_t a)
+{
+    uint8_t buffer[1] = {a};
+    i2c_dev->write_then_read(buffer, 1, buffer, 1);
+    return buffer[0];
+}
+
+/*!
+ *  @brief  write a byte of data to the specified address
+ *  @param  a
+ *          the address to write to
+ *  @param  d
+ *          the byte to write
+ */
+void MPL3115A2::write8(uint8_t a, uint8_t d)
+{
+    uint8_t buffer[2] = {a, d};
+    i2c_dev->write(buffer, 2);
 }
