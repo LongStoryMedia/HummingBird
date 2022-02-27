@@ -15,6 +15,7 @@ AccelGyro agPrev;
 AccelGyro agError;
 AccelGyro agImu;
 AccelGyro agImuPrev;
+State packet;
 Rx rx;
 Esc esc;
 Pid pid;
@@ -68,19 +69,22 @@ void loop()
   imu.getImu();
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
   // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
-  State packet = rx.getPacket();
+  packet = rx.getPacket();
+
 #if defined(USE_MPL3115A2)
-  // debug(alt.getAlt());
-  if (alt.altLocked)
-  {
-    packet.thrust = pid.lockAlt(packet.thrust);
-  }
+  alt.altCheck();
 #endif
-  pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
+
+  pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
+
   if (packet.thrust < 10)
   {
+#if defined(ESC_PROGRAM_MODE)
     commands = 125;
+#else
+    commands = 130;
+#endif
   }
 #if defined(ESC_PROGRAM_MODE)
   if (packet.thrust > 50)
@@ -88,6 +92,7 @@ void loop()
     commands = 250;
   }
 #endif
+  // debug(commands.m1);
   esc.setSpeed(commands);
   // debug(timer.delta * 1000000);
   // Regulate loop rate

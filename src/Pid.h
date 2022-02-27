@@ -28,6 +28,8 @@ private:
     float integralAlt;
     float derivativeAlt;
     float prevIntegralAlt;
+    float mix(Prop prop);
+    State lockAlt();
 
 public:
     void init();
@@ -35,9 +37,8 @@ public:
     uint16_t r2;
     uint16_t r3;
     uint16_t r4;
-    void setDesiredState(State packet);
+    void setDesiredState();
     Commands control(AccelGyro imu);
-    float lockAlt(float thrust);
 
     enum mode
     {

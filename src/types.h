@@ -5,10 +5,16 @@
 
 typedef struct
 {
+    enum altLocked
+    {
+        unlocked,
+        locked
+    };
     int32_t yaw;
     int32_t pitch;
     int32_t roll;
     int32_t thrust;
+    altLocked lockAlt;
 } State;
 
 typedef struct
@@ -274,9 +280,9 @@ typedef struct
         __,
         positive
     };
-    int8_t rotation;
-    int8_t xAxis;
-    int8_t yAxis;
+    rotation rotation;
+    axis xAxis;
+    axis yAxis;
 } Prop;
 
 typedef struct
@@ -285,10 +291,6 @@ typedef struct
     Prop p2{p2._, p2.negative, p2.negative};
     Prop p3{p3._, p3.negative, p3.positive};
     Prop p4{p4._, p4.positive, p4.positive};
-    float mix(YPR out, Prop prop)
-    {
-        return (float)(prop.xAxis * out.roll) + (float)(prop.yAxis * out.pitch) + (float)(prop.rotation * out.yaw);
-    }
 } PropConfig;
 
 //========================================================================================================================//

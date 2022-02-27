@@ -18,7 +18,6 @@ private:
     void initRc();
     void initLora();
     uint32_t rxt;
-    State packet;
     State prevPacket;
     void failSafe();
 

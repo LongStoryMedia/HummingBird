@@ -32,10 +32,14 @@
 void Pid::init()
 {
 #if defined(X1_CONFIG)
-  propConfig.p1.rotation = propConfig.p1.clockwise;
-  propConfig.p2.rotation = propConfig.p2.counterClockwise;
-  propConfig.p3.rotation = propConfig.p3.clockwise;
-  propConfig.p4.rotation = propConfig.p4.counterClockwise;
+  // propConfig.p1.rotation = propConfig.p1.clockwise;
+  // propConfig.p2.rotation = propConfig.p2.counterClockwise;
+  // propConfig.p3.rotation = propConfig.p3.clockwise;
+  // propConfig.p4.rotation = propConfig.p4.counterClockwise;
+  propConfig.p1.rotation = propConfig.p1.counterClockwise;
+  propConfig.p2.rotation = propConfig.p2.clockwise;
+  propConfig.p3.rotation = propConfig.p3.counterClockwise;
+  propConfig.p4.rotation = propConfig.p4.clockwise;
 #elif defined(X2_CONFIG)
   propConfig.p1.rotation = propConfig.p1.counterClockwise;
   propConfig.p2.rotation = propConfig.p2.clockwise;
@@ -73,28 +77,31 @@ void Pid::init()
   k.yaw = yaw;
 }
 
-void Pid::setDesiredState(State packet)
+void Pid::setDesiredState()
 {
+#if defined(USE_MPL3115A2)
+  desiredState.alt = alt.lockedAlt;
+  packet = lockAlt(packet);
+#endif
   desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
   desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
   desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
-#if defined(USE_MPL3115A2)
-  desiredState.alt = alt.lockedAlt;
-#endif
 }
 
-float Pid::lockAlt(float thrust)
+State Pid::lockAlt()
 {
 #if defined(USE_MPL3115A2)
-  float realAlt = alt.getAlt();
-  errorAlt = desiredState.alt - realAlt;
-  integralAlt = prevIntegralAlt + errorAlt * timer.delta;
-  integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-  float _thrust = 0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt);       // scaled by .01 to bring within -1 to 1 range
-  prevIntegralAlt = integralAlt;
-  return _thrust;
+  if (alt.altLocked == alt.locked)
+  {
+    errorAlt = desiredState.alt - alt.getAlt();
+    integralAlt = prevIntegralAlt + errorAlt * timer.delta;
+    integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
+    packet.thrust = alt.lockedThrust + (KP_ALT * errorAlt + KI_ALT * integralAlt);
+    prevIntegralAlt = integralAlt;
+  }
 #endif
+  return packet;
 }
 
 void Pid::simpleAngle(AccelGyro imu)
@@ -281,6 +288,11 @@ void Pid::simpleRate(AccelGyro imu)
   prevIntegral.yaw = integral.yaw;
 }
 
+float Pid::mix(Prop prop)
+{
+  return ((float)prop.xAxis * out.roll) + ((float)prop.yAxis * out.pitch) + ((float)prop.rotation * out.yaw);
+}
+
 Commands Pid::control(AccelGyro imu)
 {
   switch (PID_MODE)
@@ -302,19 +314,19 @@ Commands Pid::control(AccelGyro imu)
     break;
   }
 
-  float m1 = desiredState.thrust + propConfig.mix(out, propConfig.p1);
-  float m2 = desiredState.thrust + propConfig.mix(out, propConfig.p2);
-  float m3 = desiredState.thrust + propConfig.mix(out, propConfig.p3);
-  float m4 = desiredState.thrust + propConfig.mix(out, propConfig.p4);
+  float m1 = desiredState.thrust + mix(propConfig.p1);
+  float m2 = desiredState.thrust + mix(propConfig.p2);
+  float m3 = desiredState.thrust + mix(propConfig.p3);
+  float m4 = desiredState.thrust + mix(propConfig.p4);
 
   int m1Scaled = m1 * 125 + 125;
   int m2Scaled = m2 * 125 + 125;
   int m3Scaled = m3 * 125 + 125;
   int m4Scaled = m4 * 125 + 125;
   // Constrain commands to motors within oneshot125 bounds
-  commands.m1 = constrain(m1Scaled, 125, 250);
-  commands.m2 = constrain(m2Scaled, 125, 250);
-  commands.m3 = constrain(m3Scaled, 125, 250);
-  commands.m4 = constrain(m4Scaled, 125, 250);
+  commands.m1 = constrain(m1Scaled, 130, 250);
+  commands.m2 = constrain(m2Scaled, 130, 250);
+  commands.m3 = constrain(m3Scaled, 130, 250);
+  commands.m4 = constrain(m4Scaled, 130, 250);
   return commands;
 }

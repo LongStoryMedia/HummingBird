@@ -69,6 +69,7 @@ extern AccelGyro agImu;
 extern AccelGyro agImuPrev;
 extern Quaternion q;
 extern Filter filter;
+extern State packet;
 extern Rx rx;
 extern Esc esc;
 extern Pid pid;
