@@ -321,6 +321,8 @@ boolean MPL3115A2::begin(TwoWire *twoWire)
         return false;
     }
 
+    i2c_dev->setSpeed(1000000);
+
     // software reset
     write8(MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_RST);
     while (read8(MPL3115A2_CTRL_REG1) & MPL3115A2_CTRL_REG1_RST)
