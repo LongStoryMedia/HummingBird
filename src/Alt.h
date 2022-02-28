@@ -11,11 +11,19 @@ private:
     const float filterParam = 0.0008;
 
 public:
+    Alt();
+    enum lockState
+    {
+        unlocked,
+        locked
+    };
     void init();
     bool setAltLock(bool locked);
     float getAlt();
+    void altCheck();
     float lockedAlt;
-    bool altLocked;
+    uint32_t lockedThrust;
+    lockState altLocked;
 };
 
 #endif

@@ -31,23 +31,29 @@
 
 void Pid::init()
 {
-#if defined(X1_CONFIG)
-  // propConfig.p1.rotation = propConfig.p1.clockwise;
-  // propConfig.p2.rotation = propConfig.p2.counterClockwise;
-  // propConfig.p3.rotation = propConfig.p3.clockwise;
-  // propConfig.p4.rotation = propConfig.p4.counterClockwise;
-  propConfig.p1.rotation = propConfig.p1.counterClockwise;
-  propConfig.p2.rotation = propConfig.p2.clockwise;
-  propConfig.p3.rotation = propConfig.p3.counterClockwise;
-  propConfig.p4.rotation = propConfig.p4.clockwise;
-#elif defined(X2_CONFIG)
-  propConfig.p1.rotation = propConfig.p1.counterClockwise;
-  propConfig.p2.rotation = propConfig.p2.clockwise;
-  propConfig.p3.rotation = propConfig.p3.counterClockwise;
-  propConfig.p4.rotation = propConfig.p4.clockwise;
-#else
-#error "no prop config defined"
-#endif
+  switch (PROP_CONFIG)
+  {
+  case configType::x1:
+    propConfig.p1.rotation = propConfig.p1.counterClockwise;
+    propConfig.p2.rotation = propConfig.p2.clockwise;
+    propConfig.p3.rotation = propConfig.p3.counterClockwise;
+    propConfig.p4.rotation = propConfig.p4.clockwise;
+    break;
+
+  case configType::x2:
+    propConfig.p1.rotation = propConfig.p1.clockwise;
+    propConfig.p2.rotation = propConfig.p2.counterClockwise;
+    propConfig.p3.rotation = propConfig.p3.clockwise;
+    propConfig.p4.rotation = propConfig.p4.counterClockwise;
+    break;
+
+  default:
+    propConfig.p1.rotation = propConfig.p1.counterClockwise;
+    propConfig.p2.rotation = propConfig.p2.clockwise;
+    propConfig.p3.rotation = propConfig.p3.counterClockwise;
+    propConfig.p4.rotation = propConfig.p4.clockwise;
+    break;
+  }
 
   integratorThreashold = I_TH;
   if (PID_MODE == simpleRateMode)
@@ -81,7 +87,7 @@ void Pid::setDesiredState()
 {
 #if defined(USE_MPL3115A2)
   desiredState.alt = alt.lockedAlt;
-  packet = lockAlt(packet);
+  packet = integrateAlt();
 #endif
   desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
@@ -89,7 +95,7 @@ void Pid::setDesiredState()
   desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
 }
 
-State Pid::lockAlt()
+State Pid::integrateAlt()
 {
 #if defined(USE_MPL3115A2)
   if (alt.altLocked == alt.locked)

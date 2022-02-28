@@ -11,7 +11,7 @@
 //#define ACCEL_16G
 
 // #define USE_PWM
-#define X2_CONFIG
+#define PROP_CONFIG 0
 #define I_TH 200
 
 #define I_LIMIT 20.0f         // Integrator saturation level, mostly for safety (default 25.0)

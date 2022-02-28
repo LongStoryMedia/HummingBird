@@ -23,13 +23,12 @@ private:
     void cascadingAngle(AccelGyro imu);
     void simpleRate(AccelGyro imu);
     Commands commands;
-    PropConfig propConfig;
     float errorAlt;
     float integralAlt;
     float derivativeAlt;
     float prevIntegralAlt;
     float mix(Prop prop);
-    State lockAlt();
+    State integrateAlt();
 
 public:
     void init();

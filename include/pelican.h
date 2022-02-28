@@ -12,7 +12,7 @@
 
 // #define USE_PWM
 #define USE_MPL3115A2
-#define X1_CONFIG
+#define PROP_CONFIG 0
 #define I_TH 500
 
 #define I_LIMIT 25.0f         // Integrator saturation level, mostly for safety (default 25.0)
