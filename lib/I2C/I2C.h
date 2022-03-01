@@ -7,17 +7,25 @@
 class I2C
 {
 public:
-    I2C(uint8_t addr, uint8_t size, TwoWire *theWire = &Wire);
+    I2C(byte addr, byte size, TwoWire *theWire = &Wire);
     byte read(byte regAddr);
-    void write(byte regAddr, byte value);
+    bool write(byte regAddr, byte *value, byte length = 0);
+    bool write(byte regAddr, byte value);
     void readBytes();
-    byte getBufferByte(uint8_t idx);
+    byte getBufferByte(byte idx);
+    byte readBits(byte regAddr, byte bitStart, byte length, unsigned short timeout = 0);
+    byte readByte(byte regAddr, unsigned short timeout = 0);
+    byte readSomeBytes(byte regAddr, byte length, unsigned short timeout = 0);
+    byte readBit(byte regAddr, byte bitNum, unsigned long timeout = 0);
+    bool writeBits(byte regAddr, byte bitStart, byte length, byte data);
+    bool writeBit(byte regAddr, byte bitNum, byte data);
+    void clearBuffer();
 
 private:
-    uint8_t address;
+    byte address;
     TwoWire *wire;
     byte *buffer;
-    uint8_t bufferSize;
+    byte bufferSize;
 };
 
 #endif // I2C_h

@@ -84,7 +84,7 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
         init(basis, clockspeed, wire);
     }
 
-    i2c->write(OFF_H, 0); // write altitude offset=0 (because calculation below is based on offset=0)
+    i2c->write(OFF_H, (byte)0); // write altitude offset=0 (because calculation below is based on offset=0)
     // calculate sea level pressure by averaging a few readings
     Serial.println("Pressure calibration...");
     float buff[4];
