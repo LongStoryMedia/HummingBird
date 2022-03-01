@@ -43,7 +43,6 @@
 #endif
 
 #if defined(USE_MPL3115A2)
-#include "MPL3115A2.h"
 #include "Alt.h"
 #endif
 

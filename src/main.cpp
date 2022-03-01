@@ -22,39 +22,42 @@ Esc esc;
 Pid pid;
 Imu imu;
 #if defined(USE_MPL3115A2)
-Alt alt;
+Alt alt = Alt(&Wire1);
 #endif
 //========================================================================================================================//
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
+#include "MPL3115A2.h"
+MPL3115A2 baro;
 
 void setup()
 {
   Serial.begin(115200); // usb serial
 
-  // Initialize all pins
-  pinMode(13, OUTPUT); // pin 13 LED blinker on board, do not modify
+  //   // Initialize all pins
+  //   pinMode(13, OUTPUT); // pin 13 LED blinker on board, do not modify
 
-  // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
-  digitalWrite(13, HIGH);
+  //   // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
+  //   digitalWrite(13, HIGH);
 
-  delay(10);
-  pid.init();
-  // Initialize radio communication
-  rx.init();
-  // Initialize IMU communication
-  imu.init();
-  delay(10);
-#if defined(USE_MPL3115A2)
-  // Initialize Baro communication
-  alt.init();
-  delay(10);
-#endif
-  esc.arm();
-  delay(100);
-  // Warm up the loop
-  imu.calibrate(); // helps to warm up IMU and Madgwick filter before finally entering main loop
+  //   delay(10);
+  //   pid.init();
+  //   // Initialize radio communication
+  //   rx.init();
+  //   // Initialize IMU communication
+  //   imu.init();
+  //   delay(10);
+  // #if defined(USE_MPL3115A2)
+  //   // Initialize Baro communication
+  //   alt.init();
+  //   delay(10);
+  // #endif
+  //   esc.arm();
+  //   delay(100);
+  //   // Warm up the loop
+  //   imu.calibrate(); // helps to warm up IMU and Madgwick filter before finally entering main loop
   // Indicate entering main loop with 3 quick blinks
+  baro.init();
   setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
 }
 
@@ -65,37 +68,39 @@ void setup()
 void loop()
 {
   timer.update();
-  loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
-  // Get vehicle state
-  imu.getImu();
-  Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
-  // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
-  packet = rx.getPacket();
+  //   loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
+  //   // Get vehicle state
+  //   imu.getImu();
+  //   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
+  //   // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
+  //   packet = rx.getPacket();
 
-#if defined(USE_MPL3115A2)
-  alt.altCheck();
-#endif
+  // #if defined(USE_MPL3115A2)
+  //   alt.altCheck();
+  // #endif
 
-  pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
-  Commands commands = pid.control(agImu);
+  //   pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
+  //   Commands commands = pid.control(agImu);
 
-  if (packet.thrust < 10)
-  {
-#if defined(ESC_PROGRAM_MODE)
-    commands = 125;
-#else
-    commands = 130;
-#endif
-  }
-#if defined(ESC_PROGRAM_MODE)
-  if (packet.thrust > 50)
-  {
-    commands = 250;
-  }
-#endif
-  // debug(commands.m1);
-  esc.setSpeed(commands);
-  debug(alt.getAlt());
+  //   if (packet.thrust < 10)
+  //   {
+  // #if defined(ESC_PROGRAM_MODE)
+  //     commands = 125;
+  // #else
+  //     commands = 130;
+  // #endif
+  //   }
+  // #if defined(ESC_PROGRAM_MODE)
+  //   if (packet.thrust > 50)
+  //   {
+  //     commands = 250;
+  //   }
+  // #endif
+  //   // debug(commands.m1);
+  //   esc.setSpeed(commands);
+  MPL3115A2::_baro baroData = baro.read();
+
+  debug(baroData.smooth);
   // Regulate loop rate
   loopRate(2000); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
 }

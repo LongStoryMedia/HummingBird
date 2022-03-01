@@ -17,7 +17,7 @@ public:
         unlocked,
         locked
     };
-    void init();
+    void init(TwoWire *_wire = &Wire);
     bool setAltLock(bool locked);
     float getAlt();
     void altCheck();

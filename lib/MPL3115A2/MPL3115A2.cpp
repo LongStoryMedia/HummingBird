@@ -1,386 +1,213 @@
-/*
- MPL3115A2 Barometric Pressure Sensor Library
- By: Nathan Seidle
- SparkFun Electronics
- Date: September 22nd, 2013
- License: This code is public domain but you buy me a beer if you use this and we meet someday (Beerware license).
-
- This library allows an Arduino to read from the MPL3115A2 low-cost high-precision pressure sensor.
-
- If you have feature suggestions or need support please use the github support page: https://github.com/sparkfun/MPL3115A2_Breakout
-
- Hardware Setup: The MPL3115A2 lives on the I2C bus. Attach the SDA pin to A4, SCL to A5. Use inline 10k resistors
- if you have a 5V board. If you are using the SparkFun breakout board you *do not* need 4.7k pull-up resistors
- on the bus (they are built-in).
-
- Link to the breakout board product:
-
- Software:
- .begin() Gets sensor on the I2C bus.
- .readAltitude() Returns float with meters above sealevel. Ex: 1638.94
- .readAltitudeFt() Returns float with feet above sealevel. Ex: 5376.68
- .readPressure() Returns float with barometric pressure in Pa. Ex: 83351.25
- .readTemp() Returns float with current temperature in Celsius. Ex: 23.37
- .readTempF() Returns float with current temperature in Fahrenheit. Ex: 73.96
- .setModeBarometer() Puts the sensor into Pascal measurement mode.
- .setModeAltimeter() Puts the sensor into altimetery mode.
- .setModeStandy() Puts the sensor into Standby mode. Required when changing CTRL1 register.
- .setModeActive() Start taking measurements!
- .setOversampleRate(byte) Sets the # of samples from 1 to 128. See datasheet.
- .enableEventFlags() Sets the fundamental event flags. Required during setup.
-
- */
-
-#include <Wire.h>
-
 #include "MPL3115A2.h"
 
-// Returns the number of meters above sea level
-// Returns -1 if no new data is available
-float MPL3115A2::readAltitude()
+#define ALTMODE ;  // comment out for barometer mode; default is altitude mode
+#define ALTBASIS 0 // start altitude to calculate mean sea level pressure in meters
+// this altitude must be known (or provided by GPS etc.)
+
+// MPL3115A2::MPL3115A2(TwoWire *_wire = &Wire)
+// {
+//     i2c = new I2C(MPL3115A2_ADDRESS, 5, _wire);
+//     _wire->begin();
+//     wire = _wire;
+// }
+
+// I2C i2c(MPL3115A2_ADDRESS, 5, &Wire1);
+byte buffer[5] = {0, 0, 0, 0, 0}; // buffer for sensor data
+TwoWire *wire = &Wire1;
+
+byte alt_read(byte regAddr)
 {
-    toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
-
-    // Wait for PDR bit, indicates we have new pressure data
-    int counter = 0;
-    while ((IIC_Read(STATUS) & (1 << 1)) == 0)
-    {
-        if (++counter > 600)
-            return (-999); // Error out after max of 512ms for a read
-        delay(1);
-    }
-
-    // Read pressure registers
-    Wire1.beginTransmission(MPL3115A2_ADDRESS);
-    Wire1.write(OUT_P_MSB);                  // Address of data to get
-    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire1.requestFrom(MPL3115A2_ADDRESS, 3); // Request three bytes
-
-    // Wait for data to become available
-    counter = 0;
-    while (Wire1.available() < 3)
-    {
-        if (counter++ > 100)
-            return (-999); // Error out
-        delay(1);
-    }
-
-    byte msb, csb, lsb;
-    msb = Wire1.read();
-    csb = Wire1.read();
-    lsb = Wire1.read();
-
-    // The least significant bytes l_altitude and l_temp are 4-bit,
-    // fractional values, so you must cast the calulation in (float),
-    // shift the value over 4 spots to the right and divide by 16 (since
-    // there are 16 values in 4-bits).
-    float tempcsb = (lsb >> 4) / 16.0;
-
-    float altitude = (float)((msb << 8) | csb) + tempcsb;
-
-    return (altitude);
+    // This function reads one byte over I2C
+    wire->beginTransmission(0x60);
+    wire->write(regAddr);         // Address of CTRL_REG1
+    wire->endTransmission(false); // Send data to I2C dev with option for a repeated start. Works in Arduino V1.0.1
+    wire->requestFrom(0x60, 1);
+    return wire->read();
 }
 
-// Returns the number of feet above sea level
-float MPL3115A2::readAltitudeFt()
-{
-    return (readAltitude() * 3.28084);
+void alt_readBytes()
+{ // Read Altitude/Barometer and Temperature data (5 bytes)
+    // This is faster than reading individual register, as the sensor automatically increments the register address,
+    // so we just keep reading...
+    byte i = 0;
+    wire->beginTransmission(0x60);
+    wire->write(0x01); // Address of CTRL_REG1
+    wire->endTransmission(false);
+    wire->requestFrom(0x60, 5); // read 5 bytes: 3 for altitude or pressure, 2 for temperature
+    while (wire->available())
+        buffer[i++] = wire->read();
 }
 
-// Reads the current pressure in Pa
-// Unit must be set in barometric pressure mode
-// Returns -1 if no new data is available
-float MPL3115A2::readPressure()
+void alt_write(byte regAddr, byte value)
 {
-    // Check PDR bit, if it's not set then toggle OST
-    if (IIC_Read(STATUS) & (1 << 2) == 0)
-        toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
+    // This function writes one byto over I2C
+    wire->beginTransmission(0x60);
+    wire->write(regAddr);
+    wire->write(value);
+    wire->endTransmission(true);
+}
 
-    // Wait for PDR bit, indicates we have new pressure data
-    int counter = 0;
-    while (IIC_Read(STATUS) & (1 << 2) == 0)
-    {
-        if (++counter > 600)
-            return (-999); // Error out after max of 512ms for a read
-        delay(1);
-    }
+float MPL3115A2::readBaro()
+{
+    // this function takes values from the read buffer and converts them to pressure units
+    unsigned long m_altitude = buffer[0];
+    unsigned long c_altitude = buffer[1];
+    float l_altitude = (float)(buffer[2] >> 4) / 4;                    // dividing by 4, since two lowest bits are fractional value
+    return ((float)(m_altitude << 10 | c_altitude << 2) + l_altitude); // shifting 2 to the left to make room for LSB
+}
 
-    // Read pressure registers
-    Wire1.beginTransmission(MPL3115A2_ADDRESS);
-    Wire1.write(OUT_P_MSB);                  // Address of data to get
-    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire1.requestFrom(MPL3115A2_ADDRESS, 3); // Request three bytes
-
-    // Wait for data to become available
-    counter = 0;
-    while (Wire1.available() < 3)
-    {
-        if (counter++ > 100)
-            return (-999); // Error out
-        delay(1);
-    }
-
-    byte msb, csb, lsb;
-    msb = Wire1.read();
-    csb = Wire1.read();
-    lsb = Wire1.read();
-
-    toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
-
-    // Pressure comes back as a left shifted 20 bit number
-    long pressure_whole = (long)msb << 16 | (long)csb << 8 | (long)lsb;
-    pressure_whole >>= 6; // Pressure is an 18 bit number with 2 bits of decimal. Get rid of decimal portion.
-
-    lsb &= 0b00110000;                         // Bits 5/4 represent the fractional component
-    lsb >>= 4;                                 // Get it right aligned
-    float pressure_decimal = (float)lsb / 4.0; // Turn it into fraction
-
-    float pressure = (float)pressure_whole + pressure_decimal;
-
-    return (pressure);
+float MPL3115A2::readAlt()
+{
+    // Reads altitude data (if CTRL_REG1 is set to altitude mode)
+    int m_altitude = buffer[0];
+    int c_altitude = buffer[1];
+    float l_altitude = (float)(buffer[2] >> 4) / 16;
+    return ((float)((m_altitude << 8) | c_altitude) + l_altitude);
 }
 
 float MPL3115A2::readTemp()
 {
-    if (IIC_Read(STATUS) & (1 << 1) == 0)
-        toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
+    // reads registers from the sensor
+    int m_temp = buffer[3];                        // temperature, degrees
+    float l_temp = (float)(buffer[4] >> 4) / 16.0; // temperature, fraction of a degree
+    return (float)(m_temp + l_temp);
+}
 
-    // Wait for TDR bit, indicates we have new temp data
-    int counter = 0;
-    while ((IIC_Read(STATUS) & (1 << 1)) == 0)
+MPL3115A2::_baro MPL3115A2::read()
+{
+    // This function reads the altitude (or barometer) and temperature registers, then prints their values
+    // variables for the calculations
+    int m_temp;
+    float l_temp;
+    float altbaro, temperature;
+
+// One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
+// one reading seems to take 4ms (datasheet p.33);
+// oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
+#ifdef ALTMODE                   // Altitude mode
+    alt_write(0x26, 0b10111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+    alt_write(0x26, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+#else                            // Barometer mode
+    alt_write(0x26, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+    alt_write(0x26, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+#endif
+    delay(100); // read with 10Hz; drop this if calling from an outer loop
+
+    alt_readBytes();                         // reads registers from the sensor
+    m_temp = buffer[3];                      // temperature, degrees
+    l_temp = (float)(buffer[4] >> 4) / 16.0; // temperature, fraction of a degree
+    temperature = (float)(m_temp + l_temp);
+
+#ifdef ALTMODE // converts byte data into float; change function to Alt_Read() or Baro_Read()
+    altbaro = readAlt();
+#else
+    altbaro = readBaro();
+#endif
+    //     // One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
+    //     // one reading seems to take 4ms (datasheet p.33);
+    //     // oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
+    //     // bool newVal = oneShot();
+
+    //     // if (lastUpdateTime + 100 <= millis())
+    //     // {
+    // #ifdef ALTMODE                       // Altitude mode
+    //         alt_write(0x26, 0b10111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+    //         alt_write(0x26, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+    // #else                                // Barometer mode
+    //         alt_write(0x26, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+    //         alt_write(0x26, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+    // #endif
+    //         lastUpdateTime = millis();
+    //         alt_readBytes();
+    //         float temp = readTemp();
+    //         float altbaro;
+    // #ifdef ALTMODE // converts byte data into float; change function to Alt_Read() or Baro_Read()
+    //         altbaro = readAlt();
+    // #else
+    //         altbaro = readBaro();
+    // #endif
+
+    baro.temp = temperature;
+    baro.raw = altbaro;
+    // exponential smoothing to get a smooth time series
+    baro.smooth = (baro.smooth * 3 + altbaro) / 4;
+    // }
+    return baro;
+}
+
+bool MPL3115A2::oneShot()
+{
+    if (lastUpdateTime + 100 <= millis())
     {
-        if (++counter > 600)
-            return (-999); // Error out after max of 512ms for a read
-        delay(1);
+#ifdef ALTMODE                                      // Altitude mode
+        alt_write(MPL3115A2_CTRL_REG1, 0b10111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+        alt_write(MPL3115A2_CTRL_REG1, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+#else                                               // Barometer mode
+        alt_write(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+        alt_write(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+#endif
+        lastUpdateTime = millis();
+        return true;
+    }
+    return false;
+}
+
+void MPL3115A2::init()
+{
+    wire->begin();
+    byte whoAmI = alt_read(0x0C);
+    if (whoAmI != 196)
+    {
+        Serial.print(F("wrong \"who am i\" bit: "));
+        Serial.println(whoAmI);
+        delay(1000);
+        init();
     }
 
-    // Read temperature registers
-    Wire1.beginTransmission(MPL3115A2_ADDRESS);
-    Wire1.write(OUT_T_MSB);                  // Address of data to get
-    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire1.requestFrom(MPL3115A2_ADDRESS, 2); // Request two bytes
-
-    // Wait for data to become available
-    counter = 0;
-    while (Wire1.available() < 2)
+    alt_write(0x2D, 0); // write altitude offset=0 (because calculation below is based on offset=0)
+    // calculate sea level pressure by averaging a few readings
+    Serial.println("Pressure calibration...");
+    float buff[4];
+    for (byte i = 0; i < 4; i++)
     {
-        if (counter++ > 100)
-            return (-999); // Error out
-        delay(1);
+        alt_write(0x26, 0b00111011); // bit 2 is one shot mode, bits 4-6 are 128x oversampling
+        alt_write(0x26, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+        delay(550);                  // wait for sensor to read pressure (512ms in datasheet)
+        alt_readBytes();             // read sensor data
+        buff[i] = readBaro();        // read pressure
+        Serial.println(buff[i]);
     }
+    float currpress = (buff[0] + buff[1] + buff[2] + buff[3]) / 4; // average over two seconds
 
-    byte msb, lsb;
-    msb = Wire1.read();
-    lsb = Wire1.read();
+    Serial.print("Current pressure: ");
+    Serial.print(currpress);
+    Serial.println(" Pa");
+    // calculate pressure at mean sea level based on a given altitude
+    float seapress = currpress / pow(1 - ALTBASIS * 0.0000225577, 5.255877);
+    Serial.print("Sea level pressure: ");
+    Serial.print(seapress);
+    Serial.println(" Pa");
+    Serial.print("Temperature: ");
+    Serial.print(buffer[3] + (float)(buffer[4] >> 4) / 16);
+    Serial.println(" C");
 
-    toggleOneShot(); // Toggle the OST bit causing the sensor to immediately take another reading
+    // This configuration option calibrates the sensor according to
+    // the sea level pressure for the measurement location (2 Pa per LSB)
+    alt_write(0x14, (unsigned int)(seapress / 2) >> 8);   // alt_Write(0x14, 0xC3); // BAR_IN_MSB (register 0x14):
+    alt_write(0x15, (unsigned int)(seapress / 2) & 0xFF); // alt_Write(0x15, 0xF3); // BAR_IN_LSB (register 0x15):
 
-    // Negative temperature fix by D.D.G.
-    word foo = 0;
-    bool negSign = false;
+    // one reading seems to take 4ms (datasheet p.33);
+    // oversampling 32x=130ms interval between readings seems to be best for 10Hz; slightly too slow
+    // first bit is altitude mode (vs. barometer mode)
 
-    // Check for 2s compliment
-    if (msb > 0x7F)
-    {
-        foo = ~((msb << 8) + lsb) + 1; // 2s complement
-        msb = foo >> 8;
-        lsb = foo & 0x00F0;
-        negSign = true;
-    }
+    // Altitude mode
 
-    // The least significant bytes l_altitude and l_temp are 4-bit,
-    // fractional values, so you must cast the calulation in (float),
-    // shift the value over 4 spots to the right and divide by 16 (since
-    // there are 16 values in 4-bits).
-    float templsb = (lsb >> 4) / 16.0; // temp, fraction of a degree
-
-    float temperature = (float)(msb + templsb);
-
-    if (negSign)
-        temperature = 0 - temperature;
-
-    return (temperature);
-}
-
-// Give me temperature in fahrenheit!
-float MPL3115A2::readTempF()
-{
-    return ((readTemp() * 9.0) / 5.0 + 32.0); // Convert celsius to fahrenheit
-}
-
-// Sets the mode to Barometer
-// CTRL_REG1, ALT bit
-void MPL3115A2::setModeBarometer()
-{
-    byte tempSetting = IIC_Read(CTRL_REG1); // Read current settings
-    tempSetting &= ~(1 << 7);               // Clear ALT bit
-    IIC_Write(CTRL_REG1, tempSetting);
-}
-
-// Sets the mode to Altimeter
-// CTRL_REG1, ALT bit
-void MPL3115A2::setModeAltimeter()
-{
-    byte tempSetting = IIC_Read(CTRL_REG1); // Read current settings
-    tempSetting |= (1 << 7);                // Set ALT bit
-    IIC_Write(CTRL_REG1, tempSetting);
-}
-
-// Puts the sensor in standby mode
-// This is needed so that we can modify the major control registers
-void MPL3115A2::setModeStandby()
-{
-    byte tempSetting = IIC_Read(CTRL_REG1); // Read current settings
-    tempSetting &= ~(1 << 0);               // Clear SBYB bit for Standby mode
-    IIC_Write(CTRL_REG1, tempSetting);
-}
-
-// Puts the sensor in active mode
-// This is needed so that we can modify the major control registers
-void MPL3115A2::setModeActive()
-{
-    byte tempSetting = IIC_Read(CTRL_REG1); // Read current settings
-    tempSetting |= (1 << 0);                // Set SBYB bit for Active mode
-    IIC_Write(CTRL_REG1, tempSetting);
-}
-
-// Call with a rate from 0 to 7. See page 33 for table of ratios.
-// Sets the over sample rate. Datasheet calls for 128 but you can set it
-// from 1 to 128 samples. The higher the oversample rate the greater
-// the time between data samples.
-void MPL3115A2::setOversampleRate(byte sampleRate)
-{
-    if (sampleRate > 7)
-        sampleRate = 7; // OS cannot be larger than 0b.0111
-    sampleRate <<= 3;   // Align it for the CTRL_REG1 register
-
-    byte tempSetting = IIC_Read(CTRL_REG1); // Read current settings
-    tempSetting &= 0b11000111;              // Clear out old OS bits
-    tempSetting |= sampleRate;              // Mask in new OS bits
-    IIC_Write(CTRL_REG1, tempSetting);
-}
-
-// Enables the pressure and temp measurement event flags so that we can
-// test against them. This is recommended in datasheet during setup.
-void MPL3115A2::enableEventFlags()
-{
-    IIC_Write(PT_DATA_CFG, 0x07); // Enable all three pressure and temp event flags
-}
-
-// Clears then sets the OST bit which causes the sensor to immediately take another reading
-// Needed to sample faster than 1Hz
-void MPL3115A2::toggleOneShot(void)
-{
-    byte tempSetting = IIC_Read(CTRL_REG1); // Read current settings
-    tempSetting &= ~(1 << 1);               // Clear OST bit
-    IIC_Write(CTRL_REG1, tempSetting);
-
-    tempSetting = IIC_Read(CTRL_REG1); // Read current settings to be safe
-    tempSetting |= (1 << 1);           // Set OST bit
-    IIC_Write(CTRL_REG1, tempSetting);
-}
-
-// These are the two I2C functions in this sketch.
-byte MPL3115A2::IIC_Read(byte regAddr)
-{
-    // This function reads one byte over IIC
-    Wire1.beginTransmission(MPL3115A2_ADDRESS);
-    Wire1.write(regAddr);                    // Address of CTRL_REG1
-    Wire1.endTransmission(false);            // Send data to I2C dev with option for a repeated start. THIS IS NECESSARY and not supported before Arduino V1.0.1!
-    Wire1.requestFrom(MPL3115A2_ADDRESS, 1); // Request the data...
-    return Wire1.read();
-}
-
-void MPL3115A2::IIC_Write(byte regAddr, byte value)
-{
-    // This function writes one byto over IIC
-    Wire1.beginTransmission(MPL3115A2_ADDRESS);
-    Wire1.write(regAddr);
-    Wire1.write(value);
-    Wire1.endTransmission(true);
-}
-
-/*!
- *   @brief  Setups the HW (reads coefficients values, etc.)
- *   @param  twoWire
- *           Optional TwoWire I2C object
- *   @return true on successful startup, false otherwise
- */
-boolean MPL3115A2::begin(TwoWire *twoWire)
-{
-    if (i2c_dev)
-        delete i2c_dev;
-    i2c_dev = new I2C(MPL3115A2_ADDRESS, twoWire);
-    if (!i2c_dev->begin())
-        return false;
-
-    // sanity check
-    uint8_t whoami = read8(MPL3115A2_WHOAMI);
-    if (whoami != 0xC4)
-    {
-        return false;
-    }
-
-    i2c_dev->setSpeed(1000000);
-
-    // software reset
-    write8(MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_RST);
-    while (read8(MPL3115A2_CTRL_REG1) & MPL3115A2_CTRL_REG1_RST)
-        delay(10);
-
-    // set oversampling and altitude mode
-    _ctrl_reg1.reg = MPL3115A2_CTRL_REG1_OS128 | MPL3115A2_CTRL_REG1_ALT;
-    write8(MPL3115A2_CTRL_REG1, _ctrl_reg1.reg);
-
-    // enable data ready events for pressure/altitude and temperature
-    write8(MPL3115A2_PT_DATA_CFG, MPL3115A2_PT_DATA_CFG_TDEFE |
-                                      MPL3115A2_PT_DATA_CFG_PDEFE |
-                                      MPL3115A2_PT_DATA_CFG_DREM);
-
-    return true;
-}
-
-/*!
- *  @brief  Set the local sea level pressure
- *  @param SLP sea level pressure in hPa
- */
-void MPL3115A2::setSeaPressure(float SLP)
-{
-    // multiply by 100 to convert hPa to Pa
-    // divide by 2 to convert to 2 Pa per LSB
-    // convert to integer
-    uint16_t bar = SLP * 50;
-
-    // write result to register
-    uint8_t buffer[3];
-    buffer[0] = MPL3115A2_BAR_IN_MSB;
-    buffer[1] = bar >> 8;
-    buffer[2] = bar & 0xFF;
-    i2c_dev->write(buffer, 3);
-}
-
-/*!
- *  @brief  read 1 byte of data at the specified address
- *  @param  a
- *          the address to read
- *  @return the read data byte
- */
-uint8_t MPL3115A2::read8(uint8_t a)
-{
-    uint8_t buffer[1] = {a};
-    i2c_dev->write_then_read(buffer, 1, buffer, 1);
-    return buffer[0];
-}
-
-/*!
- *  @brief  write a byte of data to the specified address
- *  @param  a
- *          the address to write to
- *  @param  d
- *          the byte to write
- */
-void MPL3115A2::write8(uint8_t a, uint8_t d)
-{
-    uint8_t buffer[2] = {a, d};
-    i2c_dev->write(buffer, 2);
+    alt_write(0x26, 0b10111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+    alt_write(0x26, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+    delay(550);                  // wait for measurement
+    alt_readBytes();             //
+    baro.smooth = readAlt();
+    Serial.print("Altitude now: ");
+    Serial.println(baro.smooth);
+    Serial.println("Done.");
 }

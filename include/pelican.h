@@ -11,7 +11,7 @@
 //#define ACCEL_16G
 
 // #define USE_PWM
-#define USE_MPL3115A2
+// #define USE_MPL3115A2
 #define PROP_CONFIG 0
 #define I_TH 500
 

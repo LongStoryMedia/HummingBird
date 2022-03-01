@@ -1,5 +1,8 @@
 #include "config.h"
+#if !defined(USE_MPL3115A2)
+#include "MPL3115A2.h"
 #include "Alt.h"
+#endif
 
 Alt::Alt()
 {
@@ -7,18 +10,10 @@ Alt::Alt()
     lockedThrust = 0;
 }
 
-void Alt::init()
+void Alt::init(TwoWire *_wire = &Wire)
 {
-    Wire1.begin();
-    Wire1.setClock(1000000);
-    baro.begin(&Wire1);
-    // use to set sea level pressure for current location
-    // this is needed for accurate altitude measurement
-    // STD SLP = 1013.26 hPa
-    baro.setSeaPressure(1013.26);
-    baro.setOversampleRate(7);
-    baro.setModeAltimeter();
-    baro.setModeActive();
+    // baro = MPL3115A2(_wire);
+    baro.init();
 }
 
 void Alt::altCheck()
@@ -30,7 +25,7 @@ void Alt::altCheck()
 
     if (altLocked == locked && lockedAlt == 0.0)
     {
-        lockedAlt = getAlt();
+        lockedAlt = baro.read().smooth;
         lockedThrust = packet.thrust;
         Serial.print(F("locking alt at alt "));
         Serial.print(lockedAlt);
@@ -47,7 +42,8 @@ void Alt::altCheck()
 
 float Alt::getAlt()
 {
-    alt = baro.readAltitudeFt();
+    MPL3115A2::_baro baroData = baro.read();
+    alt = baroData.smooth;
     // if (prevAlt == 0)
     // {
     //     prevAlt = baro.readAltitudeFt();
