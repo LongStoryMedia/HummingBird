@@ -13,8 +13,7 @@ class MPL3115A2
 {
 
 public:
-    // MPL3115A2(TwoWire *wire = &Wire);
-    void init(TwoWire *wire = &Wire);
+    void init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire);
 
     typedef struct
     {
@@ -23,17 +22,18 @@ public:
         float temp;
     } _baro;
 
+    void setClock(uint32_t us);
     _baro read();
 
 private:
     I2C *i2c;
     uint32_t lastUpdateTime;
+    uint32_t clockSpeed;
     _baro baro;
     bool oneShot();
     float readBaro();
     float readAlt();
     float readTemp();
-    // TwoWire * wire;
 };
 
 #endif

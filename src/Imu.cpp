@@ -97,7 +97,7 @@ void Imu::calibrate()
         timer.update();
         getImu();
         Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
-        loopRate(2000); // do not exceed 2000Hz
+        loopRate();
     }
 #if defined IMU_MPU9250
     float success;

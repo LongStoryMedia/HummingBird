@@ -43,6 +43,7 @@
 #endif
 
 #if defined(USE_MPL3115A2)
+#include "MPL3115A2.h"
 #include "Alt.h"
 #endif
 
@@ -144,8 +145,9 @@ extern Alt alt;
 float invSqrt(float x);
 void setupBlink(int numBlinks, int upTime, int downTime);
 void loopBlink();
-void loopRate(int freq);
+void loopRate();
 template <class T>
 void debug(T data);
+unsigned long hzToUs(int freq);
 
 #endif

@@ -76,6 +76,7 @@ typedef struct
     float delta;
     uint32_t now;
     uint32_t prev;
+    uint32_t loopRate;
     void update()
     {
         prev = now;
