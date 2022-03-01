@@ -75,63 +75,26 @@ float MPL3115A2::readTemp()
 
 MPL3115A2::_baro MPL3115A2::read()
 {
-    // This function reads the altitude (or barometer) and temperature registers, then prints their values
-    // variables for the calculations
-    int m_temp;
-    float l_temp;
-    float altbaro, temperature;
+    // One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
+    // one reading seems to take 4ms (datasheet p.33);
+    // oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
+    bool newVal = oneShot();
 
-// One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
-// one reading seems to take 4ms (datasheet p.33);
-// oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
-#ifdef ALTMODE                   // Altitude mode
-    alt_write(0x26, 0b10111011); // bit 2 is one shot mode //0xB9 = 0b10111001
-    alt_write(0x26, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-#else                            // Barometer mode
-    alt_write(0x26, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
-    alt_write(0x26, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-#endif
-    delay(100); // read with 10Hz; drop this if calling from an outer loop
-
-    alt_readBytes();                         // reads registers from the sensor
-    m_temp = buffer[3];                      // temperature, degrees
-    l_temp = (float)(buffer[4] >> 4) / 16.0; // temperature, fraction of a degree
-    temperature = (float)(m_temp + l_temp);
-
+    if (newVal)
+    {
+        alt_readBytes();
+        float temp = readTemp();
+        float altbaro;
 #ifdef ALTMODE // converts byte data into float; change function to Alt_Read() or Baro_Read()
-    altbaro = readAlt();
+        altbaro = readAlt();
 #else
-    altbaro = readBaro();
+        altbaro = readBaro();
 #endif
-    //     // One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
-    //     // one reading seems to take 4ms (datasheet p.33);
-    //     // oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
-    //     // bool newVal = oneShot();
-
-    //     // if (lastUpdateTime + 100 <= millis())
-    //     // {
-    // #ifdef ALTMODE                       // Altitude mode
-    //         alt_write(0x26, 0b10111011); // bit 2 is one shot mode //0xB9 = 0b10111001
-    //         alt_write(0x26, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-    // #else                                // Barometer mode
-    //         alt_write(0x26, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
-    //         alt_write(0x26, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-    // #endif
-    //         lastUpdateTime = millis();
-    //         alt_readBytes();
-    //         float temp = readTemp();
-    //         float altbaro;
-    // #ifdef ALTMODE // converts byte data into float; change function to Alt_Read() or Baro_Read()
-    //         altbaro = readAlt();
-    // #else
-    //         altbaro = readBaro();
-    // #endif
-
-    baro.temp = temperature;
-    baro.raw = altbaro;
-    // exponential smoothing to get a smooth time series
-    baro.smooth = (baro.smooth * 3 + altbaro) / 4;
-    // }
+        baro.temp = temp;
+        baro.raw = altbaro;
+        // exponential smoothing to get a smooth time series
+        baro.smooth = (baro.smooth * 3 + altbaro) / 4;
+    }
     return baro;
 }
 
