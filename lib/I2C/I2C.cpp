@@ -6,7 +6,6 @@ I2C::I2C(uint8_t addr, uint8_t size, TwoWire *theWire = &Wire)
     bufferSize = size;
     address = addr;
     buffer = new byte[size];
-    wire->begin();
 }
 
 byte I2C::read(byte regAddr)

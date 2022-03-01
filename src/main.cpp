@@ -57,7 +57,8 @@ void setup()
   //   // Warm up the loop
   //   imu.calibrate(); // helps to warm up IMU and Madgwick filter before finally entering main loop
   // Indicate entering main loop with 3 quick blinks
-  baro.init();
+  // Wire1.begin();
+  baro.init(&Wire1);
   setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
 }
 
