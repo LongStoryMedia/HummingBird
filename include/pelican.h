@@ -1,4 +1,5 @@
-// Uncomment only one full scale gyro range (deg/sec)
+// machine specific variables - PELICAN
+
 #define GYRO_250DPS // default
 //#define GYRO_500DPS
 //#define GYRO_1000DPS
@@ -19,8 +20,8 @@
 #define MAX_ROLL 30.0f          // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_PITCH 30.0f         // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_YAW 160.0f          // Max yaw rate in deg/sec
-#define KP_ROLL_ANGLE 0.125f    // Roll P-gain - angle mode
-#define KI_ROLL_ANGLE 0.11f     // Roll I-gain - angle mode
+#define KP_ROLL_ANGLE 0.11f     // Roll P-gain - angle mode
+#define KI_ROLL_ANGLE 0.125f    // Roll I-gain - angle mode
 #define KD_ROLL_ANGLE 0.08f     // Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0)
 #define B_LOOP_ROLL 0.9f        // Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 #define KP_PITCH_ANGLE 0.25f    // Pitch P-gain - angle mode
