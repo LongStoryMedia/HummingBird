@@ -6,7 +6,7 @@ void Imu::init()
     Wire.begin();
     Wire.setClock(1000000); // Note this is 2.5 times the spec sheet 400 kHz max...
 
-    mpu.initialize();
+    mpu.initialize(&Wire);
 
     if (mpu.testConnection() == false)
     {

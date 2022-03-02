@@ -93,13 +93,14 @@ void loop()
   alt.altCheck();
   // debug(alt.getAlt());
 #endif
-  Serial.print(commands.m1);
-  Serial.print("|");
-  Serial.print(commands.m2);
-  Serial.print("|");
-  Serial.print(commands.m3);
-  Serial.print("|");
-  Serial.println(commands.m4);
+  // Serial.print(commands.m1);
+  // Serial.print("|");
+  // Serial.print(commands.m2);
+  // Serial.print("|");
+  // Serial.print(commands.m3);
+  // Serial.print("|");
+  // Serial.println(commands.m4);
+  debug(timer.delta * 1000000);
 
   esc.setSpeed(commands);
   // Regulate loop rate

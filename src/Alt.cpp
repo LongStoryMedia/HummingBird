@@ -14,7 +14,7 @@ void Alt::init()
 {
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, hzToUs(10), &Wire1);
+    baro.init(300, hzToUs(2000), &Wire1);
 }
 
 void Alt::altCheck()
