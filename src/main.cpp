@@ -91,10 +91,16 @@ void loop()
 
 #if defined(USE_MPL3115A2)
   alt.altCheck();
-  debug(alt.getAlt());
+  // debug(alt.getAlt());
 #endif
+  Serial.print(commands.m1);
+  Serial.print("|");
+  Serial.print(commands.m2);
+  Serial.print("|");
+  Serial.print(commands.m3);
+  Serial.print("|");
+  Serial.println(commands.m4);
 
-  // debug(commands.m1);
   esc.setSpeed(commands);
   // Regulate loop rate
   loopRate(); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
