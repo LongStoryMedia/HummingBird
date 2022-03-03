@@ -136,6 +136,16 @@ int8_t I2Cdev::readBitsW(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint
     return count;
 }
 
+int8_t I2Cdev::getByte(byte regAddr)
+{
+    // This function reads one byte over I2C
+    wire->beginTransmission(address);
+    wire->write(regAddr);         // Address of CTRL_REG1
+    wire->endTransmission(false); // Send data to I2C dev with option for a repeated start. Works in Arduino V1.0.1
+    wire->requestFrom(address, 1);
+    return wire->read();
+}
+
 /** Read single byte from an 8-bit device register.
  * @param regAddr Register regAddr to read from
  * @param data Container for byte value read from device

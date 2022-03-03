@@ -14,6 +14,7 @@ class MPL3115A2
 {
 
 public:
+    MPL3115A2();
     void init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire);
 
     typedef struct
@@ -31,8 +32,7 @@ private:
     uint32_t lastUpdateTime;
     uint32_t clockSpeed;
     _baro baro;
-    static const byte bufferSize = 5;
-    byte buffer[MPL3115A2::bufferSize];
+    uint8_t buffer[5] = {0, 0, 0, 0, 0};
     bool oneShot();
     float readBaro();
     float readAlt();
