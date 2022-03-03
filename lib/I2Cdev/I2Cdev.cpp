@@ -191,13 +191,13 @@ int8_t I2Cdev::readBytes(uint8_t regAddr, uint8_t length, uint8_t *data, uint16_
     {
         wire->beginTransmission(address);
         wire->write(regAddr);
-        wire->endTransmission();
+        wire->endTransmission(false);
         wire->beginTransmission(address);
         wire->requestFrom(address, (uint8_t)min(length - k, BUFFER_LENGTH));
 
-        for (; wire->available() && (timeout == 0 || millis() - t1 < timeout); count++)
+        while (wire->available() && (timeout == 0 || millis() - t1 < timeout))
         {
-            data[count] = wire->read();
+            data[count++] = wire->read();
         }
     }
 
