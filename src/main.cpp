@@ -100,11 +100,11 @@ void loop()
   // Serial.print(commands.m3);
   // Serial.print("|");
   // Serial.println(commands.m4);
-  debug(timer.delta * 1000000);
 
   esc.setSpeed(commands);
   // Regulate loop rate
   loopRate(); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
+  debug(timer.delta * 1000000);
 }
 
 //========================================================================================================================//

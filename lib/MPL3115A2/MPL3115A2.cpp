@@ -37,7 +37,7 @@ MPL3115A2::_baro MPL3115A2::read()
 
     if (newVal)
     {
-        i2c->readBytes();
+        i2c->readBytes(CTRL_REG_1, MPL3115A2::bufferSize, buffer);
         float temp = readTemp();
         float altbaro;
 #ifdef ALTMODE
@@ -57,12 +57,12 @@ bool MPL3115A2::oneShot()
 {
     if (lastUpdateTime + clockSpeed <= micros())
     {
-#ifdef ALTMODE                                       // Altitude mode
-        i2c->write(MPL3115A2_CTRL_REG1, 0b10111011); // bit 2 is one shot mode //0xBB = 0b10111001
-        i2c->write(MPL3115A2_CTRL_REG1, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-#else                                                // Barometer mode
-        i2c->write(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
-        i2c->write(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+#ifdef ALTMODE                                           // Altitude mode
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111011); // bit 2 is one shot mode //0xBB = 0b10111001
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+#else                                                    // Barometer mode
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
 #endif
         lastUpdateTime = micros();
         return true;
@@ -90,11 +90,11 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
     float buff[4];
     for (byte i = 0; i < 4; i++)
     {
-        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode, bits 4-6 are 128x oversampling
-        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-        delay(550);                                      // wait for sensor to read pressure (512ms in datasheet)
-        i2c->readBytes();                                // read sensor data
-        buff[i] = readBaro();                            // read pressure
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111011);           // bit 2 is one shot mode, bits 4-6 are 128x oversampling
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111001);           // must clear oversampling (OST) bit, otherwise update will be once per second
+        delay(550);                                                // wait for sensor to read pressure (512ms in datasheet)
+        i2c->readBytes(CTRL_REG_1, MPL3115A2::bufferSize, buffer); // read sensor data
+        buff[i] = readBaro();                                      // read pressure
         Serial.println(buff[i]);
     }
     float currpress = (buff[0] + buff[1] + buff[2] + buff[3]) / 4; // average over two seconds
@@ -113,8 +113,8 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
 
     // This configuration option calibrates the sensor according to
     // the sea level pressure for the measurement location (2 Pa per LSB)
-    i2c->write(0x14, (unsigned int)(seapress / 2) >> 8);   // i2c->Write(0x14, 0xC3); // BAR_IN_MSB (register 0x14):
-    i2c->write(0x15, (unsigned int)(seapress / 2) & 0xFF); // i2c->Write(0x15, 0xF3); // BAR_IN_LSB (register 0x15):
+    i2c->writeByte(0x14, (unsigned int)(seapress / 2) >> 8);   // i2c->Write(0x14, 0xC3); // BAR_IN_MSB (register 0x14):
+    i2c->writeByte(0x15, (unsigned int)(seapress / 2) & 0xFF); // i2c->Write(0x15, 0xF3); // BAR_IN_LSB (register 0x15):
 
     // one reading seems to take 4ms (datasheet p.33);
     // oversampling 32x=130ms interval between readings seems to be best for 10Hz; slightly too slow
@@ -122,10 +122,10 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
 
     // Altitude mode
 
-    i2c->write(MPL3115A2_CTRL_REG1, 0b10111011); // bit 2 is one shot mode //0xBB = 0b10111001
-    i2c->write(MPL3115A2_CTRL_REG1, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-    delay(550);                                  // wait for measurement
-    i2c->readBytes();                            //
+    i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111011);           // bit 2 is one shot mode //0xBB = 0b10111001
+    i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111001);           // must clear oversampling (OST) bit, otherwise update will be once per second
+    delay(550);                                                // wait for measurement
+    i2c->readBytes(CTRL_REG_1, MPL3115A2::bufferSize, buffer); //
     baro.smooth = readAlt();
     Serial.print("Altitude now: ");
     Serial.println(baro.smooth);
