@@ -2,7 +2,7 @@
 #define MPL3115A2_H
 #include <Arduino.h>
 #include <Wire.h> // for I2C communication
-#include "I2C.h"
+#include "I2Cdev.h"
 
 #define MPL3115A2_ADDRESS 0x60 ///< default I2C address 1100000
 #define MPL3115A2_WHOAMI 0x0C
@@ -26,10 +26,11 @@ public:
     _baro read();
 
 private:
-    I2C *i2c;
+    I2Cdev *i2c;
     uint32_t lastUpdateTime;
     uint32_t clockSpeed;
     _baro baro;
+    byte buffer[5];
     bool oneShot();
     float readBaro();
     float readAlt();

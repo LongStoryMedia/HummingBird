@@ -5,26 +5,26 @@
 float MPL3115A2::readBaro()
 {
     // this function takes values from the read buffer and converts them to pressure units
-    unsigned long m_altitude = i2c->getBufferByte(0);
-    unsigned long c_altitude = i2c->getBufferByte(1);
-    float l_altitude = (float)(i2c->getBufferByte(2) >> 4) / 4;        // dividing by 4, since two lowest bits are fractional value
+    unsigned long m_altitude = buffer[0];
+    unsigned long c_altitude = buffer[1];
+    float l_altitude = (float)(buffer[2] >> 4) / 4;                    // dividing by 4, since two lowest bits are fractional value
     return ((float)(m_altitude << 10 | c_altitude << 2) + l_altitude); // shifting 2 to the left to make room for LSB
 }
 
 float MPL3115A2::readAlt()
 {
     // Reads altitude data (if CTRL_REG1 is set to altitude mode)
-    int m_altitude = i2c->getBufferByte(0);
-    int c_altitude = i2c->getBufferByte(1);
-    float l_altitude = (float)(i2c->getBufferByte(2) >> 4) / 16;
+    int m_altitude = buffer[0];
+    int c_altitude = buffer[1];
+    float l_altitude = (float)(buffer[2] >> 4) / 16;
     return ((float)((m_altitude << 8) | c_altitude) + l_altitude);
 }
 
 float MPL3115A2::readTemp()
 {
     // reads registers from the sensor
-    int m_temp = i2c->getBufferByte(3);                        // temperature, degrees
-    float l_temp = (float)(i2c->getBufferByte(4) >> 4) / 16.0; // temperature, fraction of a degree
+    int m_temp = buffer[3];                        // temperature, degrees
+    float l_temp = (float)(buffer[4] >> 4) / 16.0; // temperature, fraction of a degree
     return (float)(m_temp + l_temp);
 }
 
@@ -74,8 +74,8 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
 {
     wire->begin();
     clockSpeed = clockspeed;
-    i2c = new I2C(MPL3115A2_ADDRESS, 5, wire);
-    byte whoAmI = i2c->read(MPL3115A2_WHOAMI);
+    i2c = new I2Cdev(MPL3115A2_ADDRESS, wire);
+    byte whoAmI = i2c->readByte(MPL3115A2_WHOAMI, buffer);
     if (whoAmI != 196)
     {
         Serial.print(F("wrong \"who am i\" bit: "));
@@ -84,17 +84,17 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
         init(basis, clockspeed, wire);
     }
 
-    i2c->write(OFF_H, (byte)0); // write altitude offset=0 (because calculation below is based on offset=0)
+    i2c->writeByte(OFF_H, (byte)0); // write altitude offset=0 (because calculation below is based on offset=0)
     // calculate sea level pressure by averaging a few readings
     Serial.println("Pressure calibration...");
     float buff[4];
     for (byte i = 0; i < 4; i++)
     {
-        i2c->write(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode, bits 4-6 are 128x oversampling
-        i2c->write(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-        delay(550);                                  // wait for sensor to read pressure (512ms in datasheet)
-        i2c->readBytes();                            // read sensor data
-        buff[i] = readBaro();                        // read pressure
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode, bits 4-6 are 128x oversampling
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
+        delay(550);                                      // wait for sensor to read pressure (512ms in datasheet)
+        i2c->readBytes();                                // read sensor data
+        buff[i] = readBaro();                            // read pressure
         Serial.println(buff[i]);
     }
     float currpress = (buff[0] + buff[1] + buff[2] + buff[3]) / 4; // average over two seconds
@@ -108,7 +108,7 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
     Serial.print(seapress);
     Serial.println(" Pa");
     Serial.print("Temperature: ");
-    Serial.print(i2c->getBufferByte(3) + (float)(i2c->getBufferByte(4) >> 4) / 16);
+    Serial.print(buffer[3] + (float)(buffer[4] >> 4) / 16);
     Serial.println(" C");
 
     // This configuration option calibrates the sensor according to
