@@ -4,13 +4,7 @@
 class Imu
 {
 private:
-#if defined IMU_MPU9250
-    MPU9250 mpu = MPU9250(SPI1, 0);
-#elif defined IMU_MPU6050
     MPU6050 mpu;
-#elif defined IMU_LSM9DS1
-#define mpu IMU
-#endif
 
 public:
     void calibrate();

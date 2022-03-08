@@ -358,7 +358,12 @@ bool I2Cdev::writeBitsW(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint1
  */
 bool I2Cdev::writeByte(uint8_t regAddr, uint8_t data)
 {
-    return writeBytes(regAddr, 1, &data);
+    uint8_t status = 0;
+    wire->beginTransmission(address);
+    wire->write((uint8_t)regAddr);
+    wire->write((uint8_t)data);
+    status = wire->endTransmission();
+    return status == 0;
 }
 
 /** Write single word to a 16-bit device register.

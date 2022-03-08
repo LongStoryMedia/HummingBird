@@ -2,7 +2,6 @@
 
 void Imu::init()
 {
-#if defined IMU_MPU6050
     Wire.begin();
     Wire.setClock(1000000); // Note this is 2.5 times the spec sheet 400 kHz max...
 
@@ -23,30 +22,6 @@ void Imu::init()
     mpu.setFullScaleGyroRange(GYRO_SCALE);
     mpu.setFullScaleAccelRange(ACCEL_SCALE);
 
-#elif defined IMU_MPU9250
-    int status = mpu.begin();
-
-    if (status < 0)
-    {
-        Serial.println("MPU9250 initialization unsuccessful");
-        Serial.println("Check MPU9250 wiring or try cycling power");
-        Serial.print("Status: ");
-        Serial.println(status);
-        while (1)
-        {
-        }
-    }
-
-    // From the reset state all registers should be 0x00, so we should be at
-    // max sample rate with digital low pass filter(s) off.  All we need to
-    // do is set the desired fullscale ranges
-    mpu.setGyroRange(GYRO_SCALE);
-    mpu.setAccelRange(ACCEL_SCALE);
-    mpu.setMagCalX(agError.mag.roll, 1.0);
-    mpu.setMagCalY(agError.mag.pitch, 1.0);
-    mpu.setMagCalZ(agError.mag.yaw, 1.0);
-    mpu.setSrd(0); // sets gyro and accel read to 1khz, magnetometer read to 100hz
-#endif
 #if defined IMU_LSM9DS1
     mpu.begin();
     mpu.setAccelFS(3);  // ± 2g
@@ -65,12 +40,9 @@ void Imu::init()
         mpu.readAccel(AcX, AcY, AcZ); //  Accelerometer returns G Force (ms-2)
         mpu.readGyro(GyX, GyY, GyZ);  //  Gyro rates are Degrees Per Second (DPS)
         mpu.readMagnet(MgX, MgY, MgZ);
-#elif defined IMU_MPU6050
+#else
         mpu.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-#elif defined IMU_MPU9250
-        mpu.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
 #endif
-
         ag.accel.roll = AcX / ACCEL_SCALE_FACTOR;
         ag.accel.pitch = AcY / ACCEL_SCALE_FACTOR;
         ag.accel.yaw = AcZ / ACCEL_SCALE_FACTOR;
@@ -155,11 +127,7 @@ void Imu::getImu()
     mpu.readMagnet(MgX, MgY, MgZ);
 #else
     int16_t AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
-#if defined IMU_MPU6050
     mpu.getMotion6(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ);
-#elif defined IMU_MPU9250
-    mpu.getMotion9(&AcX, &AcY, &AcZ, &GyX, &GyY, &GyZ, &MgX, &MgY, &MgZ);
-#endif
 #endif
     // Accelerometer
     ag.accel.roll = AcX / ACCEL_SCALE_FACTOR; // G's ex 700/16382=0.0427

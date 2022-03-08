@@ -42,3 +42,5 @@
 #define M2_PIN 2
 #define M3_PIN 3
 #define M4_PIN 5
+
+#define IMU_ORIENTATION 1

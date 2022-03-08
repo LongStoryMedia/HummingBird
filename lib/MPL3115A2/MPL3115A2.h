@@ -17,26 +17,19 @@ public:
     MPL3115A2();
     void init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire);
 
-    typedef struct
-    {
-        float raw;
-        float smooth;
-        float temp;
-    } _baro;
-
     void setClock(uint32_t us);
-    _baro read();
+    float read();
 
 private:
     I2Cdev *i2c;
     uint32_t lastUpdateTime;
     uint32_t clockSpeed;
-    _baro baro;
     uint8_t buffer[5] = {0, 0, 0, 0, 0};
     bool oneShot();
     float readBaro();
     float readAlt();
     float readTemp();
+    float alt;
 };
 
 #endif

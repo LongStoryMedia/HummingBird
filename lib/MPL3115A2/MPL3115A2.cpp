@@ -32,7 +32,7 @@ float MPL3115A2::readTemp()
     return (float)(m_temp + l_temp);
 }
 
-MPL3115A2::_baro MPL3115A2::read()
+float MPL3115A2::read()
 {
     // One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
     // one reading seems to take 4ms (datasheet p.33);
@@ -42,19 +42,19 @@ MPL3115A2::_baro MPL3115A2::read()
     if (newVal)
     {
         i2c->readBytes(CTRL_REG_1, 5, buffer);
-        float temp = readTemp();
+        // float temp = readTemp();
         float altbaro;
 #ifdef ALTMODE
         altbaro = readAlt();
 #else
         altbaro = readBaro();
 #endif
-        baro.temp = temp;
-        baro.raw = altbaro;
+        // baro.temp = temp;
+        alt = altbaro;
         // exponential smoothing to get a smooth time series
-        baro.smooth = (baro.smooth * 3 + altbaro) / 4;
+        // baro.smooth = (baro.smooth * 3 + altbaro) / 4;
     }
-    return baro;
+    return alt;
 }
 
 bool MPL3115A2::oneShot()
@@ -76,7 +76,6 @@ bool MPL3115A2::oneShot()
 
 void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
 {
-    wire->begin();
     clockSpeed = clockspeed;
     i2c = new I2Cdev(MPL3115A2_ADDRESS, wire);
     uint8_t whoAmI = i2c->getByte(MPL3115A2_WHOAMI);
@@ -130,8 +129,8 @@ void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)
     i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
     delay(550);                                      // wait for measurement
     i2c->readBytes(CTRL_REG_1, 5, buffer);           //
-    baro.smooth = readAlt();
+    alt = readAlt();
     Serial.print("Altitude now: ");
-    Serial.println(baro.smooth);
+    Serial.println(alt);
     Serial.println("Done.");
 }

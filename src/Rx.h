@@ -8,7 +8,7 @@
 class Rx
 {
 private:
-    RF24 radio = RF24(CE, CSN);
+    RF24 radio = RF24(CE, CSN, 2000000);
     static const uint8_t radioNumber = 0;
     static const uint8_t controllerRadioNumber = 1;
     uint8_t packetSize = sizeof(State);
@@ -18,7 +18,6 @@ private:
     void initRc();
     void initLora();
     uint32_t rxt;
-    State prevPacket;
     void failSafe();
 
 public:

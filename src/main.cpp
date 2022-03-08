@@ -6,8 +6,10 @@
 
 // uint32_t print_counter, serial_counter;
 // uint32_t blink_counter, blink_delay;
+
+unsigned long print_counter;
 bool blinkAlternate;
-Timer timer;
+Timer timer{0.0, 0, 0, 2000};
 Filter filter{0.04, 0.14, 0.1, 1.0};
 Quaternion q{1.0f, 0.0f, 0.0f, 0.0f};
 AccelGyro ag;
@@ -16,6 +18,7 @@ AccelGyro agError;
 AccelGyro agImu;
 AccelGyro agImuPrev;
 State packet;
+State prevPacket;
 PropConfig propConfig;
 Rx rx;
 Esc esc;
@@ -24,6 +27,9 @@ Imu imu;
 #if defined(USE_MPL3115A2)
 Alt alt;
 #endif
+#if defined(USE_PROXIMITY_DETECTION)
+Proximity proximity;
+#endif
 //========================================================================================================================//
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
@@ -31,7 +37,6 @@ Alt alt;
 void setup()
 {
   Serial.begin(115200); // usb serial
-  timer.loopRate = 2000;
   // Initialize all pins
   pinMode(13, OUTPUT); // pin 13 LED blinker on board, do not modify
 
@@ -47,6 +52,12 @@ void setup()
   alt.init();
   delay(10);
 #endif
+
+#if defined(USE_PROXIMITY_DETECTION)
+  proximity.init();
+  delay(10);
+#endif
+
   // Initialize IMU communication
   imu.init();
   delay(10);
@@ -91,16 +102,25 @@ void loop()
 
 #if defined(USE_MPL3115A2)
   alt.altCheck();
-  debug(alt.getAlt());
+  // debug(alt.getAlt());
 #endif
-  // Serial.print(commands.m1);
-  // Serial.print("|");
-  // Serial.print(commands.m2);
-  // Serial.print("|");
-  // Serial.print(commands.m3);
-  // Serial.print("|");
-  // Serial.println(commands.m4);
 
+#if defined(USE_PROXIMITY_DETECTION)
+  obstacles obs = proximity.scan();
+#endif
+  // if (timer.now - print_counter > 100000)
+  // {
+  // Serial.println(obs.hasObstacles());
+  // Serial.print(packet.thrust);
+  // Serial.print(" | ");
+  // Serial.print(packet.yaw);
+  // Serial.print(" | ");
+  // Serial.print(packet.roll);
+  // Serial.print(" | ");
+  // Serial.print(packet.pitch);
+  // Serial.print(" | ");
+  // Serial.println(packet.lockAlt);
+  // }
   esc.setSpeed(commands);
   // Regulate loop rate
   loopRate(); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
@@ -130,9 +150,9 @@ void loopRate()
   }
 }
 
-unsigned long hzToUs(int freq)
+float hzToUs(int speed)
 {
-  return 1 / freq * 1000000;
+  return 1.0 / speed * 1000000.0;
 }
 
 void loopBlink()
@@ -200,7 +220,6 @@ float invSqrt(float x)
 template <class T>
 void debug(T data)
 {
-  unsigned long print_counter;
   if (timer.now - print_counter > 10000)
   {
     print_counter = micros();

@@ -55,6 +55,42 @@ void Pid::init()
     break;
   }
 
+  switch (IMU_ORIENTATION)
+  {
+  case imuOrientation::upForward:
+    propConfig.p1.xAxis = propConfig.p1.negative;
+    propConfig.p1.yAxis = propConfig.p1.positive;
+    propConfig.p2.xAxis = propConfig.p2.positive;
+    propConfig.p2.yAxis = propConfig.p2.positive;
+    propConfig.p3.xAxis = propConfig.p3.positive;
+    propConfig.p3.yAxis = propConfig.p3.negative;
+    propConfig.p4.xAxis = propConfig.p1.negative;
+    propConfig.p4.yAxis = propConfig.p1.negative;
+    break;
+
+  case imuOrientation::upBackward:
+    propConfig.p1.xAxis = propConfig.p1.positive;
+    propConfig.p1.yAxis = propConfig.p1.negative;
+    propConfig.p2.xAxis = propConfig.p2.negative;
+    propConfig.p2.yAxis = propConfig.p2.negative;
+    propConfig.p3.xAxis = propConfig.p3.negative;
+    propConfig.p3.yAxis = propConfig.p3.positive;
+    propConfig.p4.xAxis = propConfig.p1.positive;
+    propConfig.p4.yAxis = propConfig.p1.positive;
+    break;
+
+  default:
+    propConfig.p1.xAxis = propConfig.p1.negative;
+    propConfig.p1.yAxis = propConfig.p1.positive;
+    propConfig.p2.xAxis = propConfig.p2.positive;
+    propConfig.p2.yAxis = propConfig.p2.positive;
+    propConfig.p3.xAxis = propConfig.p3.positive;
+    propConfig.p3.yAxis = propConfig.p3.negative;
+    propConfig.p4.xAxis = propConfig.p1.negative;
+    propConfig.p4.yAxis = propConfig.p1.negative;
+    break;
+  }
+
   integratorThreashold = I_TH;
   if (PID_MODE == simpleRateMode)
   {
@@ -93,6 +129,10 @@ void Pid::setDesiredState()
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
   desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
   desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
+#if IMU_ORIENTATION == 0
+  desiredState.roll *= -1.0;
+  desiredState.pitch *= -1.0;
+#endif
 }
 
 State Pid::integrateAlt()

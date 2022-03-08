@@ -12,9 +12,11 @@ Alt::Alt()
 
 void Alt::init()
 {
+    Wire1.begin();
+    Wire1.setClock(1000000); // Note this is 2.5 times the spec sheet 400 kHz max...
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, hzToUs(2000), &Wire1);
+    baro.init(300, hzToUs(10), &Wire1);
 }
 
 void Alt::altCheck()
@@ -25,7 +27,7 @@ void Alt::altCheck()
 
     if (altLocked != (lockState)packet.lockAlt)
     {
-        if (packet.lockAlt == packet.locked)
+        if (packet.lockAlt == 1)
         {
             lockedAlt = alt;
             lockedThrust = packet.thrust;
@@ -41,7 +43,7 @@ void Alt::altCheck()
 float Alt::getAlt()
 {
     prevAlt = alt;
-    alt = baro.read().smooth;
+    alt = baro.read();
 
     if (prevAlt == 0)
     {
@@ -55,9 +57,9 @@ float Alt::getAlt()
     }
 
     // try to get an update if we haven't seen one in a while
-    if (timer.now - lastUpdate > hzToUs(timer.loopRate / 10))
+    if (timer.now - lastUpdate > hzToUs(timer.loopRate / 20))
     {
-        alt = baro.read().raw;
+        alt = baro.read();
     }
 
     // only integrate on change

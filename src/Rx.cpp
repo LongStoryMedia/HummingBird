@@ -1,5 +1,5 @@
 #include "config.h"
-#include "printf.h"
+// #include "printf.h"
 
 uint8_t address[][6] = {"bird", "nest"};
 
@@ -38,6 +38,7 @@ State Rx::getPacket()
         radio.read(&packet, packetSize);
         rxt = loopTime;
     }
+
     // Low-pass the critical commands and update previous values
     float b = 0.2; // lower=slower, higher=noiser
     packet.thrust = (1.0 - b) * prevPacket.thrust + b * packet.thrust;
@@ -53,7 +54,13 @@ void Rx::initRc()
 {
     // initialize the transceiver on the SPI bus
     radio.begin();
-    // radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
+    // radio.setDataRate(RF24_2MBPS);
+    radio.setPALevel(RF24_PA_MAX); // RF24_PA_MAX is default.
+    // radio.txDelay = 0;
+    // radio.disableCRC();
+    // radio.setAutoAck(true);
+    // radio.disableDynamicPayloads();
+    // radio.setAutoAck(false);
 
     // save on transmission time by setting the radio to only transmit the
     // number of bytes we need to transmit
@@ -64,8 +71,7 @@ void Rx::initRc()
 
     // set the RX address of the TX node into a RX pipe
     radio.openReadingPipe(controllerRadioNumber, address[controllerRadioNumber]); // using pipe 1
-
-    radio.startListening(); // put radio in RX mode
+    radio.startListening();                                                       // put radio in RX mode
 
     // For debugging info
     // printf_begin();             // needed only once for printing details

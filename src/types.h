@@ -5,16 +5,11 @@
 
 typedef struct
 {
-    enum altLocked
-    {
-        unlocked,
-        locked
-    };
-    int32_t yaw;
-    int32_t pitch;
-    int32_t roll;
-    int32_t thrust;
-    altLocked lockAlt;
+    int16_t yaw;
+    int16_t pitch;
+    int16_t roll;
+    uint16_t thrust;
+    uint8_t lockAlt;
 } State;
 
 typedef struct
@@ -299,6 +294,35 @@ enum configType
     x1,
     x2
 };
+
+enum imuOrientation
+{
+    upForward,
+    upBackward,
+    downForward,
+    downBackward
+};
+
+typedef struct
+{
+    uint8_t frontLeft;
+    uint8_t frontRight;
+    uint8_t left;
+    uint8_t right;
+    uint8_t rear;
+    bool hasObstacles()
+    {
+        return frontLeft + frontRight + left + right + rear < 5;
+    }
+    void clear()
+    {
+        frontLeft = 0;
+        frontRight = 0;
+        left = 0;
+        right = 0;
+        rear = 0;
+    }
+} obstacles;
 
 //========================================================================================================================//
 //                                                      PROTOTYPES                                                        //

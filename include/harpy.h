@@ -11,11 +11,6 @@
 //#define ACCEL_8G
 //#define ACCEL_16G
 
-// #define USE_PWM
-#define USE_MPL3115A2
-#define PROP_CONFIG 0
-#define I_TH 300
-
 #define I_LIMIT 25.0f           // Integrator saturation level, mostly for safety (default 25.0)
 #define MAX_ROLL 30.0f          // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_PITCH 30.0f         // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
@@ -34,9 +29,9 @@
 #define KP_PITCH_RATE 0.15f     // Pitch P-gain - rate mode
 #define KI_PITCH_RATE 0.2f      // Pitch I-gain - rate mode
 #define KD_PITCH_RATE 0.0002f   // Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
-#define KP_YAW 0.8f             // Yaw P-gain
+#define KP_YAW 0.08f            // Yaw P-gain
 #define KI_YAW 0.25f            // Yaw I-gain
-#define KD_YAW 0.00025f         // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+#define KD_YAW 0.000025f        // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 #define KP_ALT 0.25f
 #define KI_ALT 0.4f
 
@@ -47,4 +42,37 @@
 #define M3_PIN 4
 #define M4_PIN 5
 
-#define IMU_ORIENTATION 1
+// #define M1_PIN 2
+// #define M2_PIN 4
+// #define M3_PIN 3
+// #define M4_PIN 5
+
+#define CE_NRF24 10
+#define CSN_NRF24 9
+
+// #define CE_NRF24 0
+// #define CSN_NRF24 25
+
+#define SENSOR_LEFT 24
+#define SENSOR_RIGHT 6
+#define SENSOR_REAR 21
+#define SENSOR_FRONT_LEFT 22
+#define SENSOR_FRONT_RIGHT 23
+
+// #define USE_MPL3115A2
+#define PROP_CONFIG 0
+#define I_TH 300
+
+// #define USE_PROXIMITY_DETECTION
+
+#define IMU_ORIENTATION 0
+
+/*
+GPS - tx: 8, rx: 7 (2),
+IR Sensors:
+    24 l
+    6 r
+    21 b
+    22 fl
+    23 fr
+*/

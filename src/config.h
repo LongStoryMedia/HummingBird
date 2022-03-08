@@ -22,29 +22,15 @@
 
 #include "nRF24L01.h"
 #include "RF24.h"
-
-#if defined(IMU_MPU6050)
 #include "MPU6050.h"
-#elif defined(IMU_MPU9250)
-#include "MPU9250.h"
-#elif defined(IMU_LSM9DS1)
-#include "LSM9DS1.h"
-#endif
-
-#if defined(USE_PWM)
-#if defined(ESP32)
-#include <ESP32Servo.h>
-#elif defined(TEENSY)
-#include <PWMServo.h> //commanding any extra actuators, installed with teensyduino installer
-#define Servo PWMServo
-#else
-#include <Servo.h>
-#endif
-#endif
 
 #if defined(USE_MPL3115A2)
 #include "MPL3115A2.h"
 #include "Alt.h"
+#endif
+
+#if defined(USE_PROXIMITY_DETECTION)
+#include "Proximity.h"
 #endif
 
 #include "Imu.h"
@@ -70,6 +56,7 @@ extern AccelGyro agImuPrev;
 extern Quaternion q;
 extern Filter filter;
 extern State packet;
+extern State prevPacket;
 extern PropConfig propConfig;
 extern Rx rx;
 extern Esc esc;
@@ -78,11 +65,13 @@ extern Imu imu;
 #if defined(USE_MPL3115A2)
 extern Alt alt;
 #endif
+#if defined(USE_PROXIMITY_DETECTION)
+extern Proximity proximity;
+#endif
 //========================================================================================================================//
 
 // Setup gyro and accel full scale value selection and scale factor
 
-#if defined IMU_MPU6050
 #define GYRO_FS_SEL_250 MPU6050_GYRO_FS_250
 #define GYRO_FS_SEL_500 MPU6050_GYRO_FS_500
 #define GYRO_FS_SEL_1000 MPU6050_GYRO_FS_1000
@@ -91,16 +80,6 @@ extern Alt alt;
 #define ACCEL_FS_SEL_4 MPU6050_ACCEL_FS_4
 #define ACCEL_FS_SEL_8 MPU6050_ACCEL_FS_8
 #define ACCEL_FS_SEL_16 MPU6050_ACCEL_FS_16
-#elif defined IMU_MPU9250
-#define GYRO_FS_SEL_250 imu.GYRO_RANGE_250DPS
-#define GYRO_FS_SEL_500 imu.GYRO_RANGE_500DPS
-#define GYRO_FS_SEL_1000 imu.GYRO_RANGE_1000DPS
-#define GYRO_FS_SEL_2000 imu.GYRO_RANGE_2000DPS
-#define ACCEL_FS_SEL_2 imu.ACCEL_RANGE_2G
-#define ACCEL_FS_SEL_4 imu.ACCEL_RANGE_4G
-#define ACCEL_FS_SEL_8 imu.ACCEL_RANGE_8G
-#define ACCEL_FS_SEL_16 imu.ACCEL_RANGE_16G
-#endif
 
 #if defined IMU_LSM9DS1
 #define GYRO_SCALE GYRO_FS_SEL_250
@@ -148,6 +127,6 @@ void loopBlink();
 void loopRate();
 template <class T>
 void debug(T data);
-unsigned long hzToUs(int freq);
+float hzToUs(int speed);
 
 #endif
