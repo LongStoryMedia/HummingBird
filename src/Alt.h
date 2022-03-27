@@ -4,7 +4,11 @@
 class Alt
 {
 private:
+#if defined(USE_MPL3115A2)
     MPL3115A2 baro;
+#elif defined(USE_BMP390)
+    BMP390 baro;
+#endif
     float prevAlt;
     float alt;
     const float filterParam = 0.0008;
@@ -18,7 +22,7 @@ public:
         unlocked,
         locked
     };
-    void init();
+    void init(TwoWire *wire);
     bool setAltLock(bool locked);
     float getAlt();
     void altCheck();

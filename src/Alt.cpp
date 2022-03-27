@@ -10,13 +10,11 @@ Alt::Alt()
     lockedThrust = 0;
 }
 
-void Alt::init()
+void Alt::init(TwoWire *wire)
 {
-    Wire1.begin();
-    Wire1.setClock(1000000); // Note this is 2.5 times the spec sheet 400 kHz max...
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, hzToUs(10), &Wire1);
+    baro.init(300, wire);
 }
 
 void Alt::altCheck()

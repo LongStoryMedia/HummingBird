@@ -100,6 +100,8 @@ THE SOFTWARE.
 // 1000ms default read timeout (modify with "1000 = [ms];")
 #define I2CDEV_DEFAULT_READ_TIMEOUT 1000
 
+#define CONCAT_BYTES(msb, lsb) (((uint16_t)msb << 8) | (uint16_t)lsb)
+
 class I2Cdev
 {
 public:

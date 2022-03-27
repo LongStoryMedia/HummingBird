@@ -14,6 +14,11 @@
 #else
 #include "params/default.h"
 #endif
+
+#if defined(USE_MPL3115A2) || defined(USE_BMP390)
+#define USE_ALT
+#endif
+
 //========================================================================================================================//
 #include "types.h"
 
@@ -24,8 +29,12 @@
 #include "RF24.h"
 #include "MPU6050.h"
 
+#if defined(USE_ALT)
 #if defined(USE_MPL3115A2)
 #include "MPL3115A2.h"
+#elif defined(USE_BMP390)
+#include "BMP390.h"
+#endif
 #include "Alt.h"
 #endif
 
@@ -43,8 +52,7 @@
 //                                                 GLOBALS                                                                //
 //========================================================================================================================//
 
-extern uint32_t print_counter,
-    serial_counter;
+extern uint32_t print_counter, serial_counter;
 extern uint32_t blink_counter, blink_delay;
 extern bool blinkAlternate;
 extern Timer timer;
@@ -62,7 +70,7 @@ extern Rx rx;
 extern Esc esc;
 extern Pid pid;
 extern Imu imu;
-#if defined(USE_MPL3115A2)
+#if defined(USE_ALT)
 extern Alt alt;
 #endif
 #if defined(USE_PROXIMITY_DETECTION)

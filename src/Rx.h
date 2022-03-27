@@ -8,7 +8,7 @@
 class Rx
 {
 private:
-    RF24 radio = RF24(CE, CSN, 2000000);
+    RF24 radio = RF24(CE, CSN);
     static const uint8_t radioNumber = 0;
     static const uint8_t controllerRadioNumber = 1;
     uint8_t packetSize = sizeof(State);

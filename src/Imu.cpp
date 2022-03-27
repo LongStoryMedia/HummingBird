@@ -1,11 +1,8 @@
 #include "config.h"
 
-void Imu::init()
+void Imu::init(TwoWire *wire)
 {
-    Wire.begin();
-    Wire.setClock(1000000); // Note this is 2.5 times the spec sheet 400 kHz max...
-
-    mpu.initialize(&Wire);
+    mpu.initialize(wire);
 
     if (mpu.testConnection() == false)
     {

@@ -11,8 +11,6 @@
 //#define ACCEL_16G
 
 // #define USE_PWM
-#define PROP_CONFIG 0
-#define I_TH 200
 
 #define I_LIMIT 20.0f         // Integrator saturation level, mostly for safety (default 25.0)
 #define MAX_ROLL 30.0f        // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
@@ -36,11 +34,15 @@
 #define KI_YAW 0.2f           // Yaw I-gain
 #define KD_YAW 0.000025f      // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 
-#define PID_MODE 0 // simple angle = 0, cascading angle = 1, simple rate = 2
-
 #define M1_PIN 4
 #define M2_PIN 2
 #define M3_PIN 3
 #define M4_PIN 5
 
-#define IMU_ORIENTATION 1
+#define CE_NRF24 10
+#define CSN_NRF24 9
+
+#define PID_MODE 0        // simple angle = 0, cascading angle = 1, simple rate = 2
+#define IMU_ORIENTATION 1 // up/forward = 0, up/backward = 1, down/forward = 2, down/backward = 3
+#define PROP_CONFIG 0
+#define I_TH 200

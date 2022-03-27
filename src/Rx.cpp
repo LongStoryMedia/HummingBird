@@ -55,7 +55,7 @@ void Rx::initRc()
     // initialize the transceiver on the SPI bus
     radio.begin();
     // radio.setDataRate(RF24_2MBPS);
-    radio.setPALevel(RF24_PA_MAX); // RF24_PA_MAX is default.
+    // radio.setPALevel(RF24_PA_MAX); // RF24_PA_MAX is default.
     // radio.txDelay = 0;
     // radio.disableCRC();
     // radio.setAutoAck(true);

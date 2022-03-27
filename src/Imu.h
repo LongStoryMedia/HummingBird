@@ -8,7 +8,7 @@ private:
 
 public:
     void calibrate();
-    void init();
+    void init(TwoWire *wire);
     void getImu();
 
 #if defined(IMU_MPU9250)

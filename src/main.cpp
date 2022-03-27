@@ -24,7 +24,7 @@ Rx rx;
 Esc esc;
 Pid pid;
 Imu imu;
-#if defined(USE_MPL3115A2)
+#if defined(USE_ALT)
 Alt alt;
 #endif
 #if defined(USE_PROXIMITY_DETECTION)
@@ -43,13 +43,19 @@ void setup()
   // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
   digitalWrite(13, HIGH);
 
+  ALT_WIRE.begin();
+  ALT_WIRE.setClock(1000000);
+  IMU_WIRE.begin();
+  IMU_WIRE.setClock(2500000);
+
   delay(10);
   pid.init();
   // Initialize radio communication
   rx.init();
-#if defined(USE_MPL3115A2)
+#if defined(USE_ALT)
+  Serial.println("init alt");
   // Initialize Baro communication
-  alt.init();
+  alt.init(&ALT_WIRE);
   delay(10);
 #endif
 
@@ -59,7 +65,7 @@ void setup()
 #endif
 
   // Initialize IMU communication
-  imu.init();
+  imu.init(&IMU_WIRE);
   delay(10);
   esc.arm();
   delay(100);
@@ -100,9 +106,9 @@ void loop()
   }
 #endif
 
-#if defined(USE_MPL3115A2)
+#if defined(USE_ALT)
   alt.altCheck();
-  // debug(alt.getAlt());
+  Serial.println(alt.getAlt());
 #endif
 
 #if defined(USE_PROXIMITY_DETECTION)
@@ -110,6 +116,7 @@ void loop()
 #endif
   // if (timer.now - print_counter > 100000)
   // {
+  // print_counter = timer.now;
   // Serial.println(obs.hasObstacles());
   // Serial.print(packet.thrust);
   // Serial.print(" | ");
