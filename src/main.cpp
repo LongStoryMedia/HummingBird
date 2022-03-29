@@ -34,17 +34,23 @@ Proximity proximity;
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
 
+// #include <Adafruit_Sensor.h>
+// #include "Adafruit_BMP3XX.h"
+
+// #define SEALEVELPRESSURE_HPA (1013.25)
+
+// Adafruit_BMP3XX bmp;
+
 void setup()
 {
-  Serial.begin(115200); // usb serial
-  // Initialize all pins
-  pinMode(13, OUTPUT); // pin 13 LED blinker on board, do not modify
+  Serial.begin(5000000); // usb serial
+  pinMode(13, OUTPUT);   // pin 13 LED blinker on board, do not modify
 
   // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
   digitalWrite(13, HIGH);
 
-  ALT_WIRE.begin();
-  ALT_WIRE.setClock(1000000);
+  // ALT_WIRE.begin();
+  // ALT_WIRE.setClock(1000000);
   IMU_WIRE.begin();
   IMU_WIRE.setClock(2500000);
 
@@ -56,6 +62,18 @@ void setup()
   Serial.println("init alt");
   // Initialize Baro communication
   alt.init(&ALT_WIRE);
+  // if (!bmp.begin_I2C())
+  // { // hardware I2C mode, can pass in address & alt Wire
+  //   // if (! bmp.begin_SPI(BMP_CS)) {  // hardware SPI mode
+  //   // if (! bmp.begin_SPI(BMP_CS, BMP_SCK, BMP_MISO, BMP_MOSI)) {  // software SPI mode
+  //   Serial.println("Could not find a valid BMP3 sensor, check wiring!");
+  //   while (1)
+  //     ;
+  // }
+  // bmp.setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
+  // bmp.setPressureOversampling(BMP3_NO_OVERSAMPLING);
+  // bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_DISABLE);
+  // bmp.setOutputDataRate(BMP3_ODR_200_HZ);
   delay(10);
 #endif
 
@@ -107,31 +125,30 @@ void loop()
 #endif
 
 #if defined(USE_ALT)
-  alt.altCheck();
+  // alt.altCheck();
   Serial.println(alt.getAlt());
+  // if (!bmp.performReading())
+  // {
+  //   Serial.println("Failed to perform reading :(");
+  //   return;
+  // }
+  // Serial.print("Approx. Altitude = ");
+  // Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
+  // Serial.println(" m");
 #endif
 
 #if defined(USE_PROXIMITY_DETECTION)
   obstacles obs = proximity.scan();
 #endif
-  // if (timer.now - print_counter > 100000)
-  // {
-  // print_counter = timer.now;
-  // Serial.println(obs.hasObstacles());
-  // Serial.print(packet.thrust);
-  // Serial.print(" | ");
-  // Serial.print(packet.yaw);
-  // Serial.print(" | ");
-  // Serial.print(packet.roll);
-  // Serial.print(" | ");
-  // Serial.print(packet.pitch);
-  // Serial.print(" | ");
-  // Serial.println(packet.lockAlt);
-  // }
   esc.setSpeed(commands);
   // Regulate loop rate
+  if (timer.delta * 1000000 > 502.00)
+  {
+    // Serial.print("Warning - loop rate has slowed to below 2000Hz. Current rate is ");
+    // Serial.print(hzToUs(timer.delta * 1000000));
+    // Serial.println("Hz");
+  };
   loopRate(); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
-  // debug(timer.delta * 1000000);
 }
 
 //========================================================================================================================//

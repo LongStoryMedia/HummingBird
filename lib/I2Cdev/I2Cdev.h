@@ -97,26 +97,50 @@ THE SOFTWARE.
 #define ARDUINO 101
 #endif
 
+/**\name    UTILITY MACROS  */
+#define SET_LOW_BYTE UINT16_C(0x00FF)
+#define SET_HIGH_BYTE UINT16_C(0xFF00)
 // 1000ms default read timeout (modify with "1000 = [ms];")
 #define I2CDEV_DEFAULT_READ_TIMEOUT 1000
 
 #define CONCAT_BYTES(msb, lsb) (((uint16_t)msb << 8) | (uint16_t)lsb)
+
+#define SET_BITS(reg_data, bitname, data) \
+    ((reg_data & ~bitname) |              \
+     ((data << bitname) & bitname))
+
+/* Macro variant to handle the bitname position if it is zero */
+#define SET_BITS_POS_0(reg_data, bitname, data) \
+    ((reg_data & ~bitname) |                    \
+     (data & bitname))
+
+#define GET_BITS(reg_data, bitname) ((reg_data & (bitname##_MSK)) >> \
+                                     (bitname##_POS))
+
+/* Macro variant to handle the bitname position if it is zero */
+#define GET_BITS_POS_0(reg_data, bitname) (reg_data & (bitname##_MSK))
+
+#define GET_LSB(var) (uint8_t)(var & BMP3_SET_LOW_BYTE)
+#define GET_MSB(var) (uint8_t)((var & BMP3_SET_HIGH_BYTE) >> 8)
 
 class I2Cdev
 {
 public:
     I2Cdev(byte _address, TwoWire *_wire = &Wire);
 
-    int8_t readBit(uint8_t regAddr, uint8_t bitNum, uint8_t *data, uint16_t timeout = 1000);
-    int8_t readBitW(uint8_t regAddr, uint8_t bitNum, uint16_t *data, uint16_t timeout = 1000);
-    int8_t readBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data, uint16_t timeout = 1000);
-    int8_t readBitsW(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint16_t *data, uint16_t timeout = 1000);
-    int8_t getByte(byte regAddr);
-    int8_t readByte(uint8_t regAddr, uint8_t *data, uint16_t timeout = 1000);
-    int8_t readWord(uint8_t regAddr, uint16_t *data, uint16_t timeout = 1000);
-    int8_t readBytes(uint8_t regAddr, uint8_t length, uint8_t *data, uint16_t timeout = 1000);
-    int8_t readBytes(uint8_t length, uint8_t *data);
-    int8_t readWords(uint8_t regAddr, uint8_t length, uint16_t *data, uint16_t timeout = 1000);
+    bool begin(bool addr_detect);
+    bool detected(void);
+
+    bool readBit(uint8_t regAddr, uint8_t bitNum, uint8_t *data, uint16_t timeout = 1000);
+    bool readBitW(uint8_t regAddr, uint8_t bitNum, uint16_t *data, uint16_t timeout = 1000);
+    bool readBits(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data, uint16_t timeout = 1000);
+    bool readBitsW(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint16_t *data, uint16_t timeout = 1000);
+    bool getByte(byte regAddr);
+    bool readByte(uint8_t regAddr, uint8_t *data, uint16_t timeout = 1000);
+    bool readWord(uint8_t regAddr, uint16_t *data, uint16_t timeout = 1000);
+    bool readBytes(uint8_t regAddr, uint8_t length, uint8_t *data, uint16_t timeout = 1000);
+    bool readBytes(uint8_t length, uint8_t *data);
+    bool readWords(uint8_t regAddr, uint8_t length, uint16_t *data, uint16_t timeout = 1000);
 
     bool writeBit(uint8_t regAddr, uint8_t bitNum, uint8_t data);
     bool writeBitW(uint8_t regAddr, uint8_t bitNum, uint16_t data);
@@ -132,6 +156,7 @@ public:
 private:
     TwoWire *wire;
     byte address;
+    bool _begun;
 };
 
 #endif /* _I2CDEV_H_ */

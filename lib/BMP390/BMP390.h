@@ -1,77 +1,87 @@
-#ifndef BMP390_H
-#define BMP390_H
-#include <Arduino.h>
-#include <Wire.h> // for I2C communication
-#include "I2Cdev.h"
+/*!
+ * @file BMP390.h
+ *
+ * Adafruit BMP3XX temperature & barometric pressure sensor driver
+ *
+ * This is the documentation for Adafruit's BMP3XX driver for the
+ * Arduino platform.  It is designed specifically to work with the
+ * Adafruit BMP388 breakout: https://www.adafruit.com/products/3966
+ *
+ * These sensors use I2C or SPI to communicate
+ *
+ * Adafruit invests time and resources providing this open source code,
+ * please support Adafruit and open-source hardware by purchasing
+ * products from Adafruit!
+ *
+ * Written by Ladyada for Adafruit Industries.
+ *
+ * BSD license, all text here must be included in any redistribution.
+ *
+ */
 
-#define BMP390_ADDRESS 0x77 ///< default I2C address
-#define BMP390_CMD_ADDRESS 0x7E
-#define BMP390_CTRL_REG1 0x26
-#define CTRL_REG_1 0x01
-#define OFF_H 0x2D
-#define BMP390_CHIP_ID_ADDRESS 0x00
-#define BMP390_CHIP_ID 0x60
-#define BMP390_RESET_CMD 0xB6
-#define BMP390_STATUS_ADDRESS 0x03
-#define BMP390_CMD_READY 0x10
-#define BMP390_DATA_REG_0 0x04
-#define BMP3_CALIBRATION_DATA_ADDRESS 0x31
+#ifndef __BMP3XX_H__
+#define __BMP3XX_H__
+
+#include "bmp3.h"
+
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_SPIDevice.h>
+
+/*=========================================================================
+    I2C ADDRESS/BITS
+    -----------------------------------------------------------------------*/
+#define BMP3XX_DEFAULT_ADDRESS (0x77) ///< The default I2C address
+/*=========================================================================*/
+#define BMP3XX_DEFAULT_SPIFREQ (1000000) ///< The default SPI Clock speed
+
+/** BMP390 Class for both I2C and SPI usage.
+ *  Wraps the Bosch library for Arduino usage
+ */
 
 class BMP390
 {
-
 public:
     BMP390();
-    void init(int basis, TwoWire *wire = &Wire);
+    bool init(int basis, TwoWire *theWire = &Wire);
+    // bool begin_I2C(uint8_t addr = BMP3XX_DEFAULT_ADDRESS, TwoWire *theWire = &Wire);
+    bool begin_SPI(uint8_t cs_pin, SPIClass *theSPI = &SPI);
+    bool begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin, int8_t mosi_pin);
+    uint8_t chipID(void);
+    float readTemperature(void);
+    float readPressure(void);
     float read();
 
+    bool setTemperatureOversampling(uint8_t os);
+    bool setPressureOversampling(uint8_t os);
+    bool setIIRFilterCoeff(uint8_t fs);
+    bool setOutputDataRate(uint8_t odr);
+
+    /// Perform a reading in blocking mode
+    bool performReading(void);
+
+    /// Temperature (Celsius) assigned after calling performReading()
+    double temperature;
+    /// Pressure (Pascals) assigned after calling performReading()
+    double pressure;
+
 private:
-    I2Cdev *i2c;
-    float readBaro();
-    float readRawBaro();
-    void calibrate(const uint8_t *reg_data);
-    float seaLevelPressure;
-    float alt;
-    static int8_t calCrc(uint8_t seed, uint8_t data);
-    static int8_t validateTrim(struct bmp3_dev *dev);
+    Adafruit_I2CDevice *i2c_dev = NULL; ///< Pointer to I2C bus interface
+    Adafruit_SPIDevice *spi_dev = NULL; ///< Pointer to SPI bus interface
 
-    struct QuantizedCalibrationData
-    {
-        double t1;
-        double t2;
-        double t3;
-        double p1;
-        double p2;
-        double p3;
-        double p4;
-        double p5;
-        double p6;
-        double p7;
-        double p8;
-        double p9;
-        double p10;
-        double p11;
-        double lin;
-    } quantizedCalibrationData;
+    bool _init(void);
 
-    struct RegisterCalibrationData
-    {
-        uint16_t t1;
-        uint16_t t2;
-        int8_t t3;
-        int16_t p1;
-        int16_t p2;
-        int8_t p3;
-        int8_t p4;
-        uint16_t p5;
-        uint16_t p6;
-        int8_t p7;
-        int8_t p8;
-        int16_t p9;
-        int8_t p10;
-        int8_t p11;
-        int64_t lin;
-    } registerCalibrationData;
+    bool _filterEnabled, _tempOSEnabled, _presOSEnabled, _ODREnabled;
+    uint8_t _i2caddr;
+    int32_t _sensorID;
+    int8_t _cs;
+    unsigned long _meas_end;
+
+    uint8_t spixfer(uint8_t x);
+
+    struct bmp3_dev the_sensor;
+    struct bmp3_settings settings;
+
+    float seaLevel;
 };
 
 #endif

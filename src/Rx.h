@@ -23,6 +23,7 @@ private:
 public:
     State getPacket();
     void init();
+    bool connectionLoss;
 };
 
 #endif

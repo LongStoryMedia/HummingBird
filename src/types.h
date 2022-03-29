@@ -64,6 +64,13 @@ typedef struct
         m3 = c;
         m4 = c;
     }
+    void operator-=(uint32_t c)
+    {
+        m1 -= c;
+        m2 -= c;
+        m3 -= c;
+        m4 -= c;
+    }
 } Commands;
 
 typedef struct

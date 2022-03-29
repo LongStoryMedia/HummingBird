@@ -34,7 +34,7 @@ Adafruit_I2CDevice *g_i2c_dev = NULL; ///< Global I2C interface pointer
 Adafruit_SPIDevice *g_spi_dev = NULL; ///< Global SPI interface pointer
 
 // Our hardware interface functions
-static int8_t i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len,
+static int8_t i2c_write(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
                         void *intf_ptr);
 static int8_t i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
                        void *intf_ptr);

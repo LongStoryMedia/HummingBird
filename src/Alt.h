@@ -4,10 +4,10 @@
 class Alt
 {
 private:
-#if defined(USE_MPL3115A2)
-    MPL3115A2 baro;
-#elif defined(USE_BMP390)
+#if defined(USE_BMP390)
     BMP390 baro;
+#else
+    MPL3115A2 baro;
 #endif
     float prevAlt;
     float alt;

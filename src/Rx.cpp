@@ -13,7 +13,7 @@ State Rx::getPacket()
 
     uint32_t loopTime = micros();
 
-    if (loopTime > rxt + 2500000)
+    if (loopTime > rxt + 250000)
     {
         radio.failureDetected = true;
         packet.pitch = 0;
@@ -37,6 +37,10 @@ State Rx::getPacket()
     {
         radio.read(&packet, packetSize);
         rxt = loopTime;
+    }
+    else
+    {
+        connectionLoss = true;
     }
 
     // Low-pass the critical commands and update previous values
