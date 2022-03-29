@@ -25,9 +25,6 @@
 #include "bmp3.h"
 #include "IBaro.h"
 
-#include <Adafruit_I2CDevice.h>
-#include <Adafruit_SPIDevice.h>
-
 /*=========================================================================
     I2C ADDRESS/BITS
     -----------------------------------------------------------------------*/
@@ -52,9 +49,6 @@ public:
     bool setOutputDataRate(uint8_t odr);
 
 private:
-    Adafruit_I2CDevice *i2c_dev = NULL; ///< Pointer to I2C bus interface
-    Adafruit_SPIDevice *spi_dev = NULL; ///< Pointer to SPI bus interface
-
     bool _init(void);
 
     bool _filterEnabled, _tempOSEnabled, _presOSEnabled, _ODREnabled;

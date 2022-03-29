@@ -125,8 +125,7 @@ void loop()
 #endif
 
 #if defined(USE_ALT)
-  // alt.altCheck();
-  Serial.println(alt.getAlt());
+  alt.altCheck();
   // if (!bmp.performReading())
   // {
   //   Serial.println("Failed to perform reading :(");

@@ -30,18 +30,13 @@
 
 //#define BMP3XX_DEBUG
 
-Adafruit_I2CDevice *g_i2c_dev = NULL; ///< Global I2C interface pointer
-Adafruit_SPIDevice *g_spi_dev = NULL; ///< Global SPI interface pointer
+I2Cdev *g_i2c = NULL; ///< Global I2C interface pointer
 
 // Our hardware interface functions
 static int8_t i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len,
                         void *intf_ptr);
 static int8_t i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
                        void *intf_ptr);
-static int8_t spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
-                       void *intf_ptr);
-static int8_t spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len,
-                        void *intf_ptr);
 static void delay_usec(uint32_t us, void *intf_ptr);
 static int8_t validate_trimming_param(struct bmp3_dev *dev);
 static int8_t cal_crc(uint8_t seed, uint8_t data);
@@ -76,20 +71,16 @@ BMP390::BMP390(void)
 /**************************************************************************/
 void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
 {
+    if (i2c)
+        delete i2c;
+
     // TODO: use basis to calculate;
     seaLevel = 1013.25;
-    i2c = new I2Cdev(BMP3XX_DEFAULT_ADDRESS, wire);
 
-    if (i2c_dev)
-        delete i2c_dev;
-    if (spi_dev)
-        delete spi_dev;
-    spi_dev = NULL;
-
-    g_i2c_dev = i2c_dev = new Adafruit_I2CDevice(BMP3XX_DEFAULT_ADDRESS, wire);
+    g_i2c = i2c = new I2Cdev(BMP3XX_DEFAULT_ADDRESS, wire);
 
     // verify i2c address was found
-    if (!i2c_dev->begin())
+    if (!i2c->begin(true))
     {
         return;
     }
@@ -98,7 +89,7 @@ void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
     the_sensor.intf = BMP3_I2C_INTF;
     the_sensor.read = &i2c_read;
     the_sensor.write = &i2c_write;
-    the_sensor.intf_ptr = g_i2c_dev;
+    the_sensor.intf_ptr = g_i2c;
     the_sensor.dummy_byte = 0;
 
     _init();
@@ -106,8 +97,8 @@ void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
 
 bool BMP390::_init(void)
 {
-    g_i2c_dev = i2c_dev;
-    g_spi_dev = spi_dev;
+    g_i2c = i2c;
+
     the_sensor.delay_us = delay_usec;
     int8_t rslt = BMP3_OK;
 
@@ -231,7 +222,7 @@ float BMP390::read()
     // at high altitude. See this thread for more information:
     //  http://forums.adafruit.com/viewtopic.php?f=22&t=58064
 
-    float atmospheric = readPressure() / 100.0F;
+    float atmospheric = readPressure() / 100.00F;
     return 44330.0 * (1.0 - pow(atmospheric / seaLevel, 0.1903));
 }
 
@@ -247,8 +238,8 @@ float BMP390::read()
 /**************************************************************************/
 bool BMP390::performReading(void)
 {
-    g_i2c_dev = i2c_dev;
-    g_spi_dev = spi_dev;
+    g_i2c = i2c;
+
     int8_t rslt;
     /* Used to select the settings user needs to change */
     uint16_t settings_sel = 0;
@@ -323,7 +314,6 @@ bool BMP390::performReading(void)
     if (rslt != BMP3_OK)
       return false;
       */
-
     /* Save the temperature and pressure data */
     temperature = data.temperature;
     pressure = data.pressure;
@@ -441,8 +431,10 @@ int8_t i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
     // Serial.print("I2C read address 0x"); Serial.print(reg_addr, HEX);
     // Serial.print(" len "); Serial.println(len, HEX);
 
-    if (!g_i2c_dev->write_then_read(&reg_addr, 1, reg_data, len))
+    if (!g_i2c->write_then_read(&reg_addr, 1, reg_data, len))
+    {
         return 1;
+    }
 
     return 0;
 }
@@ -458,33 +450,10 @@ int8_t i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len,
     // Serial.print("I2C write address 0x"); Serial.print(reg_addr, HEX);
     // Serial.print(" len "); Serial.println(len, HEX);
 
-    if (!g_i2c_dev->write((uint8_t *)reg_data, len, true, &reg_addr, 1))
+    if (!g_i2c->write((uint8_t *)reg_data, len, true, &reg_addr, 1))
+    {
         return 1;
-
-    return 0;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Reads 8 bit values over SPI
-*/
-/**************************************************************************/
-static int8_t spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
-                       void *intf_ptr)
-{
-    g_spi_dev->write_then_read(&reg_addr, 1, reg_data, len, 0xFF);
-    return 0;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Writes 8 bit values over SPI
-*/
-/**************************************************************************/
-static int8_t spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len,
-                        void *intf_ptr)
-{
-    g_spi_dev->write((uint8_t *)reg_data, len, &reg_addr, 1);
+    }
 
     return 0;
 }

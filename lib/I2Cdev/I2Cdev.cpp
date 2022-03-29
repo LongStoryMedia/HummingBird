@@ -47,10 +47,12 @@ THE SOFTWARE.
 
 /** Default constructor.
  */
-I2Cdev::I2Cdev(byte _address, TwoWire *_wire = &Wire)
+I2Cdev::I2Cdev(uint8_t addr, TwoWire *wire)
 {
-    address = _address;
-    wire = _wire;
+    _addr = addr;
+    _wire = wire;
+    _begun = false;
+    _maxBufferSize = 32;
 }
 
 bool I2Cdev::begin(bool addr_detect)
@@ -65,6 +67,12 @@ bool I2Cdev::begin(bool addr_detect)
     return true;
 }
 
+void I2Cdev::end(void)
+{
+    _wire->end();
+    _begun = false;
+}
+
 bool I2Cdev::detected(void)
 {
     // Init I2C if not done yet
@@ -74,14 +82,19 @@ bool I2Cdev::detected(void)
     }
 
     // A basic scanner, see if it ACK's
-    wire->beginTransmission(address);
-    if (wire->endTransmission() == 0)
+    _wire->beginTransmission(_addr);
+    if (_wire->endTransmission() == 0)
     {
         return true;
     }
 
     return false;
 }
+/*!
+ *    @brief  Returns the 7-bit _addr of this device
+ *    @return The 7-bit _addr of this device
+ */
+uint8_t I2Cdev::address(void) { return _addr; }
 
 /** Read a single bit from an 8-bit device register.
  * @param regAddr Register regAddr to read from
@@ -170,11 +183,11 @@ bool I2Cdev::readBitsW(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint16
 bool I2Cdev::getByte(byte regAddr)
 {
     // This function reads one byte over I2C
-    wire->beginTransmission(address);
-    wire->write(regAddr);         // Address of CTRL_REG1
-    wire->endTransmission(false); // Send data to I2C dev with option for a repeated start. Works in Arduino V1.0.1
-    wire->requestFrom(address, 1);
-    return wire->read();
+    _wire->beginTransmission(_addr);
+    _wire->write(regAddr);         // Address of CTRL_REG1
+    _wire->endTransmission(false); // Send data to I2C dev with option for a repeated start. Works in Arduino V1.0.1
+    _wire->requestFrom(_addr, 1);
+    return _wire->read();
 }
 
 /** Read single byte from an 8-bit device register.
@@ -220,15 +233,15 @@ bool I2Cdev::readBytes(uint8_t regAddr, uint8_t length, uint8_t *data, uint16_t 
     // smaller chunks instead of all at once
     for (uint8_t k = 0; k < length; k += min((int)length, BUFFER_LENGTH))
     {
-        wire->beginTransmission(address);
-        wire->write(regAddr);
-        wire->endTransmission(false);
-        wire->beginTransmission(address);
-        wire->requestFrom(address, (uint8_t)min(length - k, BUFFER_LENGTH));
+        _wire->beginTransmission(_addr);
+        _wire->write(regAddr);
+        _wire->endTransmission(false);
+        _wire->beginTransmission(_addr);
+        _wire->requestFrom(_addr, (uint8_t)min(length - k, BUFFER_LENGTH));
 
-        while (wire->available() && (timeout == 0 || millis() - t1 < timeout))
+        while (_wire->available() && (timeout == 0 || millis() - t1 < timeout))
         {
-            data[count++] = wire->read();
+            data[count++] = _wire->read();
         }
     }
 
@@ -262,35 +275,147 @@ bool I2Cdev::readWords(uint8_t regAddr, uint8_t length, uint16_t *data, uint16_t
     // smaller chunks instead of all at once
     for (uint8_t k = 0; k < length * 2; k += min(length * 2, BUFFER_LENGTH))
     {
-        wire->beginTransmission(address);
-        wire->write(regAddr);
-        wire->endTransmission();
-        wire->beginTransmission(address);
-        wire->requestFrom(address, (uint8_t)(length * 2)); // length=words, this wants bytes
+        _wire->beginTransmission(_addr);
+        _wire->write(regAddr);
+        _wire->endTransmission();
+        _wire->beginTransmission(_addr);
+        _wire->requestFrom(_addr, (uint8_t)(length * 2)); // length=words, this wants bytes
 
         bool msb = true; // starts with MSB, then LSB
-        while (wire->available() && (timeout == 0 || millis() - t1 < timeout))
+        while (_wire->available() && (timeout == 0 || millis() - t1 < timeout))
         {
             if (msb)
             {
                 // first byte is bits 15-8 (MSb=15)
-                data[count++] = wire->read() << 8;
+                data[count++] = _wire->read() << 8;
             }
             else
             {
                 // second byte is bits 7-0 (LSb=0)
-                data[count++] |= wire->read();
+                data[count++] |= _wire->read();
             }
             msb = !msb;
         }
 
-        wire->endTransmission();
+        _wire->endTransmission();
     }
     if (timeout > 0 && millis() - t1 >= timeout && count < length)
     {
         return false;
     }
     return count > 0;
+}
+
+/*!
+ *    @brief  Read from I2C into a buffer from the I2C device.
+ *    Cannot be more than maxBufferSize() bytes.
+ *    @param  buffer Pointer to buffer of data to read into
+ *    @param  len Number of bytes from buffer to read.
+ *    @param  stop Whether to send an I2C STOP signal on read
+ *    @return True if read was successful, otherwise false.
+ */
+bool I2Cdev::read(uint8_t *buffer, size_t len, bool stop)
+{
+    size_t pos = 0;
+    while (pos < len)
+    {
+        size_t read_len =
+            ((len - pos) > maxBufferSize()) ? maxBufferSize() : (len - pos);
+        bool read_stop = (pos < (len - read_len)) ? false : stop;
+        if (!_read(buffer + pos, read_len, read_stop))
+            return false;
+        pos += read_len;
+    }
+    return true;
+}
+
+bool I2Cdev::_read(uint8_t *buffer, size_t len, bool stop)
+{
+    size_t recv = _wire->requestFrom((uint8_t)_addr, (uint8_t)len, (uint8_t)stop);
+
+    if (recv != len)
+    {
+        // Not enough data available to fulfill our obligation!
+        Serial.print(F("\tI2CDevice did not receive enough data: "));
+    }
+
+    for (uint16_t i = 0; i < len; i++)
+    {
+        buffer[i] = _wire->read();
+    }
+
+    return true;
+}
+
+/*!
+ *    @brief  Write 1 byte of data, then read some data from I2C into another buffer.
+ *    Cannot be more than `BUFFER_LENGTH` bytes. The buffers can point to
+ *    same/overlapping locations.
+ *    @param  writeBuffer Buffer of data to write from
+ *    @param  readBuffer Pointer to buffer of data to read into.
+ *    @param  len Number of bytes from buffer to read.
+ *    @return True if write & read was successful, otherwise false.
+ */
+bool I2Cdev::write_then_read(const uint8_t *write_buffer, size_t write_len, uint8_t *readBuffer, size_t read_len, bool stop = false)
+{
+    if (!write(write_buffer, write_len, stop))
+    {
+        return false;
+    }
+
+    return read(readBuffer, read_len);
+}
+
+/*!
+ *    @brief  Write a buffer or two to the I2C device. Cannot be more than
+ *            BUFFER_LENGTH bytes.
+ *    @param  buffer Pointer to buffer of data to write. This is const to
+ *            ensure the content of this buffer doesn't change.
+ *    @param  len Number of bytes from buffer to write
+ *    @param  prefixBuffer Pointer to optional array of data to write before
+ *            buffer. Cannot be more than BUFFER_LENGTH bytes. This is const to
+ *            ensure the content of this buffer doesn't change.
+ *    @param  prefixLen Number of bytes from prefix buffer to write
+ *    @param  stop Whether to send an I2C STOP signal on write
+ *    @return True if write was successful, otherwise false.
+ */
+bool I2Cdev::write(const uint8_t *buffer, size_t len, bool stop,
+                   const uint8_t *prefixBuffer = (const uint8_t *)__null, size_t prefixLen = 0U)
+{
+    if ((len + prefixLen) > maxBufferSize())
+    {
+        Serial.println("Buffer too large");
+        return false;
+    }
+
+    _wire->beginTransmission(_addr);
+
+    // Write the prefix data (usually an _addr)
+    if ((prefixLen != 0) && (prefixBuffer != NULL))
+    {
+        if (_wire->write(prefixBuffer, prefixLen) != prefixLen)
+        {
+            Serial.println(F("\tI2CDevice failed to write"));
+            return false;
+        }
+    }
+
+    // Write the data itself
+    if (_wire->write(buffer, len) != len)
+    {
+        Serial.println(F("\tI2CDevice failed to write"));
+        return false;
+    }
+
+    if (_wire->endTransmission(stop) == 0)
+    {
+        return true;
+    }
+    else
+    {
+        Serial.println("\tFailed to send!");
+        return false;
+    }
 }
 
 /** write a single bit in an 8-bit device register.
@@ -386,22 +511,22 @@ bool I2Cdev::writeBitsW(uint8_t regAddr, uint8_t bitStart, uint8_t length, uint1
 }
 
 /** Write single byte to an 8-bit device register.
- * @param regAddr Register address to write to
+ * @param regAddr Register _addr to write to
  * @param data New byte value to write
  * @return Status of operation (true = success)
  */
 bool I2Cdev::writeByte(uint8_t regAddr, uint8_t data)
 {
     uint8_t status = 0;
-    wire->beginTransmission(address);
-    wire->write((uint8_t)regAddr);
-    wire->write((uint8_t)data);
-    status = wire->endTransmission();
+    _wire->beginTransmission(_addr);
+    _wire->write((uint8_t)regAddr);
+    _wire->write((uint8_t)data);
+    status = _wire->endTransmission();
     return status == 0;
 }
 
 /** Write single word to a 16-bit device register.
- * @param regAddr Register address to write to
+ * @param regAddr Register _addr to write to
  * @param data New word value to write
  * @return Status of operation (true = success)
  */
@@ -411,7 +536,7 @@ bool I2Cdev::writeWord(uint8_t regAddr, uint16_t data)
 }
 
 /** Write multiple bytes to an 8-bit device register.
- * @param regAddr First register address to write to
+ * @param regAddr First register _addr to write to
  * @param length Number of bytes to write
  * @param data Buffer to copy new data from
  * @return Status of operation (true = success)
@@ -419,18 +544,18 @@ bool I2Cdev::writeWord(uint8_t regAddr, uint16_t data)
 bool I2Cdev::writeBytes(uint8_t regAddr, uint8_t length, uint8_t *data)
 {
     uint8_t status = 0;
-    wire->beginTransmission(address);
-    wire->write((uint8_t)regAddr); // send address
+    _wire->beginTransmission(_addr);
+    _wire->write((uint8_t)regAddr); // send _addr
     for (uint8_t i = 0; i < length; i++)
     {
-        wire->write((uint8_t)data[i]);
+        _wire->write((uint8_t)data[i]);
     }
-    status = wire->endTransmission();
+    status = _wire->endTransmission();
     return status == 0;
 }
 
 /** Write multiple words to a 16-bit device register.
- * @param regAddr First register address to write to
+ * @param regAddr First register _addr to write to
  * @param length Number of words to write
  * @param data Buffer to copy new data from
  * @return Status of operation (true = success)
@@ -438,13 +563,13 @@ bool I2Cdev::writeBytes(uint8_t regAddr, uint8_t length, uint8_t *data)
 bool I2Cdev::writeWords(uint8_t regAddr, uint8_t length, uint16_t *data)
 {
     uint8_t status = 0;
-    wire->beginTransmission(address);
-    wire->write(regAddr);
+    _wire->beginTransmission(_addr);
+    _wire->write(regAddr);
     for (uint8_t i = 0; i < length; i++)
     {
-        wire->write((uint8_t)(data[i] >> 8)); // send MSB
-        wire->write((uint8_t)data[i]);        // send LSB
+        _wire->write((uint8_t)(data[i] >> 8)); // send MSB
+        _wire->write((uint8_t)data[i]);        // send LSB
     }
-    status = wire->endTransmission();
+    status = _wire->endTransmission();
     return status == 0;
 }
