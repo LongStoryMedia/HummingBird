@@ -69,15 +69,16 @@ BMP390::BMP390(void)
     calibration data in preparation for sensor reads.
 
     @param  addr Optional parameter for the I2C address of BMP3. Default is 0x77
-    @param  theWire Optional parameter for the I2C device we will use. Default
+    @param  wire Optional parameter for the I2C device we will use. Default
    is "Wire"
     @return True on sensor initialization success. False on failure.
 */
 /**************************************************************************/
-bool BMP390::init(int basis, TwoWire *theWire)
+void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
 {
     // TODO: use basis to calculate;
     seaLevel = 1013.25;
+    i2c = new I2Cdev(BMP3XX_DEFAULT_ADDRESS, wire);
 
     if (i2c_dev)
         delete i2c_dev;
@@ -85,12 +86,12 @@ bool BMP390::init(int basis, TwoWire *theWire)
         delete spi_dev;
     spi_dev = NULL;
 
-    g_i2c_dev = i2c_dev = new Adafruit_I2CDevice(BMP3XX_DEFAULT_ADDRESS, theWire);
+    g_i2c_dev = i2c_dev = new Adafruit_I2CDevice(BMP3XX_DEFAULT_ADDRESS, wire);
 
     // verify i2c address was found
     if (!i2c_dev->begin())
     {
-        return false;
+        return;
     }
 
     the_sensor.chip_id = BMP3XX_DEFAULT_ADDRESS;
@@ -100,81 +101,7 @@ bool BMP390::init(int basis, TwoWire *theWire)
     the_sensor.intf_ptr = g_i2c_dev;
     the_sensor.dummy_byte = 0;
 
-    return _init();
-}
-
-/*!
- *    @brief  Sets up the hardware and initializes hardware SPI
- *    @param  cs_pin The arduino pin # connected to chip select
- *    @param  theSPI The SPI object to be used for SPI connections.
- *    @return True if initialization was successful, otherwise false.
- */
-bool BMP390::begin_SPI(uint8_t cs_pin, SPIClass *theSPI)
-{
-    if (i2c_dev)
-        delete i2c_dev;
-    if (spi_dev)
-        delete spi_dev;
-    i2c_dev = NULL;
-
-    g_spi_dev = spi_dev =
-        new Adafruit_SPIDevice(cs_pin,
-                               BMP3XX_DEFAULT_SPIFREQ, // frequency
-                               SPI_BITORDER_MSBFIRST,  // bit order
-                               SPI_MODE0,              // data mode
-                               theSPI);
-
-    if (!spi_dev->begin())
-    {
-        return false;
-    }
-
-    the_sensor.chip_id = cs_pin;
-    the_sensor.intf = BMP3_SPI_INTF;
-    the_sensor.read = &spi_read;
-    the_sensor.write = &spi_write;
-    the_sensor.intf_ptr = g_spi_dev;
-    the_sensor.dummy_byte = 1;
-
-    return _init();
-}
-
-/*!
- *    @brief  Sets up the hardware and initializes software SPI
- *    @param  cs_pin The arduino pin # connected to chip select
- *    @param  sck_pin The arduino pin # connected to SPI clock
- *    @param  miso_pin The arduino pin # connected to SPI MISO
- *    @param  mosi_pin The arduino pin # connected to SPI MOSI
- *    @return True if initialization was successful, otherwise false.
- */
-bool BMP390::begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
-                       int8_t mosi_pin)
-{
-    if (i2c_dev)
-        delete i2c_dev;
-    if (spi_dev)
-        delete spi_dev;
-    i2c_dev = NULL;
-
-    g_spi_dev = spi_dev =
-        new Adafruit_SPIDevice(cs_pin, sck_pin, miso_pin, mosi_pin,
-                               BMP3XX_DEFAULT_SPIFREQ, // frequency
-                               SPI_BITORDER_MSBFIRST,  // bit order
-                               SPI_MODE0);             // data mode
-
-    if (!spi_dev->begin())
-    {
-        return false;
-    }
-
-    the_sensor.chip_id = cs_pin;
-    the_sensor.intf = BMP3_SPI_INTF;
-    the_sensor.read = &spi_read;
-    the_sensor.write = &spi_write;
-    the_sensor.intf_ptr = g_spi_dev;
-    the_sensor.dummy_byte = 1;
-
-    return _init();
+    _init();
 }
 
 bool BMP390::_init(void)

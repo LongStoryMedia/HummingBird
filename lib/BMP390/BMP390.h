@@ -23,6 +23,7 @@
 #define __BMP3XX_H__
 
 #include "bmp3.h"
+#include "IBaro.h"
 
 #include <Adafruit_I2CDevice.h>
 #include <Adafruit_SPIDevice.h>
@@ -38,31 +39,17 @@
  *  Wraps the Bosch library for Arduino usage
  */
 
-class BMP390
+class BMP390 : public IBaro
 {
 public:
     BMP390();
-    bool init(int basis, TwoWire *theWire = &Wire);
-    // bool begin_I2C(uint8_t addr = BMP3XX_DEFAULT_ADDRESS, TwoWire *theWire = &Wire);
-    bool begin_SPI(uint8_t cs_pin, SPIClass *theSPI = &SPI);
-    bool begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin, int8_t mosi_pin);
-    uint8_t chipID(void);
-    float readTemperature(void);
-    float readPressure(void);
+    void init(int basis, unsigned long clockspeed, TwoWire *theWire = &Wire);
     float read();
 
     bool setTemperatureOversampling(uint8_t os);
     bool setPressureOversampling(uint8_t os);
     bool setIIRFilterCoeff(uint8_t fs);
     bool setOutputDataRate(uint8_t odr);
-
-    /// Perform a reading in blocking mode
-    bool performReading(void);
-
-    /// Temperature (Celsius) assigned after calling performReading()
-    double temperature;
-    /// Pressure (Pascals) assigned after calling performReading()
-    double pressure;
 
 private:
     Adafruit_I2CDevice *i2c_dev = NULL; ///< Pointer to I2C bus interface
@@ -82,6 +69,17 @@ private:
     struct bmp3_settings settings;
 
     float seaLevel;
+
+    /// Perform a reading in blocking mode
+    bool performReading(void);
+
+    /// Temperature (Celsius) assigned after calling performReading()
+    double temperature;
+    /// Pressure (Pascals) assigned after calling performReading()
+    double pressure;
+    uint8_t chipID(void);
+    float readTemperature(void);
+    float readPressure(void);
 };
 
 #endif

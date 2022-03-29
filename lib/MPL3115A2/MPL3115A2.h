@@ -2,7 +2,7 @@
 #define MPL3115A2_H
 #include <Arduino.h>
 #include <Wire.h> // for I2C communication
-#include "I2Cdev.h"
+#include "IBaro.h"
 
 #define MPL3115A2_ADDRESS 0x60 ///< default I2C address 1100000
 #define MPL3115A2_WHOAMI 0x0C
@@ -10,18 +10,16 @@
 #define CTRL_REG_1 0x01
 #define OFF_H 0x2D
 
-class MPL3115A2
+class MPL3115A2 : public IBaro
 {
 
 public:
     MPL3115A2();
     void init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire);
-
-    void setClock(uint32_t us);
     float read();
 
 private:
-    I2Cdev *i2c;
+    void setClock(uint32_t us);
     uint32_t lastUpdateTime;
     uint32_t clockSpeed;
     uint8_t buffer[5] = {0, 0, 0, 0, 0};
