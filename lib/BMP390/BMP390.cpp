@@ -1,34 +1,5 @@
-/*!
- * @file BMP390.cpp
- *
- * @mainpage Adafruit BMP3XX temperature & barometric pressure sensor driver
- *
- * @section intro_sec Introduction
- *
- * This is the documentation for Adafruit's BMP3XX driver for the
- * Arduino platform.  It is designed specifically to work with the
- * Adafruit BMP388 breakout: https://www.adafruit.com/products/3966
- *
- * These sensors use I2C or SPI to communicate
- *
- * Adafruit invests time and resources providing this open source code,
- * please support Adafruit and open-source hardware by purchasing
- * products from Adafruit!
- *
- * @section author Author
- *
- * Written by Ladyada for Adafruit Industries.
- *
- * @section license License
- *
- * BSD license, all text here must be included in any redistribution.
- *
- */
-
 #include "BMP390.h"
 #include "Arduino.h"
-
-//#define BMP3XX_DEBUG
 
 I2Cdev *g_i2c = NULL; ///< Global I2C interface pointer
 
@@ -51,22 +22,13 @@ static int8_t cal_crc(uint8_t seed, uint8_t data);
 /**************************************************************************/
 BMP390::BMP390(void)
 {
-    _meas_end = 0;
-    _filterEnabled = _tempOSEnabled = _presOSEnabled = false;
+    data = {0};
+    settings = {0};
+    status = {{0}};
 }
 
 /**************************************************************************/
-/*!
-    @brief Initializes the sensor
 
-    Hardware ss initialized, verifies it is in the I2C or SPI bus, then reads
-    calibration data in preparation for sensor reads.
-
-    @param  addr Optional parameter for the I2C address of BMP3. Default is 0x77
-    @param  wire Optional parameter for the I2C device we will use. Default
-   is "Wire"
-    @return True on sensor initialization success. False on failure.
-*/
 /**************************************************************************/
 void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
 {
@@ -75,6 +37,7 @@ void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
 
     // TODO: use basis to calculate;
     seaLevel = 1013.25;
+    clockSpeed = clockspeed;
 
     g_i2c = i2c = new I2Cdev(BMP3XX_DEFAULT_ADDRESS, wire);
 
@@ -84,121 +47,51 @@ void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
         return;
     }
 
-    the_sensor.chip_id = BMP3XX_DEFAULT_ADDRESS;
-    the_sensor.intf = BMP3_I2C_INTF;
-    the_sensor.read = &i2c_read;
-    the_sensor.write = &i2c_write;
-    the_sensor.intf_ptr = g_i2c;
-    the_sensor.dummy_byte = 0;
+    configureDevice();
 
-    _init();
-}
-
-bool BMP390::_init(void)
-{
-    g_i2c = i2c;
-
-    the_sensor.delay_us = delay_usec;
     int8_t rslt = BMP3_OK;
 
     /* Reset the sensor */
-    rslt = bmp3_soft_reset(&the_sensor);
-#ifdef BMP3XX_DEBUG
-    Serial.print("Reset result: ");
-    Serial.println(rslt);
-#endif
+    rslt = bmp3_soft_reset(&dev);
     if (rslt != BMP3_OK)
-        return false;
+    {
+        Serial.print(F("error resetting bmp390"));
+        return init(basis, clockspeed, wire);
+    }
 
-    rslt = bmp3_init(&the_sensor);
-#ifdef BMP3XX_DEBUG
-    Serial.print("Init result: ");
-    Serial.println(rslt);
-#endif
-
-    rslt = validate_trimming_param(&the_sensor);
-#ifdef BMP3XX_DEBUG
-    Serial.print("Valtrim result: ");
-    Serial.println(rslt);
-#endif
+    rslt = bmp3_init(&dev);
+    rslt = validate_trimming_param(&dev);
 
     if (rslt != BMP3_OK)
-        return false;
-
-#ifdef BMP3XX_DEBUG
-    Serial.print("T1 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_t1);
-    Serial.print("T2 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_t2);
-    Serial.print("T3 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_t3);
-    Serial.print("P1 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p1);
-    Serial.print("P2 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p2);
-    Serial.print("P3 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p3);
-    Serial.print("P4 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p4);
-    Serial.print("P5 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p5);
-    Serial.print("P6 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p6);
-    Serial.print("P7 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p7);
-    Serial.print("P8 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p8);
-    Serial.print("P9 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p9);
-    Serial.print("P10 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p10);
-    Serial.print("P11 = ");
-    Serial.println(the_sensor.calib_data.reg_calib_data.par_p11);
-    // Serial.print("T lin = ");
-    // Serial.println(the_sensor.calib_data.reg_calib_data.t_lin);
-#endif
-
-    // setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
-    // setPressureOversampling(BMP3_NO_OVERSAMPLING);
-    // setIIRFilterCoeff(BMP3_IIR_FILTER_DISABLE);
-    // setOutputDataRate(BMP3_ODR_200_HZ);
-
-    // don't do anything till we request a reading
-    setSettings();
-
-    return true;
+    {
+        Serial.print(F("error initializing bmp390"));
+        return init(basis, clockspeed, wire);
+    }
+    configureDevice();
 }
 
-/**************************************************************************/
-/*!
-    @brief Performs a reading and returns the ambient temperature.
-    @return Temperature in degrees Centigrade
-*/
-/**************************************************************************/
-float BMP390::readTemperature(void)
+void BMP390::configureDevice()
 {
-    performReading();
-    return temperature;
-}
+    uint16_t settings_sel = 0;
 
-/**************************************************************************/
-/*!
-    @brief Reads the chip identifier
-    @return BMP3_CHIP_ID or BMP390_CHIP_ID
-*/
-/**************************************************************************/
-uint8_t BMP390::chipID(void) { return the_sensor.chip_id; }
+    dev.chip_id = i2c->address();
+    dev.intf = BMP3_I2C_INTF;
+    dev.read = &i2c_read;
+    dev.write = &i2c_write;
+    dev.intf_ptr = g_i2c;
+    dev.dummy_byte = 0;
+    dev.delay_us = delay_usec;
 
-/**************************************************************************/
-/*!
-    @brief Performs a reading and returns the barometric pressure.
-    @return Barometic pressure in Pascals
-*/
-/**************************************************************************/
-float BMP390::readPressure(void)
-{
-    performReading();
-    return pressure;
+    settings.press_en = BMP3_ENABLE;
+    settings.temp_en = BMP3_ENABLE;
+
+    settings.odr_filter.odr = BMP3_ODR_200_HZ;
+
+    settings_sel = BMP3_SEL_PRESS_EN | BMP3_SEL_TEMP_EN | BMP3_SEL_ODR;
+    settings.op_mode = BMP3_MODE_NORMAL;
+
+    bmp3_set_sensor_settings(settings_sel, &settings, &dev);
+    bmp3_set_op_mode(&settings, &dev);
 }
 
 /**************************************************************************/
@@ -214,177 +107,18 @@ float BMP390::readPressure(void)
 /**************************************************************************/
 float BMP390::read()
 {
-    // Equation taken from BMP180 datasheet (page 16):
-    //  http://www.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf
-
-    // Note that using the equation from wikipedia can give bad results
-    // at high altitude. See this thread for more information:
-    //  http://forums.adafruit.com/viewtopic.php?f=22&t=58064
-
-    float atmospheric = readPressure() / 100.00F;
-    return 44330.0 * (1.0 - pow(atmospheric / seaLevel, 0.1903));
-}
-
-void BMP390::setSettings()
-{
-    uint16_t settings_sel = 0;
-
-    settings.op_mode = BMP3_MODE_NORMAL;
-    settings.odr_filter.odr = 0;
-    /* Select the pressure and temperature sensor to be enabled */
-    settings.temp_en = BMP3_ENABLE;
-    settings_sel |= BMP3_SEL_TEMP_EN;
-    if (_tempOSEnabled)
+    if (oneShot())
     {
-        settings_sel |= BMP3_SEL_TEMP_OS;
+        bmp3_get_sensor_data(BMP3_PRESS, &data, &dev);
+
+        /* NOTE : Read status register again to clear data ready interrupt status */
+        // bmp3_get_status(&status, &dev);
+
+        float atmospheric = data.pressure / 100.00F;
+        alt = 44330.0 * (1.0 - pow(atmospheric / seaLevel, 0.1903));
     }
 
-    settings.press_en = BMP3_ENABLE;
-    settings_sel |= BMP3_SEL_PRESS_EN;
-    if (_presOSEnabled)
-    {
-        settings_sel |= BMP3_SEL_PRESS_OS;
-    }
-
-    if (_filterEnabled)
-    {
-        settings_sel |= BMP3_SEL_IIR_FILTER;
-    }
-
-    // if (_ODREnabled)
-    // {
-    settings_sel |= BMP3_SEL_ODR;
-    // }
-    bmp3_set_sensor_settings(settings_sel, &settings, &the_sensor);
-
-    bmp3_set_op_mode(&settings, &the_sensor);
-}
-
-/**************************************************************************/
-/*!
-    @brief Performs a full reading of all sensors in the BMP3XX.
-
-    Assigns the internal BMP390#temperature & BMP390#pressure
-   member variables
-
-    @return True on success, False on failure
-*/
-/**************************************************************************/
-bool BMP390::performReading(void)
-{
-    int8_t rslt;
-    /* Variable used to store the compensated data */
-    struct bmp3_data data;
-
-    rslt = bmp3_get_sensor_data(3, &data, &the_sensor);
-    if (rslt != BMP3_OK)
-    {
-        return false;
-    }
-
-    temperature = data.temperature;
-    pressure = data.pressure;
-
-    return true;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Setter for Temperature oversampling
-    @param  oversample Oversampling setting, can be BMP3_NO_OVERSAMPLING,
-   BMP3_OVERSAMPLING_2X, BMP3_OVERSAMPLING_4X, BMP3_OVERSAMPLING_8X,
-   BMP3_OVERSAMPLING_16X, BMP3_OVERSAMPLING_32X
-    @return True on success, False on failure
-*/
-/**************************************************************************/
-
-bool BMP390::setTemperatureOversampling(uint8_t oversample)
-{
-    if (oversample > BMP3_OVERSAMPLING_32X)
-        return false;
-
-    settings.odr_filter.temp_os = oversample;
-
-    if (oversample == BMP3_NO_OVERSAMPLING)
-        _tempOSEnabled = false;
-    else
-        _tempOSEnabled = true;
-
-    return true;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Setter for Pressure oversampling
-    @param  oversample Oversampling setting, can be BMP3_NO_OVERSAMPLING,
-   BMP3_OVERSAMPLING_2X, BMP3_OVERSAMPLING_4X, BMP3_OVERSAMPLING_8X,
-   BMP3_OVERSAMPLING_16X, BMP3_OVERSAMPLING_32X
-    @return True on success, False on failure
-*/
-/**************************************************************************/
-bool BMP390::setPressureOversampling(uint8_t oversample)
-{
-    if (oversample > BMP3_OVERSAMPLING_32X)
-        return false;
-
-    settings.odr_filter.press_os = oversample;
-
-    if (oversample == BMP3_NO_OVERSAMPLING)
-        _presOSEnabled = false;
-    else
-        _presOSEnabled = true;
-
-    return true;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Setter for IIR filter coefficient
-    @param filtercoeff Coefficient of the filter (in samples). Can be
-   BMP3_IIR_FILTER_DISABLE (no filtering), BMP3_IIR_FILTER_COEFF_1,
-   BMP3_IIR_FILTER_COEFF_3, BMP3_IIR_FILTER_COEFF_7, BMP3_IIR_FILTER_COEFF_15,
-   BMP3_IIR_FILTER_COEFF_31, BMP3_IIR_FILTER_COEFF_63, BMP3_IIR_FILTER_COEFF_127
-    @return True on success, False on failure
-
-*/
-/**************************************************************************/
-bool BMP390::setIIRFilterCoeff(uint8_t filtercoeff)
-{
-    if (filtercoeff > BMP3_IIR_FILTER_COEFF_127)
-        return false;
-
-    settings.odr_filter.iir_filter = filtercoeff;
-
-    if (filtercoeff == BMP3_IIR_FILTER_DISABLE)
-        _filterEnabled = false;
-    else
-        _filterEnabled = true;
-
-    return true;
-}
-
-/**************************************************************************/
-/*!
-    @brief  Setter for output data rate (ODR)
-    @param odr Sample rate in Hz. Can be BMP3_ODR_200_HZ, BMP3_ODR_100_HZ,
-   BMP3_ODR_50_HZ, BMP3_ODR_25_HZ, BMP3_ODR_12_5_HZ, BMP3_ODR_6_25_HZ,
-   BMP3_ODR_3_1_HZ, BMP3_ODR_1_5_HZ, BMP3_ODR_0_78_HZ, BMP3_ODR_0_39_HZ,
-   BMP3_ODR_0_2_HZ, BMP3_ODR_0_1_HZ, BMP3_ODR_0_05_HZ, BMP3_ODR_0_02_HZ,
-   BMP3_ODR_0_01_HZ, BMP3_ODR_0_006_HZ, BMP3_ODR_0_003_HZ, or BMP3_ODR_0_001_HZ
-    @return True on success, False on failure
-
-*/
-/**************************************************************************/
-bool BMP390::setOutputDataRate(uint8_t odr)
-{
-    if (odr > BMP3_ODR_0_001_HZ)
-        return false;
-
-    settings.odr_filter.odr = odr;
-
-    _ODREnabled = true;
-
-    return true;
+    return alt;
 }
 
 /**************************************************************************/

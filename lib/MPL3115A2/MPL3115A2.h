@@ -19,15 +19,10 @@ public:
     float read();
 
 private:
-    void setClock(uint32_t us);
-    uint32_t lastUpdateTime;
-    uint32_t clockSpeed;
     uint8_t buffer[5] = {0, 0, 0, 0, 0};
-    bool oneShot();
     float readBaro();
     float readAlt();
     float readTemp();
-    float alt;
 };
 
 #endif

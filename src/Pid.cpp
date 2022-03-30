@@ -121,7 +121,7 @@ void Pid::init()
 
 void Pid::setDesiredState()
 {
-#if defined(USE_MPL3115A2)
+#if defined(USE_ALT)
   desiredState.alt = alt.lockedAlt;
   packet = integrateAlt();
 #endif
@@ -137,7 +137,7 @@ void Pid::setDesiredState()
 
 State Pid::integrateAlt()
 {
-#if defined(USE_MPL3115A2)
+#if defined(USE_ALT)
   if (alt.altLocked == alt.locked)
   {
     errorAlt = desiredState.alt - alt.getAlt();

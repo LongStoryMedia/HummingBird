@@ -805,8 +805,23 @@ int8_t bmp3_get_regs(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, struct b
         uint32_t temp_len = len + dev->dummy_byte;
         uint8_t temp_buff[len + dev->dummy_byte];
 
-        /* Read the data using I2C */
-        dev->intf_rslt = dev->read(reg_addr, reg_data, len, dev->intf_ptr);
+        /* If interface selected is SPI */
+        if (dev->intf != BMP3_I2C_INTF)
+        {
+            reg_addr = reg_addr | 0x80;
+
+            /* Read the data from the register */
+            dev->intf_rslt = dev->read(reg_addr, temp_buff, temp_len, dev->intf_ptr);
+            for (idx = 0; idx < len; idx++)
+            {
+                reg_data[idx] = temp_buff[idx + dev->dummy_byte];
+            }
+        }
+        else
+        {
+            /* Read the data using I2C */
+            dev->intf_rslt = dev->read(reg_addr, reg_data, len, dev->intf_ptr);
+        }
 
         /* Check for communication error */
         if (dev->intf_rslt != BMP3_INTF_RET_SUCCESS)
@@ -1355,7 +1370,7 @@ int8_t bmp3_set_op_mode(struct bmp3_settings *settings, struct bmp3_dev *dev)
             rslt = put_device_to_sleep(dev);
 
             /* Give some time for device to go into sleep mode */
-            dev->delay_us(2000, dev->intf_ptr);
+            dev->delay_us(5000, dev->intf_ptr);
         }
 
         /* Set the power mode */

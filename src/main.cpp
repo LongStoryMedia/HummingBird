@@ -105,8 +105,7 @@ void loop()
 #endif
 
 #if defined(USE_ALT)
-  // alt.altCheck();
-  Serial.println(alt.getAlt());
+  alt.altCheck();
 #endif
 
 #if defined(USE_PROXIMITY_DETECTION)

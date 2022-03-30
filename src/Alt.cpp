@@ -1,5 +1,5 @@
 #include "config.h"
-#if !defined(USE_MPL3115A2)
+#if !defined(USE_ALT)
 #include "MPL3115A2.h"
 #include "Alt.h"
 #endif
@@ -14,7 +14,7 @@ void Alt::init(TwoWire *wire)
 {
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, hzToUs(2000), wire);
+    baro.init(300, hzToUs(200), wire);
 }
 
 void Alt::altCheck()
@@ -22,7 +22,6 @@ void Alt::altCheck()
     // this should be called once per loop
     // and no more - in order to maintain proper frequency
     alt = getAlt();
-    // Serial.println(alt);
 
     if (altLocked != (lockState)packet.lockAlt)
     {

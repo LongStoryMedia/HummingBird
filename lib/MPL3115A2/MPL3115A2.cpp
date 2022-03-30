@@ -37,10 +37,10 @@ float MPL3115A2::read()
     // One shot mode at 0b10101011 is slightly too fast, but better than wasting sensor cycles that increase precision
     // one reading seems to take 4ms (datasheet p.33);
     // oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
-    bool newVal = oneShot();
-
-    if (newVal)
+    if (oneShot())
     {
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111011); // bit 2 is one shot mode //0xBB = 0b10111001
+        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111001);
         i2c->readBytes(CTRL_REG_1, 5, buffer);
         // float temp = readTemp();
         float altbaro;
@@ -55,23 +55,6 @@ float MPL3115A2::read()
         // baro.smooth = (baro.smooth * 3 + altbaro) / 4;
     }
     return alt;
-}
-
-bool MPL3115A2::oneShot()
-{
-    if (lastUpdateTime + clockSpeed <= micros())
-    {
-#ifdef ALTMODE                                           // Altitude mode
-        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111011); // bit 2 is one shot mode //0xBB = 0b10111001
-        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b10111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-#else                                                    // Barometer mode
-        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111011); // bit 2 is one shot mode //0xB9 = 0b10111001
-        i2c->writeByte(MPL3115A2_CTRL_REG1, 0b00111001); // must clear oversampling (OST) bit, otherwise update will be once per second
-#endif
-        lastUpdateTime = micros();
-        return true;
-    }
-    return false;
 }
 
 void MPL3115A2::init(int basis, unsigned long clockspeed, TwoWire *wire = &Wire)

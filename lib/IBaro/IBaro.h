@@ -13,6 +13,10 @@ public:
 
 protected:
     I2Cdev *i2c;
+    bool oneShot();
+    uint32_t lastUpdateTime;
+    uint32_t clockSpeed;
+    float alt;
 };
 
 #endif

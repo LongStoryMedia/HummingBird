@@ -30,12 +30,18 @@
     -----------------------------------------------------------------------*/
 #define BMP3XX_DEFAULT_ADDRESS (0x77) ///< The default I2C address
 /*=========================================================================*/
-#define BMP3XX_DEFAULT_SPIFREQ (1000000) ///< The default SPI Clock speed
 
-/** BMP390 Class for both I2C and SPI usage.
- *  Wraps the Bosch library for Arduino usage
+/* Defines watermark level of frame count requested
+ * As, only Pressure is enabled in this example,
+ * Total byte count requested : FIFO_FRAME_COUNT * BMP3_LEN_P_OR_T_HEADER_DATA
  */
+#define FIFO_FRAME_COUNT UINT8_C(50)
 
+/* Maximum FIFO size */
+#define FIFO_MAX_SIZE UINT16_C(512)
+
+/* Iteration count to run example code */
+#define ITERATION UINT8_C(10)
 class BMP390 : public IBaro
 {
 public:
@@ -43,38 +49,18 @@ public:
     void init(int basis, unsigned long clockspeed, TwoWire *theWire = &Wire);
     float read();
 
-    bool setTemperatureOversampling(uint8_t os);
-    bool setPressureOversampling(uint8_t os);
-    bool setIIRFilterCoeff(uint8_t fs);
-    bool setOutputDataRate(uint8_t odr);
-
 private:
-    bool _init(void);
-
-    bool _filterEnabled, _tempOSEnabled, _presOSEnabled, _ODREnabled;
-    uint8_t _i2caddr;
-    int32_t _sensorID;
-    int8_t _cs;
-    unsigned long _meas_end;
-
-    uint8_t spixfer(uint8_t x);
-
-    struct bmp3_dev the_sensor;
+    struct bmp3_dev dev;
     struct bmp3_settings settings;
+    struct bmp3_data data;
+    struct bmp3_status status;
 
     float seaLevel;
-
-    /// Perform a reading in blocking mode
-    bool performReading(void);
-
     /// Temperature (Celsius) assigned after calling performReading()
     double temperature;
     /// Pressure (Pascals) assigned after calling performReading()
     double pressure;
-    uint8_t chipID(void);
-    float readTemperature(void);
-    float readPressure(void);
-    void setSettings();
+    void configureDevice();
 };
 
 #endif
