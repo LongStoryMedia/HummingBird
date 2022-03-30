@@ -40,7 +40,6 @@ static int8_t i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len,
 static void delay_usec(uint32_t us, void *intf_ptr);
 static int8_t validate_trimming_param(struct bmp3_dev *dev);
 static int8_t cal_crc(uint8_t seed, uint8_t data);
-
 /***************************************************************************
  PUBLIC FUNCTIONS
  ***************************************************************************/
@@ -80,7 +79,7 @@ void BMP390::init(int basis, unsigned long clockspeed, TwoWire *wire)
     g_i2c = i2c = new I2Cdev(BMP3XX_DEFAULT_ADDRESS, wire);
 
     // verify i2c address was found
-    if (!i2c->begin(true))
+    if (!i2c->begin())
     {
         return;
     }
@@ -159,13 +158,13 @@ bool BMP390::_init(void)
     // Serial.println(the_sensor.calib_data.reg_calib_data.t_lin);
 #endif
 
-    setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
-    setPressureOversampling(BMP3_NO_OVERSAMPLING);
-    setIIRFilterCoeff(BMP3_IIR_FILTER_DISABLE);
-    setOutputDataRate(BMP3_ODR_25_HZ);
+    // setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
+    // setPressureOversampling(BMP3_NO_OVERSAMPLING);
+    // setIIRFilterCoeff(BMP3_IIR_FILTER_DISABLE);
+    // setOutputDataRate(BMP3_ODR_200_HZ);
 
     // don't do anything till we request a reading
-    settings.op_mode = BMP3_MODE_FORCED;
+    setSettings();
 
     return true;
 }
@@ -226,6 +225,41 @@ float BMP390::read()
     return 44330.0 * (1.0 - pow(atmospheric / seaLevel, 0.1903));
 }
 
+void BMP390::setSettings()
+{
+    uint16_t settings_sel = 0;
+
+    settings.op_mode = BMP3_MODE_NORMAL;
+    settings.odr_filter.odr = 0;
+    /* Select the pressure and temperature sensor to be enabled */
+    settings.temp_en = BMP3_ENABLE;
+    settings_sel |= BMP3_SEL_TEMP_EN;
+    if (_tempOSEnabled)
+    {
+        settings_sel |= BMP3_SEL_TEMP_OS;
+    }
+
+    settings.press_en = BMP3_ENABLE;
+    settings_sel |= BMP3_SEL_PRESS_EN;
+    if (_presOSEnabled)
+    {
+        settings_sel |= BMP3_SEL_PRESS_OS;
+    }
+
+    if (_filterEnabled)
+    {
+        settings_sel |= BMP3_SEL_IIR_FILTER;
+    }
+
+    // if (_ODREnabled)
+    // {
+    settings_sel |= BMP3_SEL_ODR;
+    // }
+    bmp3_set_sensor_settings(settings_sel, &settings, &the_sensor);
+
+    bmp3_set_op_mode(&settings, &the_sensor);
+}
+
 /**************************************************************************/
 /*!
     @brief Performs a full reading of all sensors in the BMP3XX.
@@ -238,83 +272,16 @@ float BMP390::read()
 /**************************************************************************/
 bool BMP390::performReading(void)
 {
-    g_i2c = i2c;
-
     int8_t rslt;
-    /* Used to select the settings user needs to change */
-    uint16_t settings_sel = 0;
-    /* Variable used to select the sensor component */
-    uint8_t sensor_comp = 0;
-
-    /* Select the pressure and temperature sensor to be enabled */
-    settings.temp_en = BMP3_ENABLE;
-    settings_sel |= BMP3_SEL_TEMP_EN;
-    sensor_comp |= BMP3_TEMP;
-    if (_tempOSEnabled)
-    {
-        settings_sel |= BMP3_SEL_TEMP_OS;
-    }
-
-    settings.press_en = BMP3_ENABLE;
-    settings_sel |= BMP3_SEL_PRESS_EN;
-    sensor_comp |= BMP3_PRESS;
-    if (_presOSEnabled)
-    {
-        settings_sel |= BMP3_SEL_PRESS_OS;
-    }
-
-    if (_filterEnabled)
-    {
-        settings_sel |= BMP3_SEL_IIR_FILTER;
-    }
-
-    if (_ODREnabled)
-    {
-        settings_sel |= BMP3_SEL_ODR;
-    }
-
-    // set interrupt to data ready
-    // settings_sel |= BMP3_DRDY_EN_SEL | BMP3_LEVEL_SEL | BMP3_LATCH_SEL;
-
-    /* Set the desired sensor configuration */
-#ifdef BMP3XX_DEBUG
-    Serial.println("Setting sensor settings");
-#endif
-    rslt = bmp3_set_sensor_settings(settings_sel, &settings, &the_sensor);
-
-    if (rslt != BMP3_OK)
-        return false;
-
-    /* Set the power mode */
-    settings.op_mode = BMP3_MODE_FORCED;
-#ifdef BMP3XX_DEBUG
-    Serial.println(F("Setting power mode"));
-#endif
-    rslt = bmp3_set_op_mode(&settings, &the_sensor);
-    if (rslt != BMP3_OK)
-        return false;
-
     /* Variable used to store the compensated data */
     struct bmp3_data data;
 
-    /* Temperature and Pressure data are read and stored in the bmp3_data instance
-     */
-#ifdef BMP3XX_DEBUG
-    Serial.println(F("Getting sensor data"));
-#endif
-    rslt = bmp3_get_sensor_data(sensor_comp, &data, &the_sensor);
+    rslt = bmp3_get_sensor_data(3, &data, &the_sensor);
     if (rslt != BMP3_OK)
+    {
         return false;
+    }
 
-    /*
-  #ifdef BMP3XX_DEBUG
-    Serial.println(F("Analyzing sensor data"));
-  #endif
-    rslt = analyze_sensor_data(&data);
-    if (rslt != BMP3_OK)
-      return false;
-      */
-    /* Save the temperature and pressure data */
     temperature = data.temperature;
     pressure = data.pressure;
 

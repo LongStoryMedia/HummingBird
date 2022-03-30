@@ -74,6 +74,7 @@ private:
     uint8_t chipID(void);
     float readTemperature(void);
     float readPressure(void);
+    void setSettings();
 };
 
 #endif

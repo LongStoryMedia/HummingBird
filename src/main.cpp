@@ -34,13 +34,6 @@ Proximity proximity;
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
 
-// #include <Adafruit_Sensor.h>
-// #include "Adafruit_BMP3XX.h"
-
-// #define SEALEVELPRESSURE_HPA (1013.25)
-
-// Adafruit_BMP3XX bmp;
-
 void setup()
 {
   Serial.begin(5000000); // usb serial
@@ -49,31 +42,18 @@ void setup()
   // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
   digitalWrite(13, HIGH);
 
-  // ALT_WIRE.begin();
-  // ALT_WIRE.setClock(1000000);
+  ALT_WIRE.begin();
+  ALT_WIRE.setClock(4000000);
   IMU_WIRE.begin();
-  IMU_WIRE.setClock(2500000);
+  IMU_WIRE.setClock(4000000);
 
   delay(10);
   pid.init();
   // Initialize radio communication
   rx.init();
 #if defined(USE_ALT)
-  Serial.println("init alt");
   // Initialize Baro communication
   alt.init(&ALT_WIRE);
-  // if (!bmp.begin_I2C())
-  // { // hardware I2C mode, can pass in address & alt Wire
-  //   // if (! bmp.begin_SPI(BMP_CS)) {  // hardware SPI mode
-  //   // if (! bmp.begin_SPI(BMP_CS, BMP_SCK, BMP_MISO, BMP_MOSI)) {  // software SPI mode
-  //   Serial.println("Could not find a valid BMP3 sensor, check wiring!");
-  //   while (1)
-  //     ;
-  // }
-  // bmp.setTemperatureOversampling(BMP3_NO_OVERSAMPLING);
-  // bmp.setPressureOversampling(BMP3_NO_OVERSAMPLING);
-  // bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_DISABLE);
-  // bmp.setOutputDataRate(BMP3_ODR_200_HZ);
   delay(10);
 #endif
 
@@ -125,15 +105,8 @@ void loop()
 #endif
 
 #if defined(USE_ALT)
-  alt.altCheck();
-  // if (!bmp.performReading())
-  // {
-  //   Serial.println("Failed to perform reading :(");
-  //   return;
-  // }
-  // Serial.print("Approx. Altitude = ");
-  // Serial.print(bmp.readAltitude(SEALEVELPRESSURE_HPA));
-  // Serial.println(" m");
+  // alt.altCheck();
+  Serial.println(alt.getAlt());
 #endif
 
 #if defined(USE_PROXIMITY_DETECTION)
@@ -143,9 +116,9 @@ void loop()
   // Regulate loop rate
   if (timer.delta * 1000000 > 502.00)
   {
-    // Serial.print("Warning - loop rate has slowed to below 2000Hz. Current rate is ");
-    // Serial.print(hzToUs(timer.delta * 1000000));
-    // Serial.println("Hz");
+    Serial.print("Warning - loop rate has slowed to below 2000Hz. Current rate is ");
+    Serial.print(hzToUs(timer.delta * 1000000));
+    Serial.println("Hz");
   };
   loopRate(); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
 }
