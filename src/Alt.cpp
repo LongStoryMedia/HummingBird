@@ -22,7 +22,6 @@ void Alt::altCheck()
     // this should be called once per loop
     // and no more - in order to maintain proper frequency
     alt = getAlt();
-    Serial.println(alt);
 
     if (altLocked != (lockState)packet.lockAlt)
     {

@@ -87,13 +87,7 @@ void loop()
   imu.getImu();
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
   // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
-  // packet = rx.getPacket();
-  packet.pitch = 0;
-  packet.roll = 0;
-  packet.yaw = 0;
-  packet.thrust = 400;
-  if (timer.now > 15000000)
-    packet.lockAlt = 1;
+  packet = rx.getPacket();
 
   pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);

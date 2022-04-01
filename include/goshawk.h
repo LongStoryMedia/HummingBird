@@ -36,6 +36,7 @@
 #define KD_YAW 0.000015f      // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 #define KP_ALT 0.25f
 #define KI_ALT 0.05f
+#define ALT_CONSTRAINT 0.10f
 
 // hardware configuration
 #define M1_PIN 2
@@ -47,7 +48,7 @@
 #define CSN_NRF24 9
 
 #define PID_MODE 0        // simple angle = 0, cascading angle = 1, simple rate = 2
-#define IMU_ORIENTATION 0 // up/forward = 0, up/backward = 1, down/forward = 2, down/backward = 3
+#define IMU_ORIENTATION 1 // up/forward = 0, up/backward = 1, down/forward = 2, down/backward = 3
 #define PROP_CONFIG 1
 
 #define USE_BMP390

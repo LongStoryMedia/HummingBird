@@ -32,7 +32,6 @@
 void Pid::init()
 {
   integratorThreashold = I_TH;
-  altContraint = (COMMANDS_HIGH / 25) * 60;
   switch (PROP_CONFIG)
   {
   case configType::x1:
@@ -131,7 +130,6 @@ void Pid::setDesiredState()
   desiredState.pitch *= -1.0;
 #endif
 #if defined(USE_ALT)
-  desiredState.alt = alt.lockedAlt;
   integrateAlt();
 #endif
 }
@@ -141,15 +139,17 @@ void Pid::integrateAlt()
 #if defined(USE_ALT)
   if (alt.altLocked == alt.locked)
   {
+    float desiredLockedThrust = alt.lockedThrust / 1000.0;
+    desiredState.thrust = desiredLockedThrust;
     errorAlt = alt.lockedAlt - alt.realAlt;
     integralAlt = prevIntegralAlt + errorAlt * timer.delta;
     integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-    desiredState.thrust = alt.lockedThrust + (0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt));
-    // desiredState.thrust = constrain(desiredState.thrust, alt.lockedThrust - altContraint, alt.lockedThrust + altContraint);
+    desiredState.thrust += alt.lockedThrust * (0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt));
+    desiredState.thrust = constrain(desiredState.thrust, desiredLockedThrust - ALT_CONSTRAINT, desiredLockedThrust + ALT_CONSTRAINT);
     prevIntegralAlt = integralAlt;
-    // Serial.print(alt.lockedAlt);
-    // Serial.print("|");
-    // Serial.println(alt.realAlt);
+    Serial.println(desiredState.thrust);
+
+    // Serial.println(alt.lockedThrust);
   }
 #endif
 }
