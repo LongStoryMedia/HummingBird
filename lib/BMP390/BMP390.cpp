@@ -109,11 +109,14 @@ float BMP390::read()
 {
     if (oneShot())
     {
-        bmp3_get_sensor_data(BMP3_PRESS, &data, &dev);
+        bmp3_data comp_data;
+        int8_t getDataStatus = bmp3_get_sensor_data(BMP3_PRESS, &comp_data, &dev);
 
-        /* NOTE : Read status register again to clear data ready interrupt status */
-        // bmp3_get_status(&status, &dev);
-
+        if (getDataStatus != BMP3_OK)
+        {
+            Serial.print("could not get sensor data due to error code: ");
+            Serial.println(getDataStatus);
+        }
         float atmospheric = data.pressure / 100.00F;
         alt = 44330.0 * (1.0 - pow(atmospheric / seaLevel, 0.1903));
     }

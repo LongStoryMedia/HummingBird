@@ -1,16 +1,29 @@
 #include "config.h"
 
-// DESCRIPTION: Send pulses to motor pins, oneshot125 protocol
-/*
- * Implimentation of OneShot125 protocol which sends 125 - 250us pulses to the ESCs (mXPin).
- */
+// DESCRIPTION: Send pulses to motor pins
 void Esc::setSpeed(Commands commands)
 {
+    if (commands.m1 > COMMANDS_HIGH ||
+        commands.m2 > COMMANDS_HIGH ||
+        commands.m3 > COMMANDS_HIGH ||
+        commands.m4 > COMMANDS_HIGH)
+    {
+        commands = COMMANDS_LOW;
+    }
+
+    // Serial.print(F("m1: "));
+    // Serial.println(commands.m1);
+    // Serial.print(F("m2: "));
+    // Serial.println(commands.m2);
+    // Serial.print(F("m3: "));
+    // Serial.println(commands.m3);
+    // Serial.print(F("m4: "));
+    // Serial.println(commands.m4);
 #if defined(USE_PWM)
-    m1.write(map(commands.m1, 125, 250, 0, 180));
-    m2.write(map(commands.m2, 125, 250, 0, 180));
-    m3.write(map(commands.m3, 125, 250, 0, 180));
-    m4.write(map(commands.m4, 125, 250, 0, 180));
+    m1.write(commands.m1);
+    m2.write(commands.m2);
+    m3.write(commands.m3);
+    m4.write(commands.m4);
 #else
     int wentLow = 0;
     int pulseStart, timer;
@@ -60,9 +73,8 @@ void Esc::setSpeed(Commands commands)
 
 void Esc::arm()
 {
-    Serial.print(F("arming motors"));
     Commands commands;
-    commands = 125;
+    Serial.print(F("arming motors"));
 #if defined(USE_PWM)
     m1.attach(M1_PIN, 900, 2100);
     m2.attach(M2_PIN, 900, 2100);
@@ -75,6 +87,7 @@ void Esc::arm()
     pinMode(M4_PIN, OUTPUT);
 #endif
 #if !defined(ESC_PROGRAM_MODE)
+    commands = COMMANDS_LOW;
     setSpeed(commands);
 #endif
 }

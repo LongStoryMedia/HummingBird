@@ -43,9 +43,9 @@ void setup()
   digitalWrite(13, HIGH);
 
   ALT_WIRE.begin();
-  ALT_WIRE.setClock(4000000);
+  ALT_WIRE.setClock(1000000);
   IMU_WIRE.begin();
-  IMU_WIRE.setClock(4000000);
+  IMU_WIRE.setClock(1000000);
 
   delay(10);
   pid.init();
@@ -68,7 +68,9 @@ void setup()
   esc.arm();
   delay(100);
   // Warm up the loop
+  Serial.println("calibrating...");
   imu.calibrate(); // helps to warm up IMU and Madgwick filter before finally entering main loop
+  Serial.println("done calibrating");
   // Indicate entering main loop with 3 quick blinks
   setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
 }
@@ -85,7 +87,13 @@ void loop()
   imu.getImu();
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
   // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
-  packet = rx.getPacket();
+  // packet = rx.getPacket();
+  packet.pitch = 0;
+  packet.roll = 0;
+  packet.yaw = 0;
+  packet.thrust = 400;
+  if (timer.now > 15000000)
+    packet.lockAlt = 1;
 
   pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
@@ -93,14 +101,14 @@ void loop()
   if (packet.thrust < 10)
   {
 #if defined(ESC_PROGRAM_MODE)
-    commands = 125;
+    commands = COMMANDS_LOW;
   }
   if (packet.thrust > 50)
   {
-    commands = 250;
+    commands = COMMANDS_HIGH;
   }
 #else
-    commands = 130;
+    commands = COMMANDS_LOW;
   }
 #endif
 
@@ -113,6 +121,7 @@ void loop()
 #endif
   esc.setSpeed(commands);
   // Regulate loop rate
+
   if (timer.delta * 1000000 > 502.00)
   {
     Serial.print("Warning - loop rate has slowed to below 2000Hz. Current rate is ");

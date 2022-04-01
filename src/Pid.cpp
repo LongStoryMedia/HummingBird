@@ -31,6 +31,8 @@
 
 void Pid::init()
 {
+  integratorThreashold = I_TH;
+  altContraint = (COMMANDS_HIGH / 25) * 60;
   switch (PROP_CONFIG)
   {
   case configType::x1:
@@ -91,7 +93,6 @@ void Pid::init()
     break;
   }
 
-  integratorThreashold = I_TH;
   if (PID_MODE == simpleRateMode)
   {
     roll.Kp = KP_ROLL_RATE;
@@ -121,10 +122,6 @@ void Pid::init()
 
 void Pid::setDesiredState()
 {
-#if defined(USE_ALT)
-  desiredState.alt = alt.lockedAlt;
-  packet = integrateAlt();
-#endif
   desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
   desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
@@ -133,21 +130,28 @@ void Pid::setDesiredState()
   desiredState.roll *= -1.0;
   desiredState.pitch *= -1.0;
 #endif
+#if defined(USE_ALT)
+  desiredState.alt = alt.lockedAlt;
+  integrateAlt();
+#endif
 }
 
-State Pid::integrateAlt()
+void Pid::integrateAlt()
 {
 #if defined(USE_ALT)
   if (alt.altLocked == alt.locked)
   {
-    errorAlt = desiredState.alt - alt.getAlt();
+    errorAlt = alt.lockedAlt - alt.realAlt;
     integralAlt = prevIntegralAlt + errorAlt * timer.delta;
     integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-    packet.thrust = alt.lockedThrust + (KP_ALT * errorAlt + KI_ALT * integralAlt);
+    desiredState.thrust = alt.lockedThrust + (0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt));
+    // desiredState.thrust = constrain(desiredState.thrust, alt.lockedThrust - altContraint, alt.lockedThrust + altContraint);
     prevIntegralAlt = integralAlt;
+    // Serial.print(alt.lockedAlt);
+    // Serial.print("|");
+    // Serial.println(alt.realAlt);
   }
 #endif
-  return packet;
 }
 
 void Pid::simpleAngle(AccelGyro imu)
@@ -359,20 +363,23 @@ Commands Pid::control(AccelGyro imu)
     simpleAngle(imu);
     break;
   }
+  int low = COMMANDS_LOW;
+  int high = COMMANDS_HIGH;
 
   float m1 = desiredState.thrust + mix(propConfig.p1);
   float m2 = desiredState.thrust + mix(propConfig.p2);
   float m3 = desiredState.thrust + mix(propConfig.p3);
   float m4 = desiredState.thrust + mix(propConfig.p4);
+  // scale to protocol
+  float m1Scaled = map(m1, 0.0F, 1.0F, (float)low, (float)high);
+  float m2Scaled = map(m2, 0.0F, 1.0F, (float)low, (float)high);
+  float m3Scaled = map(m3, 0.0F, 1.0F, (float)low, (float)high);
+  float m4Scaled = map(m4, 0.0F, 1.0F, (float)low, (float)high);
+  // Constrain commands to motors within bounds
+  commands.m1 = constrain(m1Scaled, low, high);
+  commands.m2 = constrain(m2Scaled, low, high);
+  commands.m3 = constrain(m3Scaled, low, high);
+  commands.m4 = constrain(m4Scaled, low, high);
 
-  int m1Scaled = m1 * 125 + 125;
-  int m2Scaled = m2 * 125 + 125;
-  int m3Scaled = m3 * 125 + 125;
-  int m4Scaled = m4 * 125 + 125;
-  // Constrain commands to motors within oneshot125 bounds
-  commands.m1 = constrain(m1Scaled, 130, 250);
-  commands.m2 = constrain(m2Scaled, 130, 250);
-  commands.m3 = constrain(m3Scaled, 130, 250);
-  commands.m4 = constrain(m4Scaled, 130, 250);
   return commands;
 }

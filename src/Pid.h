@@ -27,8 +27,9 @@ private:
     float integralAlt;
     float derivativeAlt;
     float prevIntegralAlt;
+    float altContraint;
     float mix(Prop prop);
-    State integrateAlt();
+    void integrateAlt();
 
 public:
     void init();

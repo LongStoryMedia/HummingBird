@@ -35,13 +35,13 @@
 #define KI_YAW 0.18f          // Yaw I-gain
 #define KD_YAW 0.000015f      // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 #define KP_ALT 0.25f
-#define KI_ALT 0.4f
+#define KI_ALT 0.05f
 
 // hardware configuration
-#define M1_PIN 4
-#define M2_PIN 2
-#define M3_PIN 3
-#define M4_PIN 5
+#define M1_PIN 2
+#define M2_PIN 4
+#define M3_PIN 5
+#define M4_PIN 3
 
 #define CE_NRF24 10
 #define CSN_NRF24 9
@@ -51,6 +51,7 @@
 #define PROP_CONFIG 1
 
 #define USE_BMP390
+#define USE_MULTISHOT
 
 #define ALT_WIRE Wire
 #define IMU_WIRE Wire

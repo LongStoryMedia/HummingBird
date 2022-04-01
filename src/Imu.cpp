@@ -8,9 +8,8 @@ void Imu::init(TwoWire *wire)
     {
         Serial.println("MPU6050 initialization unsuccessful");
         Serial.println("Check MPU6050 wiring or try cycling power");
-        while (1)
-        {
-        }
+        delay(5000);
+        init(wire);
     }
 
     // From the reset state all registers should be 0x00, so we should be at
@@ -68,51 +67,6 @@ void Imu::calibrate()
         Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
         loopRate();
     }
-#if defined IMU_MPU9250
-    float success;
-    Serial.println("Beginning magnetometer calibration in");
-    Serial.println("3...");
-    delay(1000);
-    Serial.println("2...");
-    delay(1000);
-    Serial.println("1...");
-    delay(1000);
-    Serial.println("Rotate the IMU about all axes until complete.");
-    Serial.println(" ");
-    success = mpu9250.calibrateMag();
-    if (success)
-    {
-        Serial.println("Calibration Successful!");
-        Serial.println("Please comment out the calibrateMagnetometer() function and copy these values into the code:");
-        Serial.print("float MagErrorX = ");
-        Serial.print(mpu9250.getMagBiasX_uT());
-        Serial.println(";");
-        Serial.print("float MagErrorY = ");
-        Serial.print(mpu9250.getMagBiasY_uT());
-        Serial.println(";");
-        Serial.print("float MagErrorZ = ");
-        Serial.print(mpu9250.getMagBiasZ_uT());
-        Serial.println(";");
-        Serial.print("float MagScaleX = ");
-        Serial.print(mpu9250.getMagScaleFactorX());
-        Serial.println(";");
-        Serial.print("float MagScaleY = ");
-        Serial.print(mpu9250.getMagScaleFactorY());
-        Serial.println(";");
-        Serial.print("float MagScaleZ = ");
-        Serial.print(mpu9250.getMagScaleFactorZ());
-        Serial.println(";");
-        Serial.println(" ");
-        Serial.println("If you are having trouble with your attitude estimate at a new flying location, repeat this process as needed.");
-    }
-    else
-    {
-        Serial.println("Calibration Unsuccessful. Please reset the board and try again.");
-    }
-
-    while (1)
-        ; // halt code so it won't enter main loop until this function commented out
-#endif
 }
 
 void Imu::getImu()

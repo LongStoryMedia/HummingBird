@@ -76,6 +76,20 @@ extern Alt alt;
 #if defined(USE_PROXIMITY_DETECTION)
 extern Proximity proximity;
 #endif
+
+#if defined(USE_MULTISHOT)
+#define COMMANDS_LOW 5
+#define COMMANDS_HIGH 25
+#elif defined(USE_ONESHOT_42)
+#define COMMANDS_LOW 42
+#define COMMANDS_HIGH 84
+#elif defined(USE_PMW)
+#define COMMANDS_LOW 0
+#define COMMANDS_HIGH 180
+#else
+#define COMMANDS_LOW 125
+#define COMMANDS_HIGH 250
+#endif
 //========================================================================================================================//
 
 // Setup gyro and accel full scale value selection and scale factor

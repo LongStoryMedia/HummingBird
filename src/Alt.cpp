@@ -22,6 +22,7 @@ void Alt::altCheck()
     // this should be called once per loop
     // and no more - in order to maintain proper frequency
     alt = getAlt();
+    Serial.println(alt);
 
     if (altLocked != (lockState)packet.lockAlt)
     {
@@ -33,6 +34,8 @@ void Alt::altCheck()
             Serial.print(lockedAlt);
             Serial.print(F(" and thrust "));
             Serial.println(lockedThrust);
+            Serial.print(F("delta "));
+            Serial.println(timer.delta);
         }
         altLocked = (lockState)packet.lockAlt;
     }
@@ -67,6 +70,7 @@ float Alt::getAlt()
         // LP filter alt data
         alt = (1.0 - filterParam) * prevAlt + filterParam * alt;
         alt += err * timer.delta;
+        realAlt = alt;
         lastUpdate = micros();
     }
 
