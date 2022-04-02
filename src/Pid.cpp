@@ -92,36 +92,42 @@ void Pid::init()
     break;
   }
 
-  if (PID_MODE == simpleRateMode)
-  {
-    roll.Kp = KP_ROLL_RATE;
-    roll.Ki = KI_ROLL_RATE;
-    roll.Kd = KD_ROLL_RATE;
-    pitch.Kp = KP_PITCH_RATE;
-    pitch.Ki = KI_PITCH_RATE;
-    pitch.Kd = KD_PITCH_RATE;
-  }
-  else
-  {
-    roll.Kp = KP_ROLL_ANGLE;
-    roll.Ki = KI_ROLL_ANGLE;
-    roll.Kd = KD_ROLL_ANGLE;
-    pitch.Kp = KP_PITCH_ANGLE;
-    pitch.Ki = KI_PITCH_ANGLE;
-    pitch.Kd = KD_PITCH_ANGLE;
-  }
   integratorLimit = I_LIMIT;
-  yaw.Kp = KP_YAW;
-  yaw.Ki = KI_YAW;
-  yaw.Kd = KD_YAW;
-  k.roll = roll;
-  k.pitch = pitch;
-  k.yaw = yaw;
+  rollRate.Kp = KP_ROLL_RATE;
+  rollRate.Ki = KI_ROLL_RATE;
+  rollRate.Kd = KD_ROLL_RATE;
+  pitchRate.Kp = KP_PITCH_RATE;
+  pitchRate.Ki = KI_PITCH_RATE;
+  pitchRate.Kd = KD_PITCH_RATE;
+  rollAngle.Kp = KP_ROLL_ANGLE;
+  rollAngle.Ki = KI_ROLL_ANGLE;
+  rollAngle.Kd = KD_ROLL_ANGLE;
+  pitchAngle.Kp = KP_PITCH_ANGLE;
+  pitchAngle.Ki = KI_PITCH_ANGLE;
+  pitchAngle.Kd = KD_PITCH_ANGLE;
+  yawAngle.Kp = KP_YAW;
+  yawAngle.Ki = KI_YAW;
+  yawAngle.Kd = KD_YAW;
+  yawRate.Kp = KP_YAW;
+  yawRate.Ki = KI_YAW;
+  yawRate.Kd = KD_YAW;
+  kAngle.roll = rollAngle;
+  kAngle.pitch = pitchAngle;
+  kAngle.yaw = yawAngle;
 }
 
 void Pid::setDesiredState()
 {
-  desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
+#if defined(USE_ALT)
+  if (alt.altLocked == alt.locked)
+  {
+    integrateAlt();
+  }
+  else
+  {
+    desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
+  }
+#endif
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
   desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
   desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
@@ -129,28 +135,32 @@ void Pid::setDesiredState()
   desiredState.roll *= -1.0;
   desiredState.pitch *= -1.0;
 #endif
-#if defined(USE_ALT)
-  integrateAlt();
-#endif
 }
 
 void Pid::integrateAlt()
 {
 #if defined(USE_ALT)
-  if (alt.altLocked == alt.locked)
+  float lockedDesiredThrust = alt.lockedThrust / 1000.0;
+  if (alt.altLocked != (Alt::lockState)packet.lockAlt)
   {
-    float desiredLockedThrust = alt.lockedThrust / 1000.0;
-    desiredState.thrust = desiredLockedThrust;
-    errorAlt = alt.lockedAlt - alt.realAlt;
-    integralAlt = prevIntegralAlt + errorAlt * timer.delta;
-    integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-    desiredState.thrust += alt.lockedThrust * (0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt));
-    desiredState.thrust = constrain(desiredState.thrust, desiredLockedThrust - ALT_CONSTRAINT, desiredLockedThrust + ALT_CONSTRAINT);
-    prevIntegralAlt = integralAlt;
-    Serial.println(desiredState.thrust);
-
-    // Serial.println(alt.lockedThrust);
+    if (packet.lockAlt == 1)
+    {
+      alt.lockedAlt = alt.getAlt();
+      alt.lockedThrust = packet.thrust;
+      desiredState.thrust = lockedDesiredThrust;
+    }
+    alt.altLocked = (Alt::lockState)packet.lockAlt;
   }
+  prevDesiredState.thrust = desiredState.thrust;
+
+  errorAlt = alt.lockedAlt - alt.realAlt;
+  integralAlt = prevIntegralAlt + errorAlt * timer.delta;
+  integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
+
+  desiredState.thrust += alt.lockedThrust * (0.01 * (KP_ALT * errorAlt + KI_ALT * integralAlt));
+
+  desiredState.thrust = constrain(desiredState.thrust, lockedDesiredThrust - ALT_CONSTRAINT, lockedDesiredThrust + ALT_CONSTRAINT);
+  prevIntegralAlt = integralAlt;
 #endif
 }
 
@@ -167,7 +177,7 @@ void Pid::simpleAngle(AccelGyro imu)
   }
   integral.roll = constrain(integral.roll, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.roll = imu.gyro.roll;
-  out.roll = 0.01 * (k.roll.Kp * error.roll + k.roll.Ki * integral.roll - k.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
+  out.roll = 0.01 * (kAngle.roll.Kp * error.roll + kAngle.roll.Ki * integral.roll - kAngle.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
 
   // Pitch
   error.pitch = desiredState.pitch - imu.accel.pitch;
@@ -178,7 +188,7 @@ void Pid::simpleAngle(AccelGyro imu)
   }
   integral.pitch = constrain(integral.pitch, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.pitch = imu.gyro.pitch;
-  out.pitch = 0.01 * (k.pitch.Kp * error.pitch + k.pitch.Ki * integral.pitch - k.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
+  out.pitch = 0.01 * (kAngle.pitch.Kp * error.pitch + kAngle.pitch.Ki * integral.pitch - kAngle.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
 
   // Yaw, stablize on rate from imu.gyro.yaw
   error.yaw = desiredState.yaw - imu.gyro.yaw;
@@ -189,7 +199,7 @@ void Pid::simpleAngle(AccelGyro imu)
   }
   integral.yaw = constrain(integral.yaw, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.yaw = (error.yaw - prevError.yaw) / timer.delta;
-  out.yaw = 0.01 * (k.yaw.Kp * error.yaw + k.yaw.Ki * integral.yaw + k.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
+  out.yaw = 0.01 * (kAngle.yaw.Kp * error.yaw + kAngle.yaw.Ki * integral.yaw + kAngle.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
 
   // Update roll variables
   prevIntegral.roll = integral.roll;
@@ -204,9 +214,6 @@ void Pid::cascadingAngle(AccelGyro imu)
 {
   bool isPreTakeoff = desiredState.thrust < (integratorThreashold / 1000.0);
   // Outer loop - PID on angle
-  YPR ol;
-  YPR integralOl;
-  YPR prevIntegralOl;
   // Roll
   error.roll = desiredState.roll - imu.accel.roll;
   integralOl.roll = prevIntegralOl.roll + error.roll * timer.delta;
@@ -216,7 +223,7 @@ void Pid::cascadingAngle(AccelGyro imu)
   }
   integralOl.roll = constrain(integralOl.roll, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.roll = (imu.accel.roll - prevImu.accel.roll) / timer.delta;
-  ol.roll = k.roll.Kp * error.roll + k.roll.Ki * integralOl.roll - k.roll.Kd * derivative.roll;
+  ol.roll = kAngle.roll.Kp * error.roll + kAngle.roll.Ki * integralOl.roll - kAngle.roll.Kd * derivative.roll;
 
   // Pitch
   error.pitch = desiredState.pitch - imu.accel.pitch;
@@ -227,12 +234,11 @@ void Pid::cascadingAngle(AccelGyro imu)
   }
   integralOl.pitch = constrain(integralOl.pitch, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.pitch = (imu.accel.pitch - prevImu.accel.pitch) / timer.delta;
-  ol.pitch = k.pitch.Kp * error.pitch + k.pitch.Ki * integralOl.pitch - k.pitch.Kd * derivative.pitch;
+  ol.pitch = kAngle.pitch.Kp * error.pitch + kAngle.pitch.Ki * integralOl.pitch - kAngle.pitch.Kd * derivative.pitch;
 
   // Apply loop gain, constrain, and LP filter for artificial damping
-  float Kl = 30.0;
-  ol.roll = Kl * ol.roll;
-  ol.pitch = Kl * ol.pitch;
+  ol.roll *= KL;
+  ol.pitch *= KL;
   ol.roll = constrain(ol.roll, -240.0, 240.0);
   ol.pitch = constrain(ol.pitch, -240.0, 240.0);
   ol.roll = (1.0 - B_LOOP_ROLL) * prevDesiredState.roll + B_LOOP_ROLL * ol.roll;
@@ -248,7 +254,7 @@ void Pid::cascadingAngle(AccelGyro imu)
   }
   integral.roll = constrain(integral.roll, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.roll = (error.roll - prevError.roll) / timer.delta;
-  out.roll = .01 * (k.roll.Kp * error.roll + k.roll.Ki * integral.roll + k.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
+  out.roll = .01 * (kRate.roll.Kp * error.roll + kRate.roll.Ki * integral.roll + kRate.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
 
   // Pitch
   error.pitch = ol.pitch - imu.gyro.pitch;
@@ -259,7 +265,7 @@ void Pid::cascadingAngle(AccelGyro imu)
   }
   integral.pitch = constrain(integral.pitch, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.pitch = (error.pitch - prevError.pitch) / timer.delta;
-  out.pitch = .01 * (k.pitch.Kp * error.pitch + k.pitch.Ki * integral.pitch + k.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
+  out.pitch = .01 * (kRate.pitch.Kp * error.pitch + kRate.pitch.Ki * integral.pitch + kRate.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
 
   // Yaw
   error.yaw = desiredState.yaw - imu.gyro.yaw;
@@ -270,23 +276,17 @@ void Pid::cascadingAngle(AccelGyro imu)
   }
   integral.yaw = constrain(integral.yaw, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.yaw = (error.yaw - prevError.yaw) / timer.delta;
-  out.yaw = .01 * (k.yaw.Kp * error.yaw + k.yaw.Ki * integral.yaw + k.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
+  out.yaw = .01 * (kRate.yaw.Kp * error.yaw + kRate.yaw.Ki * integral.yaw + kRate.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
 
+  prevIntegralOl = integralOl;
+  prevIntegral = integral;
+  prevError = error;
   // Update roll variables
-  prevIntegralOl.roll = integralOl.roll;
-  prevIntegral.roll = integral.roll;
-  prevError.roll = error.roll;
   prevImu.accel.roll = imu.accel.roll;
   prevDesiredState.roll = ol.roll;
   // Update pitch variables
-  prevIntegralOl.pitch = integralOl.pitch;
-  prevIntegral.pitch = integral.pitch;
-  prevError.pitch = error.pitch;
   prevImu.accel.pitch = imu.accel.pitch;
   prevDesiredState.pitch = ol.pitch;
-  // Update yaw variables
-  prevError.yaw = error.yaw;
-  prevIntegral.yaw = integral.yaw;
 }
 
 void Pid::simpleRate(AccelGyro imu)
@@ -301,7 +301,7 @@ void Pid::simpleRate(AccelGyro imu)
   }
   integral.roll = constrain(integral.roll, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.roll = (error.roll - prevError.roll) / timer.delta;
-  out.roll = .01 * (k.roll.Kp * error.roll + k.roll.Ki * integral.roll + k.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
+  out.roll = .01 * (kRate.roll.Kp * error.roll + kRate.roll.Ki * integral.roll + kRate.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
 
   // Pitch
   error.pitch = desiredState.pitch - imu.gyro.pitch;
@@ -312,7 +312,7 @@ void Pid::simpleRate(AccelGyro imu)
   }
   integral.pitch = constrain(integral.pitch, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.pitch = (error.pitch - prevError.pitch) / timer.delta;
-  out.pitch = .01 * (k.pitch.Kp * error.pitch + k.pitch.Ki * integral.pitch + k.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
+  out.pitch = .01 * (kRate.pitch.Kp * error.pitch + kRate.pitch.Ki * integral.pitch + kRate.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
 
   // Yaw, stablize on rate from imu.gyro.yaw
   error.yaw = desiredState.yaw - imu.gyro.yaw;
@@ -323,7 +323,7 @@ void Pid::simpleRate(AccelGyro imu)
   }
   integral.yaw = constrain(integral.yaw, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
   derivative.yaw = (error.yaw - prevError.yaw) / timer.delta;
-  out.yaw = .01 * (k.yaw.Kp * error.yaw + k.yaw.Ki * integral.yaw + k.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
+  out.yaw = .01 * (kRate.yaw.Kp * error.yaw + kRate.yaw.Ki * integral.yaw + kRate.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
 
   // Update roll variables
   prevError.roll = error.roll;
@@ -351,7 +351,7 @@ Commands Pid::control(AccelGyro imu)
     simpleAngle(imu);
     break;
 
-  case cascadingAngleMode:
+  case cascadingMode:
     cascadingAngle(imu);
     break;
 

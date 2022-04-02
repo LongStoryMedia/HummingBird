@@ -8,16 +8,23 @@ private:
     uint16_t integratorThreashold;
     ScaledState desiredState;
     ScaledState prevDesiredState;
-    Coefficients roll;
-    Coefficients pitch;
-    Coefficients yaw;
-    CoefficientSet k;
+    Coefficients rollAngle;
+    Coefficients pitchAngle;
+    Coefficients yawAngle;
+    CoefficientSet kAngle;
+    Coefficients rollRate;
+    Coefficients pitchRate;
+    Coefficients yawRate;
+    CoefficientSet kRate;
     YPR out;
     YPR error;
     YPR prevError;
     YPR integral;
     YPR prevIntegral;
     YPR derivative;
+    YPR ol;
+    YPR integralOl;
+    YPR prevIntegralOl;
     AccelGyro prevImu;
     void simpleAngle(AccelGyro imu);
     void cascadingAngle(AccelGyro imu);
@@ -27,7 +34,6 @@ private:
     float integralAlt;
     float derivativeAlt;
     float prevIntegralAlt;
-    float altContraint;
     float mix(Prop prop);
     void integrateAlt();
 
@@ -43,7 +49,7 @@ public:
     enum mode
     {
         simpleAngleMode,
-        cascadingAngleMode,
+        cascadingMode,
         simpleRateMode
     };
 };

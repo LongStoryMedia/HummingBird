@@ -15,6 +15,10 @@
 #include "params/default.h"
 #endif
 
+#ifndef KL
+#define KL 30.0f
+#endif
+
 #if defined(USE_MPL3115A2) || defined(USE_BMP390)
 #define USE_ALT
 #endif

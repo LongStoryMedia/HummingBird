@@ -23,21 +23,6 @@ void Alt::altCheck()
     // and no more - in order to maintain proper frequency
     alt = getAlt();
 
-    if (altLocked != (lockState)packet.lockAlt)
-    {
-        if (packet.lockAlt == 1)
-        {
-            lockedAlt = alt;
-            lockedThrust = packet.thrust;
-            Serial.print(F("locking alt at alt "));
-            Serial.print(lockedAlt);
-            Serial.print(F(" and thrust "));
-            Serial.println(lockedThrust);
-            Serial.print(F("delta "));
-            Serial.println(timer.delta);
-        }
-        altLocked = (lockState)packet.lockAlt;
-    }
 }
 
 float Alt::getAlt()
