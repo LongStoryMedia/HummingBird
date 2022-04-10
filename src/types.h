@@ -73,20 +73,6 @@ typedef struct
     }
 } Commands;
 
-typedef struct
-{
-    float delta;
-    uint32_t now;
-    uint32_t prev;
-    uint32_t loopRate;
-    void update()
-    {
-        prev = now;
-        now = micros();
-        delta = (now - prev) / 1000000.0;
-    }
-} Timer;
-
 typedef struct YPR
 {
     float yaw;

@@ -46,6 +46,7 @@
 #include "Proximity.h"
 #endif
 
+#include "Timer.h"
 #include "Imu.h"
 #include "Rx.h"
 #include "Esc.h"
@@ -60,6 +61,7 @@ extern uint32_t print_counter, serial_counter;
 extern uint32_t blink_counter, blink_delay;
 extern bool blinkAlternate;
 extern Timer timer;
+extern Timer radioTimer;
 extern AccelGyro ag;
 extern AccelGyro agPrev;
 extern AccelGyro agError;
@@ -153,6 +155,5 @@ void loopBlink();
 void loopRate();
 template <class T>
 void debug(T data);
-float hzToUs(int speed);
 
 #endif

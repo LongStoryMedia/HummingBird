@@ -65,7 +65,7 @@ void Imu::calibrate()
         timer.update();
         getImu();
         Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
-        loopRate();
+        timer.regulate();
     }
 }
 

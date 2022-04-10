@@ -34,6 +34,8 @@ private:
     float integralAlt;
     float derivativeAlt;
     float prevIntegralAlt;
+    float lockedDesiredThrust;
+    float errorThrust;
     float mix(Prop prop);
     void integrateAlt();
 

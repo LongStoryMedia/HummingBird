@@ -9,7 +9,9 @@
 
 unsigned long print_counter;
 bool blinkAlternate;
-Timer timer{0.0, 0, 0, 2000};
+Timer timer(4000);
+Timer radioTimer(500);
+Timer sensorTimer(100);
 Filter filter{0.04, 0.14, 0.1, 1.0};
 Quaternion q{1.0f, 0.0f, 0.0f, 0.0f};
 AccelGyro ag;
@@ -33,6 +35,8 @@ Proximity proximity;
 //========================================================================================================================//
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
+void flightLoop();
+void radioLoop();
 
 void setup()
 {
@@ -81,30 +85,9 @@ void setup()
 
 void loop()
 {
-  timer.update();
   loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
-  // Get vehicle state
-  imu.getImu();
-  Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
-  // updates agImu.accel.roll, agImu.accel.pitch, and agImu.accel.yaw (degrees)
-  packet = rx.getPacket();
-
-  pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
-  Commands commands = pid.control(agImu);
-
-  if (packet.thrust < 10)
-  {
-#if defined(ESC_PROGRAM_MODE)
-    commands = COMMANDS_LOW;
-  }
-  if (packet.thrust > 50)
-  {
-    commands = COMMANDS_HIGH;
-  }
-#else
-    commands = COMMANDS_LOW;
-  }
-#endif
+  sensorTimer.update();
+  // Serial.println("SENSOR LOOP");
 
 #if defined(USE_ALT)
   alt.altCheck();
@@ -113,45 +96,37 @@ void loop()
 #if defined(USE_PROXIMITY_DETECTION)
   obstacles obs = proximity.scan();
 #endif
-  esc.setSpeed(commands);
-  // Regulate loop rate
 
-  if (timer.delta * 1000000 > 502.00)
-  {
-    Serial.print("Warning - loop rate has slowed to below 2000Hz. Current rate is ");
-    Serial.print(hzToUs(timer.delta * 1000000));
-    Serial.println("Hz");
-  };
-  loopRate(); // do not exceed 2000Hz, all filter parameters tuned to 2000Hz by default
+  sensorTimer.regulate(radioLoop);
+}
+
+void radioLoop()
+{
+  radioTimer.update();
+  // Serial.println("RADIO LOOP");
+  packet = rx.getPacket();
+  radioTimer.regulate(flightLoop);
+}
+
+void flightLoop()
+{
+  timer.update();
+  // Serial.println("FLIGHT LOOP");
+
+  imu.getImu();
+  Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
+
+  pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
+  Commands commands = pid.control(agImu);
+
+  esc.setSpeed(commands);
+
+  timer.regulate();
 }
 
 //========================================================================================================================//
 //                                                      FUNCTIONS                                                         //
 //========================================================================================================================//
-
-void loopRate()
-{
-  // DESCRIPTION: Regulate main loop rate to specified frequency in Hz
-  /*
-   * It's good to operate at a constant loop rate for filters to remain stable and whatnot. Interrupt routines running in the
-   * background cause the loop rate to fluctuate. This function basically just waits at the end of every loop iteration until
-   * the correct time has passed since the start of the current loop for the desired loop rate in Hz. 2kHz is a good rate to
-   * be at because the loop nominally will run between 2.8kHz - 4.2kHz. This lets us have a little room to add extra computations
-   * and remain above 2kHz, without needing to retune all of our filtering parameters.
-   */
-  unsigned long checker = micros();
-
-  // Sit in loop until appropriate time has passed
-  while (hzToUs(timer.loopRate) > (checker - timer.now))
-  {
-    checker = micros();
-  }
-}
-
-float hzToUs(int speed)
-{
-  return 1.0 / speed * 1000000.0;
-}
 
 void loopBlink()
 {

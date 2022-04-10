@@ -14,7 +14,7 @@ void Alt::init(TwoWire *wire)
 {
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, hzToUs(200), wire);
+    baro.init(300, Timer::hzToUs(200), wire);
 }
 
 void Alt::altCheck()
@@ -22,7 +22,6 @@ void Alt::altCheck()
     // this should be called once per loop
     // and no more - in order to maintain proper frequency
     alt = getAlt();
-
 }
 
 float Alt::getAlt()
@@ -42,7 +41,7 @@ float Alt::getAlt()
     }
 
     // try to get an update if we haven't seen one in a while
-    if (timer.now - lastUpdate > hzToUs(timer.loopRate / 20))
+    if (timer.now - lastUpdate > Timer::hzToUs(timer.loopRate / 20))
     {
         alt = baro.read();
     }

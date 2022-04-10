@@ -10,7 +10,6 @@ private:
     MPL3115A2 baro;
 #endif
     float prevAlt;
-    float alt;
     const float filterParam = 0.0008;
     uint32_t lastUpdate;
     void setReal();
@@ -30,6 +29,7 @@ public:
     uint32_t lockedThrust;
     lockState altLocked;
     float realAlt;
+    float alt;
 };
 
 #endif
