@@ -92,7 +92,7 @@ extern Proximity proximity;
 #elif defined(USE_PMW)
 #define COMMANDS_LOW 0
 #define COMMANDS_HIGH 180
-#else
+#else // default is oneshot125
 #define COMMANDS_LOW 125
 #define COMMANDS_HIGH 250
 #endif

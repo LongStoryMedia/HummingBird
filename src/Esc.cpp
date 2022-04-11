@@ -12,14 +12,6 @@ void Esc::setSpeed(Commands commands)
         commands = COMMANDS_LOW;
     }
 
-    // Serial.print(F("m1: "));
-    // Serial.println(commands.m1);
-    // Serial.print(F("m2: "));
-    // Serial.println(commands.m2);
-    // Serial.print(F("m3: "));
-    // Serial.println(commands.m3);
-    // Serial.print(F("m4: "));
-    // Serial.println(commands.m4);
 #if defined(USE_PWM)
     m1.write(commands.m1);
     m2.write(commands.m2);

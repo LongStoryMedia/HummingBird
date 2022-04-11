@@ -41,10 +41,10 @@
 #define ALT_CONSTRAINT_INC 0.0000001f
 
 // hardware configuration
-#define M1_PIN 2
-#define M2_PIN 3
+#define M1_PIN 3
+#define M2_PIN 5
 #define M3_PIN 4
-#define M4_PIN 5
+#define M4_PIN 2
 
 #define CE_NRF24 10
 #define CSN_NRF24 9
@@ -54,7 +54,7 @@
 #define PROP_CONFIG 0
 
 #define USE_BMP390
-#define USE_MULTISHOT
+// #define USE_MULTISHOT
 
 #define ALT_WIRE Wire
 #define IMU_WIRE Wire
