@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-typedef struct
+typedef struct State
 {
     int16_t yaw;
     int16_t pitch;
@@ -255,7 +255,7 @@ typedef struct AccelGyro
     }
 } AccelGyro;
 
-typedef struct
+typedef struct Prop
 {
     enum rotation
     {
@@ -276,17 +276,11 @@ typedef struct
 
 typedef struct
 {
-    Prop p1{p1._, p1.positive, p1.negative};
-    Prop p2{p2._, p2.negative, p2.negative};
-    Prop p3{p3._, p3.negative, p3.positive};
-    Prop p4{p4._, p4.positive, p4.positive};
+    Prop p1;
+    Prop p2;
+    Prop p3;
+    Prop p4;
 } PropConfig;
-
-enum configType
-{
-    x1,
-    x2
-};
 
 enum imuOrientation
 {

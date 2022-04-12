@@ -32,29 +32,6 @@
 void Pid::init()
 {
   integratorThreashold = I_TH;
-  switch (PROP_CONFIG)
-  {
-  case configType::x1:
-    propConfig.p1.rotation = propConfig.p1.counterClockwise;
-    propConfig.p2.rotation = propConfig.p2.clockwise;
-    propConfig.p3.rotation = propConfig.p3.counterClockwise;
-    propConfig.p4.rotation = propConfig.p4.clockwise;
-    break;
-
-  case configType::x2:
-    propConfig.p1.rotation = propConfig.p1.clockwise;
-    propConfig.p2.rotation = propConfig.p2.counterClockwise;
-    propConfig.p3.rotation = propConfig.p3.clockwise;
-    propConfig.p4.rotation = propConfig.p4.counterClockwise;
-    break;
-
-  default:
-    propConfig.p1.rotation = propConfig.p1.counterClockwise;
-    propConfig.p2.rotation = propConfig.p2.clockwise;
-    propConfig.p3.rotation = propConfig.p3.counterClockwise;
-    propConfig.p4.rotation = propConfig.p4.clockwise;
-    break;
-  }
 
   switch (IMU_ORIENTATION)
   {
@@ -119,29 +96,31 @@ void Pid::init()
   kRate.yaw = yawRate;
 }
 
-void Pid::setDesiredState()
+void Pid::setDesiredState(State packet)
 {
 #if defined(USE_ALT)
-  integrateAlt();
+  integrateAlt(packet);
 #else
   desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
 #endif
+
   desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
   desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
   desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
+
 #if IMU_ORIENTATION == 0
   desiredState.roll *= -1.0;
   desiredState.pitch *= -1.0;
 #endif
 }
 
-void Pid::integrateAlt()
+void Pid::integrateAlt(State packet)
 {
 #if defined(USE_ALT)
   if (alt.altLocked != (Alt::lockState)packet.lockAlt)
   {
     alt.altLocked = (Alt::lockState)packet.lockAlt;
-    if (packet.lockAlt == 1)
+    if (packet.lockAlt == Alt::lockState::locked)
     {
       alt.lockedAlt = alt.getAlt();
       alt.lockedThrust = packet.thrust;
@@ -150,7 +129,7 @@ void Pid::integrateAlt()
     }
   }
 
-  if (alt.altLocked == (Alt::lockState)1)
+  if (alt.altLocked == Alt::lockState::locked)
   {
     errorAlt = alt.lockedAlt - alt.alt;
     integralAlt = prevIntegralAlt + errorAlt * timer.delta;

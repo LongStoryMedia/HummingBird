@@ -20,8 +20,6 @@ AccelGyro agError;
 AccelGyro agImu;
 AccelGyro agImuPrev;
 State packet;
-State prevPacket;
-PropConfig propConfig;
 Rx rx;
 Esc esc;
 Pid pid;
@@ -32,6 +30,21 @@ Alt alt;
 #if defined(USE_PROXIMITY_DETECTION)
 Proximity proximity;
 #endif
+
+#if (PROP_CONFIG == 0)
+Prop __p1{Prop::clockwise, Prop::positive, Prop::negative};
+Prop __p2{Prop::counterClockwise, Prop::negative, Prop::negative};
+Prop __p3{Prop::clockwise, Prop::negative, Prop::positive};
+Prop __p4{Prop::counterClockwise, Prop::positive, Prop::positive};
+PropConfig propConfig{__p1, __p2, __p3, __p4};
+#elif (PROP_CONFIG == 1)
+Prop __p1{Prop::counterClockwise, Prop::positive, Prop::negative};
+Prop __p2{Prop::clockwise, Prop::negative, Prop::negative};
+Prop __p3{Prop::counterClockwise, Prop::negative, Prop::positive};
+Prop __p4{Prop::clockwise, Prop::positive, Prop::positive};
+PropConfig propConfig{__p1, __p2, __p3, __p4};
+#endif
+
 //========================================================================================================================//
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
@@ -87,7 +100,6 @@ void loop()
 {
   loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
   sensorTimer.update();
-  // Serial.println("SENSOR LOOP");
 
 #if defined(USE_ALT)
   alt.altCheck();
@@ -103,7 +115,6 @@ void loop()
 void radioLoop()
 {
   radioTimer.update();
-  // Serial.println("RADIO LOOP");
   packet = rx.getPacket();
   radioTimer.regulate(flightLoop);
 }
@@ -111,13 +122,16 @@ void radioLoop()
 void flightLoop()
 {
   timer.update();
-  // Serial.println("FLIGHT LOOP");
 
   imu.getImu();
   Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
 
-  pid.setDesiredState(); // convert raw commands to normalized values based on saturated control limits
+  pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
   Commands commands = pid.control(agImu);
+  if (packet.thrust < 10)
+  {
+    commands = COMMANDS_LOW;
+  }
 
   esc.setSpeed(commands);
 

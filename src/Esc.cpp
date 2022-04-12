@@ -6,8 +6,7 @@ void Esc::setSpeed(Commands commands)
     if (commands.m1 > COMMANDS_HIGH ||
         commands.m2 > COMMANDS_HIGH ||
         commands.m3 > COMMANDS_HIGH ||
-        commands.m4 > COMMANDS_HIGH ||
-        packet.thrust < 10)
+        commands.m4 > COMMANDS_HIGH)
     {
         commands = COMMANDS_LOW;
     }

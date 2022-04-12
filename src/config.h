@@ -24,6 +24,8 @@
 #endif
 
 //========================================================================================================================//
+#include "Threading.h"
+
 #include "types.h"
 
 #include <Wire.h> //I2c communication
@@ -70,8 +72,8 @@ extern AccelGyro agImuPrev;
 extern Quaternion q;
 extern Filter filter;
 extern State packet;
-extern State prevPacket;
 extern PropConfig propConfig;
+
 extern Rx rx;
 extern Esc esc;
 extern Pid pid;
@@ -142,8 +144,6 @@ extern Proximity proximity;
 #define ACCEL_SCALE ACCEL_FS_SEL_16
 #define ACCEL_SCALE_FACTOR 2048.0
 #endif
-
-// #define ESC_PROGRAM_MODE
 
 //========================================================================================================================//
 //                                                      PROTOTYPES                                                        //

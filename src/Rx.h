@@ -19,6 +19,8 @@ private:
     void initLora();
     uint32_t rxt;
     void failSafe();
+    State packet;
+    State prevPacket;
 
 public:
     State getPacket();

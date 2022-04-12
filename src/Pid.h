@@ -37,7 +37,7 @@ private:
     float lockedDesiredThrust;
     float errorThrust;
     float mix(Prop prop);
-    void integrateAlt();
+    void integrateAlt(State packet);
 
 public:
     void init();
@@ -45,7 +45,7 @@ public:
     uint16_t r2;
     uint16_t r3;
     uint16_t r4;
-    void setDesiredState();
+    void setDesiredState(State packet);
     Commands control(AccelGyro imu);
 
     enum mode
