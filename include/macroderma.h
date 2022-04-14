@@ -18,18 +18,18 @@
 #define MAX_ROLL 30.0f       // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_PITCH 30.0f      // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_YAW 160.0f       // Max yaw rate in deg/sec
-#define KP_ROLL_ANGLE 0.075f // Roll P-gain - angle mode
-#define KI_ROLL_ANGLE 0.225f // Roll I-gain - angle mode
+#define KP_ROLL_ANGLE 0.095f // Roll P-gain - angle mode
+#define KI_ROLL_ANGLE 0.25f  // Roll I-gain - angle mode
 #define KD_ROLL_ANGLE 0.0f   // Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0)
 #define B_LOOP_ROLL 0.9f     // Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
-#define KP_PITCH_ANGLE 0.1f  // Pitch P-gain - angle mode
-#define KI_PITCH_ANGLE 0.2f  // Pitch I-gain - angle mode
+#define KP_PITCH_ANGLE 0.11f // Pitch P-gain - angle mode
+#define KI_PITCH_ANGLE 0.25f // Pitch I-gain - angle mode
 #define KD_PITCH_ANGLE 0.0f  // Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
 #define B_LOOP_PITCH 0.9f    // Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 #define KP_ROLL_RATE 0.1f    // Roll P-gain - rate mode
-#define KI_ROLL_RATE 0.165f  // Roll I-gain - rate mode
+#define KI_ROLL_RATE 0.2f    // Roll I-gain - rate mode
 #define KD_ROLL_RATE 0.0f    // Roll D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
-#define KP_PITCH_RATE 0.075f // Pitch P-gain - rate mode
+#define KP_PITCH_RATE 0.095f // Pitch P-gain - rate mode
 #define KI_PITCH_RATE 0.15f  // Pitch I-gain - rate mode
 #define KD_PITCH_RATE 0.0f   // Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
 #define KP_YAW 0.065f        // Yaw P-gain
@@ -39,6 +39,14 @@
 #define KI_ALT 0.15f
 #define ALT_CONSTRAINT_ABS 0.01f
 #define ALT_CONSTRAINT_INC 0.0000001f
+
+#define OFFSET_X_ACCEL -1130
+#define OFFSET_Y_ACCEL -3047
+#define OFFSET_Z_ACCEL 1400
+#define OFFSET_X_GYRO -27
+#define OFFSET_Y_GYRO 47
+#define OFFSET_Z_GYRO 34
+#define OFFSET(type, axis) OFFSET_##axis_##type
 
 // hardware configuration
 #define M1_PIN 3
@@ -54,7 +62,9 @@
 #define PROP_CONFIG 1
 
 #define USE_BMP390
-#define USE_MULTISHOT
+// #define USE_MULTISHOT
 
 #define ALT_WIRE Wire
 #define IMU_WIRE Wire
+
+// #define CALIBRATION_MODE

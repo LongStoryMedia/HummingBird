@@ -81,13 +81,13 @@ void setup()
 
   // Initialize IMU communication
   imu.init(&IMU_WIRE);
-  delay(10);
-  esc.arm();
-  delay(100);
   // Warm up the loop
   Serial.println("calibrating...");
   imu.calibrate(); // helps to warm up IMU and Madgwick filter before finally entering main loop
   Serial.println("done calibrating");
+  delay(10);
+  esc.arm();
+  delay(100);
   // Indicate entering main loop with 3 quick blinks
   setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
 }

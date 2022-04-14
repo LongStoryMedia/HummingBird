@@ -19,6 +19,25 @@
 #define KL 30.0f
 #endif
 
+#ifndef OFFSET_X_ACCEL
+#define OFFSET_X_ACCEL 0
+#endif
+#ifndef OFFSET_Y_ACCEL
+#define OFFSET_Y_ACCEL 0
+#endif
+#ifndef OFFSET_Z_ACCEL
+#define OFFSET_Z_ACCEL 0
+#endif
+#ifndef OFFSET_X_GYRO
+#define OFFSET_X_GYRO 0
+#endif
+#ifndef OFFSET_Y_GYRO
+#define OFFSET_Y_GYRO 0
+#endif
+#ifndef OFFSET_Z_GYRO
+#define OFFSET_Z_GYRO 0
+#endif
+
 #if defined(USE_MPL3115A2) || defined(USE_BMP390)
 #define USE_ALT
 #endif

@@ -1,5 +1,9 @@
 #include "config.h"
 
+#if defined(CALIBRATION_MODE)
+#include "CalculateImuOffsets.h"
+#endif
+
 void Imu::init(TwoWire *wire)
 {
     mpu.initialize(wire);
@@ -25,7 +29,7 @@ void Imu::init(TwoWire *wire)
     mpu.setMagnetFS(0); // ± 400 µT
     float AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
 #else
-    int16_t AcX, AcY, AcZ, GyX, GyY, GyZ, MgX, MgY, MgZ;
+    int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
 #endif
     // Read IMU values 12000 times
     int c = 0;
@@ -59,7 +63,15 @@ void Imu::init(TwoWire *wire)
 
 void Imu::calibrate()
 {
+    // mpu.CalibrateAccel();
+    // mpu.CalibrateGyro();
     // Warm up IMU and madgwick filter in simulated main loop
+    mpu.setXAccelOffset(OFFSET_X_ACCEL);
+    mpu.setYAccelOffset(OFFSET_Y_ACCEL);
+    mpu.setZAccelOffset(OFFSET_Z_ACCEL);
+    mpu.setXGyroOffset(OFFSET_X_GYRO);
+    mpu.setYGyroOffset(OFFSET_Y_GYRO);
+    mpu.setZGyroOffset(OFFSET_Z_GYRO);
     for (int i = 0; i <= 10000; i++)
     {
         timer.update();
@@ -67,6 +79,19 @@ void Imu::calibrate()
         Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
         timer.regulate();
     }
+
+#if defined(CALIBRATION_MODE)
+    for (int i = 0; i <= 50000; i++)
+    {
+        timer.update();
+        getImu();
+        Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
+        timer.regulate();
+    }
+    CalculateOffsets(mpu);
+    while (1)
+        ;
+#endif
 }
 
 void Imu::getImu()
