@@ -127,18 +127,18 @@ AccelGyro Imu::getImu()
     ag.gyro.yaw = (1.0 - filter.gyro) * agPrev.gyro.yaw + filter.gyro * ag.gyro.yaw;
     agPrev.gyro = ag.gyro;
 
-    Serial.print("accRoll:");
-    Serial.print(ag.accel.roll);
-    Serial.print("\taccPitch:");
-    Serial.print(ag.accel.pitch);
-    Serial.print("\taccYaw:");
-    Serial.print(ag.accel.yaw);
-    Serial.print("\tgyroRoll:");
-    Serial.print(ag.gyro.roll);
-    Serial.print("\tgyroPitch:");
-    Serial.print(ag.gyro.pitch);
-    Serial.print("\tgyroYaw:");
-    Serial.println(ag.gyro.yaw);
+    // Serial.print("accRoll:");
+    // Serial.print(ag.accel.roll);
+    // Serial.print("\taccPitch:");
+    // Serial.print(ag.accel.pitch);
+    // Serial.print("\taccYaw:");
+    // Serial.print(ag.accel.yaw);
+    // Serial.print("\tgyroRoll:");
+    // Serial.print(ag.gyro.roll);
+    // Serial.print("\tgyroPitch:");
+    // Serial.print(ag.gyro.pitch);
+    // Serial.print("\tgyroYaw:");
+    // Serial.println(ag.gyro.yaw);
     return filterAg();
 }
 
@@ -229,5 +229,6 @@ AccelGyro Imu::filterAg()
     filteredAg.accel.roll = atan2(q.q0 * q.q1 + q.q2 * q.q3, 0.5f - q.q1 * q.q1 - q.q2 * q.q2) * 57.29577951; // degrees
     filteredAg.accel.pitch = -asin(-2.0f * (q.q1 * q.q3 - q.q0 * q.q2)) * 57.29577951;                        // degrees
     filteredAg.accel.yaw = -atan2(q.q1 * q.q2 + q.q0 * q.q3, 0.5f - q.q2 * q.q2 - q.q3 * q.q3) * 57.29577951; // degrees
+
     return filteredAg;
 }

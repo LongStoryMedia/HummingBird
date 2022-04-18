@@ -6,6 +6,11 @@ class Imu
 private:
     MPU6050 mpu;
     AccelGyro filterAg();
+    AccelGyro ag;
+    AccelGyro agPrev;
+    AccelGyro agError;
+    Filter filter{0.04, 0.14, 0.1, 1.0};
+    Quaternion q{1.0f, 0.0f, 0.0f, 0.0f};
 
 public:
     void

@@ -16,13 +16,16 @@ void Timer::setClock(Timer *innerTimer)
     if (!timesUp())
     {
         timeRemaining = totalLoopTime - micros() - now;
-        if (innerTimer->totalLoopTime > timeRemaining)
+        if (innerTimer != NULL)
         {
-            while (totalLoopTime - micros() - now)
-                ;
+            if (innerTimer->totalLoopTime > timeRemaining)
+            {
+                while (totalLoopTime - micros() - now)
+                    ;
 
-            updated = false;
-            timeRemaining = totalLoopTime;
+                updated = false;
+                timeRemaining = totalLoopTime;
+            }
         }
     }
     else
@@ -53,7 +56,7 @@ void Timer::regulate(void (*func)(), Timer *innerTimer)
     // Sit in loop until appropriate time has passed
     while (updated)
     {
-        if (func != NULL && innerTimer != NULL)
+        if (func != NULL)
         {
             func();
         }

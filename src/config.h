@@ -91,13 +91,6 @@ extern uint32_t blink_counter, blink_delay;
 extern bool blinkAlternate;
 extern Timer timer;
 extern Timer radioTimer;
-extern AccelGyro ag;
-extern AccelGyro agPrev;
-extern AccelGyro agError;
-extern AccelGyro filteredAg;
-extern Quaternion q;
-extern Filter filter;
-extern State packet;
 extern PropConfig propConfig;
 
 extern Rx rx;
