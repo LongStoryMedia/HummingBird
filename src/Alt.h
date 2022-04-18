@@ -24,7 +24,6 @@ public:
     void init(TwoWire *wire);
     bool setAltLock(bool locked);
     float getAlt();
-    void altCheck();
     float lockedAlt;
     uint32_t lockedThrust;
     lockState altLocked;

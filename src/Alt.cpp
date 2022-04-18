@@ -17,13 +17,6 @@ void Alt::init(TwoWire *wire)
     baro.init(300, Timer::hzToUs(200), wire);
 }
 
-void Alt::altCheck()
-{
-    // this should be called once per loop
-    // and no more - in order to maintain proper frequency
-    alt = getAlt();
-}
-
 float Alt::getAlt()
 {
     prevAlt = alt;

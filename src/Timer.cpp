@@ -6,12 +6,24 @@ Timer::Timer(uint16_t hz)
     totalLoopTime = Timer::hzToUs(hz);
 }
 
-void Timer::setClock()
+bool Timer::timesUp()
 {
-    uint32_t microsPassed = micros() - now;
-    if (totalLoopTime > microsPassed)
+    return totalLoopTime <= (micros() - now);
+}
+
+void Timer::setClock(Timer *innerTimer)
+{
+    if (!timesUp())
     {
-        timeRemaining = totalLoopTime - microsPassed;
+        timeRemaining = totalLoopTime - micros() - now;
+        if (innerTimer->totalLoopTime > timeRemaining)
+        {
+            while (totalLoopTime - micros() - now)
+                ;
+
+            updated = false;
+            timeRemaining = totalLoopTime;
+        }
     }
     else
     {
@@ -20,22 +32,28 @@ void Timer::setClock()
     }
 }
 
-void Timer::regulate(void (*func)())
+void Timer::regulate(void (*func)(), Timer *innerTimer)
 {
     // DESCRIPTION: waits in loop until totalLoopTime has passed. Maintains freq.
-    // if (Timer::hzToUs(delta * 1000000) < loopRate - 5) // a little grace for loss of precision
-    // {
-    //     Serial.print(F("loop rate is below "));
-    //     Serial.print(loopRate);
-    //     Serial.print(F("Hz. Current rate is "));
-    //     Serial.print(Timer::hzToUs(delta * 1000000));
-    //     Serial.println(F("Hz"));
-    // };
-
+    delta = (micros() - now) / 1000000.0;
+    if (timesUp())
+    {
+        Serial.print(F("loop rate is below "));
+        Serial.print(loopRate);
+        Serial.print(F("Hz. Current rate is "));
+        Serial.print(Timer::hzToUs(delta * 1000000.0));
+        Serial.print(F("Hz, delta is "));
+        Serial.print(delta * 1000000.0);
+        Serial.print(F("ms, and total loop time is "));
+        Serial.println(totalLoopTime);
+        updated = false;
+        timeRemaining = totalLoopTime;
+        return;
+    };
     // Sit in loop until appropriate time has passed
     while (updated)
     {
-        if (func != NULL)
+        if (func != NULL && innerTimer != NULL)
         {
             func();
         }

@@ -42,9 +42,18 @@
 #define USE_ALT
 #endif
 
-//========================================================================================================================//
-#include "Threading.h"
+#if defined(USS_FR_PIN) || \
+    defined(USS_BK_PIN) || \
+    defined(USS_LF_PIN) || \
+    defined(USS_RT_PIN) || \
+    defined(USS_UP_PIN)
+#define USE_PROXIMITY_DETECTION
+#endif
 
+#if defined(USS_DN_PIN)
+#define USE_USS_ALT
+#endif
+//========================================================================================================================//
 #include "types.h"
 
 #include <Wire.h> //I2c communication
@@ -72,7 +81,6 @@
 #include "Rx.h"
 #include "Esc.h"
 #include "Pid.h"
-#include "Madgwick.h"
 
 //========================================================================================================================//
 //                                                 GLOBALS                                                                //
@@ -86,8 +94,7 @@ extern Timer radioTimer;
 extern AccelGyro ag;
 extern AccelGyro agPrev;
 extern AccelGyro agError;
-extern AccelGyro agImu;
-extern AccelGyro agImuPrev;
+extern AccelGyro filteredAg;
 extern Quaternion q;
 extern Filter filter;
 extern State packet;

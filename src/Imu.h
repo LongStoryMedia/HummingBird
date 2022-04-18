@@ -5,11 +5,13 @@ class Imu
 {
 private:
     MPU6050 mpu;
+    AccelGyro filterAg();
 
 public:
-    void calibrate();
+    void
+    calibrate();
     void init(TwoWire *wire);
-    void getImu();
+    AccelGyro getImu();
 
 #if defined(IMU_MPU9250)
     const MPU9250::GyroRange GYRO_RANGE_250DPS = mpu.GYRO_RANGE_250DPS;

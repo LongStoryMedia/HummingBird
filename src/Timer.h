@@ -6,9 +6,10 @@ class Timer
 public:
     Timer(uint16_t hz);
 
-    void regulate(void (*func)() = NULL);
+    void regulate(void (*func)() = NULL, Timer *innerTimer = NULL);
     void update();
-    void setClock();
+    void setClock(Timer *innerTimer = NULL);
+    bool timesUp();
     static float hzToUs(int speed);
 
     float delta;

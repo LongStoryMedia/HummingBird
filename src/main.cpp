@@ -9,17 +9,14 @@
 
 unsigned long print_counter;
 bool blinkAlternate;
-Timer timer(4000);
-Timer radioTimer(500);
-Timer sensorTimer(100);
-Filter filter{0.04, 0.14, 0.1, 1.0};
-Quaternion q{1.0f, 0.0f, 0.0f, 0.0f};
+Timer timer(5000);
+Timer timerOl(100);
+State packet;
 AccelGyro ag;
 AccelGyro agPrev;
 AccelGyro agError;
-AccelGyro agImu;
-AccelGyro agImuPrev;
-State packet;
+Filter filter{0.04, 0.14, 0.1, 1.0};
+Quaternion q{1.0f, 0.0f, 0.0f, 0.0f};
 Rx rx;
 Esc esc;
 Pid pid;
@@ -48,8 +45,16 @@ PropConfig propConfig{__p1, __p2, __p3, __p4};
 //========================================================================================================================//
 //                                                 SETUP                                                                  //
 //========================================================================================================================//
-void flightLoop();
-void radioLoop();
+/**
+ * @brief frequently updated
+ *
+ */
+void innerLoop();
+/**
+ * @brief periodically updated
+ *
+ */
+void outerLoop();
 
 void setup()
 {
@@ -92,47 +97,39 @@ void setup()
   setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
 }
 
-//========================================================================================================================//
-//                                                       MAIN LOOP                                                        //
-//========================================================================================================================//
-
 void loop()
 {
+  outerLoop();
+}
+
+void outerLoop()
+{
   loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
-  sensorTimer.update();
+  timerOl.update();
 
 #if defined(USE_ALT)
-  alt.altCheck();
+  alt.getAlt();
 #endif
 
 #if defined(USE_PROXIMITY_DETECTION)
   obstacles obs = proximity.scan();
 #endif
 
-  sensorTimer.regulate(radioLoop);
-}
-
-void radioLoop()
-{
-  radioTimer.update();
   packet = rx.getPacket();
-  radioTimer.regulate(flightLoop);
+  pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
+
+  timerOl.regulate(innerLoop);
 }
 
-void flightLoop()
+void innerLoop()
 {
   timer.update();
-
-  imu.getImu();
-  Madgwick(ag.gyro.roll, -ag.gyro.pitch, -ag.gyro.yaw, -ag.accel.roll, ag.accel.pitch, ag.accel.yaw, ag.mag.pitch, -ag.mag.roll, ag.mag.yaw);
-
-  pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
-  Commands commands = pid.control(agImu);
-  if (packet.thrust < 10)
+  Commands commands;
+  commands = COMMANDS_LOW;
+  if (packet.thrust > 10)
   {
-    commands = COMMANDS_LOW;
+    commands = pid.control(imu.getImu());
   }
-
   esc.setSpeed(commands);
 
   timer.regulate();
@@ -187,21 +184,19 @@ void setupBlink(int numBlinks, int upTime, int downTime)
 float invSqrt(float x)
 {
   // Fast inverse sqrt for madgwick filter
-  /*
   float halfx = 0.5f * x;
   float y = x;
-  long i = *(long*)&y;
-  i = 0x5f3759df - (i>>1);
-  y = *(float*)&i;
+  long i = *(long *)&y;
+  i = 0x5f3759df - (i >> 1);
+  y = *(float *)&i;
   y = y * (1.5f - (halfx * y * y));
   y = y * (1.5f - (halfx * y * y));
   return y;
-  */
   // alternate form:
-  unsigned int i = 0x5F1F1412 - (*(unsigned int *)&x >> 1);
-  float tmp = *(float *)&i;
-  float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
-  return y;
+  // unsigned int i = 0x5F1F1412 - (*(unsigned int *)&x >> 1);
+  // float tmp = *(float *)&i;
+  // float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
+  // return y;
 }
 
 template <class T>
