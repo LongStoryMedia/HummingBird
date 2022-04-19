@@ -268,12 +268,12 @@ void Pid::cascadingAngle(AccelGyro imu)
   derivative.yaw = (error.yaw - prevError.yaw) / timer.delta;
   out.yaw = .01 * (kRate.yaw.Kp * error.yaw + kRate.yaw.Ki * integral.yaw + kRate.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
 
-  // Serial.print("roll: ");
-  // Serial.println(out.roll);
-  // Serial.print(" pitch: ");
-  // Serial.println(out.pitch);
-  // Serial.print(" yaw: ");
-  // Serial.println(out.yaw);
+  Serial.print("roll: ");
+  Serial.print(out.roll);
+  Serial.print("\tpitch: ");
+  Serial.print(out.pitch);
+  Serial.print("\tyaw: ");
+  Serial.println(out.yaw);
   // Update roll variables
   prevError = error;
   prevIntegralOl = integralOl;
