@@ -14,13 +14,15 @@ void Alt::init(TwoWire *wire)
 {
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, Timer::hzToUs(200), wire);
+    baro.init(300, timerOl.totalLoopTime, wire);
 }
 
 float Alt::getAlt()
 {
     prevAlt = alt;
+    noInterrupts();
     alt = baro.read();
+    interrupts();
 
     if (prevAlt == 0)
     {
@@ -34,10 +36,10 @@ float Alt::getAlt()
     }
 
     // try to get an update if we haven't seen one in a while
-    if (timer.now - lastUpdate > Timer::hzToUs(timer.loopRate / 20))
-    {
-        alt = baro.read();
-    }
+    // if (timer.now - lastUpdate > Timer::hzToUs(timer.loopRate / 20))
+    // {
+    //     alt = baro.read();
+    // }
 
     // only integrate on change
     if (alt != prevAlt)
@@ -45,7 +47,7 @@ float Alt::getAlt()
         float err = alt - prevAlt;
         // LP filter alt data
         alt = (1.0 - filterParam) * prevAlt + filterParam * alt;
-        alt += err * timer.delta;
+        alt += err * timerOl.delta;
         realAlt = alt;
         lastUpdate = micros();
     }

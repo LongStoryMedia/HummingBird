@@ -90,7 +90,7 @@ extern uint32_t print_counter, serial_counter;
 extern uint32_t blink_counter, blink_delay;
 extern bool blinkAlternate;
 extern Timer timer;
-extern Timer radioTimer;
+extern Timer timerOl;
 extern PropConfig propConfig;
 
 extern Rx rx;

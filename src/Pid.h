@@ -6,15 +6,9 @@ class Pid
 private:
     float integratorLimit;
     uint16_t integratorThreashold;
-    ScaledState desiredState;
-    ScaledState prevDesiredState;
-    Coefficients rollAngle;
-    Coefficients pitchAngle;
-    Coefficients yawAngle;
+    volatile ScaledState desiredState;
+    volatile ScaledState prevDesiredState;
     CoefficientSet kAngle;
-    Coefficients rollRate;
-    Coefficients pitchRate;
-    Coefficients yawRate;
     CoefficientSet kRate;
     YPR out;
     YPR error;
@@ -26,9 +20,8 @@ private:
     YPR integralOl;
     YPR prevIntegralOl;
     AccelGyro prevImu;
-    void simpleAngle(AccelGyro imu);
-    void cascadingAngle(AccelGyro imu);
-    void simpleRate(AccelGyro imu);
+    void angleLoop(const AccelGyro &imu);
+    void rateLoop(const AccelGyro &imu);
     Commands commands;
     float errorAlt;
     float integralAlt;
@@ -38,6 +31,7 @@ private:
     float errorThrust;
     float mix(Prop prop);
     void integrateAlt(State packet);
+    bool isPreTakeoff();
 
 public:
     void init();
@@ -46,7 +40,7 @@ public:
     uint16_t r3;
     uint16_t r4;
     void setDesiredState(State packet);
-    Commands control(AccelGyro imu);
+    Commands control(const AccelGyro &imu);
 
     enum mode
     {

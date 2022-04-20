@@ -6,7 +6,7 @@ class Timer
 public:
     Timer(uint16_t hz);
 
-    void regulate(void (*func)() = NULL, Timer *innerTimer = NULL);
+    void regulate(void (*func)(), uint16_t priority);
     void update();
     void setClock(Timer *innerTimer = NULL);
     bool timesUp();
@@ -21,6 +21,7 @@ public:
     bool updated;
 
 private:
+    IntervalTimer timer;
 };
 
 #endif

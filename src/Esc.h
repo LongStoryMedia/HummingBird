@@ -12,7 +12,13 @@ private:
 #endif
 public:
     void arm();
-    void setSpeed(Commands commands);
+    void setSpeed(Commands &commands);
+    void setSpeed(uint32_t commands)
+    {
+        Commands com;
+        com = commands;
+        setSpeed(com);
+    };
 };
 
 #endif

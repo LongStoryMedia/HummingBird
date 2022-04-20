@@ -1,11 +1,8 @@
 #include "config.h"
 
-//========================================================================================================================//
-//                                                 GLOBALS                                                                //
-//========================================================================================================================//
-
-// uint32_t print_counter, serial_counter;
-// uint32_t blink_counter, blink_delay;
+//=============================================================================================================//
+//                                                 GLOBALS                                                     //
+//=============================================================================================================//
 
 unsigned long print_counter;
 bool blinkAlternate;
@@ -23,6 +20,9 @@ Alt alt;
 Proximity proximity;
 #endif
 
+IntervalTimer fcTimer;
+IntervalTimer dataTimer;
+
 #if (PROP_CONFIG == 0)
 Prop __p1{Prop::clockwise, Prop::positive, Prop::negative};
 Prop __p2{Prop::counterClockwise, Prop::negative, Prop::negative};
@@ -37,9 +37,10 @@ Prop __p4{Prop::clockwise, Prop::positive, Prop::positive};
 PropConfig propConfig{__p1, __p2, __p3, __p4};
 #endif
 
-//========================================================================================================================//
-//                                                 SETUP                                                                  //
-//========================================================================================================================//
+//=============================================================================================================//
+//                                                 SETUP                                                       //
+//=============================================================================================================//
+
 /**
  * @brief frequently updated
  *
@@ -55,8 +56,6 @@ void setup()
 {
   Serial.begin(5000000); // usb serial
   pinMode(13, OUTPUT);   // pin 13 LED blinker on board, do not modify
-
-  // Set built in LED to turn on to signal startup & not to disturb vehicle during IMU calibration
   digitalWrite(13, HIGH);
 
   ALT_WIRE.begin();
@@ -64,75 +63,59 @@ void setup()
   IMU_WIRE.begin();
   IMU_WIRE.setClock(1000000);
 
-  delay(10);
   pid.init();
-  // Initialize radio communication
   rx.init();
 #if defined(USE_ALT)
-  // Initialize Baro communication
   alt.init(&ALT_WIRE);
-  delay(10);
 #endif
-
 #if defined(USE_PROXIMITY_DETECTION)
   proximity.init();
-  delay(10);
 #endif
-
-  // Initialize IMU communication
-  imu.init(&IMU_WIRE);
-  // Warm up the loop
-  Serial.println("calibrating...");
-  imu.calibrate(); // helps to warm up IMU and Madgwick filter before finally entering main loop
-  Serial.println("done calibrating");
-  delay(10);
+  imu.init(&IMU_WIRE); // Initialize IMU communication
+  imu.calibrate();     // helps to warm up IMU and Madgwick filter before finally entering main loop
   esc.arm();
-  delay(100);
-  // Indicate entering main loop with 3 quick blinks
   setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
+  timer.regulate(innerLoop, 50);
+  timerOl.regulate(outerLoop, 100);
 }
 
 void loop()
 {
-  outerLoop();
 }
 
 void outerLoop()
 {
-  loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
   timerOl.update();
-
+  loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
 #if defined(USE_ALT)
   alt.getAlt();
 #endif
-
 #if defined(USE_PROXIMITY_DETECTION)
   obstacles obs = proximity.scan();
 #endif
-
   packet = rx.getPacket();
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
-
-  timerOl.regulate(innerLoop);
 }
 
 void innerLoop()
 {
   timer.update();
   Commands commands;
-  commands = COMMANDS_LOW;
   if (packet.thrust > 10)
   {
-    commands = pid.control(imu.getImu());
+    AccelGyro ag = imu.getImu();
+    commands = pid.control(ag);
+  }
+  else
+  {
+    commands = COMMANDS_LOW;
   }
   esc.setSpeed(commands);
-
-  timer.regulate();
 }
 
-//========================================================================================================================//
-//                                                      FUNCTIONS                                                         //
-//========================================================================================================================//
+//=============================================================================================================//
+//                                                      FUNCTIONS                                              //
+//=============================================================================================================//
 
 void loopBlink()
 {
@@ -173,25 +156,25 @@ void setupBlink(int numBlinks, int upTime, int downTime)
 }
 
 //=========================================================================================//
-
-// HELPER FUNCTIONS
+//                                HELPER FUNCTIONS                                         //
+//=========================================================================================//
 
 float invSqrt(float x)
 {
   // Fast inverse sqrt for madgwick filter
-  float halfx = 0.5f * x;
-  float y = x;
-  long i = *(long *)&y;
-  i = 0x5f3759df - (i >> 1);
-  y = *(float *)&i;
-  y = y * (1.5f - (halfx * y * y));
-  y = y * (1.5f - (halfx * y * y));
-  return y;
-  // alternate form:
-  // unsigned int i = 0x5F1F1412 - (*(unsigned int *)&x >> 1);
-  // float tmp = *(float *)&i;
-  // float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
+  // float halfx = 0.5f * x;
+  // float y = x;
+  // long i = *(long *)&y;
+  // i = 0x5f3759df - (i >> 1);
+  // y = *(float *)&i;
+  // y = y * (1.5f - (halfx * y * y));
+  // y = y * (1.5f - (halfx * y * y));
   // return y;
+  // alternate form:
+  unsigned int i = 0x5F1F1412 - (*(unsigned int *)&x >> 1);
+  float tmp = *(float *)&i;
+  float y = tmp * (1.69000231f - 0.714158168f * x * tmp * tmp);
+  return y;
 }
 
 template <class T>

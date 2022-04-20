@@ -1,7 +1,7 @@
 #include "config.h"
 
 // DESCRIPTION: Send pulses to motor pins
-void Esc::setSpeed(Commands commands)
+void Esc::setSpeed(Commands &commands)
 {
     if (commands.m1 > COMMANDS_HIGH ||
         commands.m2 > COMMANDS_HIGH ||
@@ -74,8 +74,6 @@ void Esc::setSpeed(Commands commands)
 
 void Esc::arm()
 {
-    Commands commands;
-    Serial.print(F("arming motors"));
 #if defined(USE_PWM)
     m1.attach(M1_PIN, 900, 2100);
     m2.attach(M2_PIN, 900, 2100);
@@ -88,7 +86,6 @@ void Esc::arm()
     pinMode(M4_PIN, OUTPUT);
 #endif
 #if !defined(ESC_PROGRAM_MODE)
-    commands = COMMANDS_LOW;
-    setSpeed(commands);
+    setSpeed(COMMANDS_LOW);
 #endif
 }

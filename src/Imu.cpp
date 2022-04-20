@@ -88,9 +88,7 @@ void Imu::calibrate()
     // Warm up IMU and madgwick filter in simulated main loop
     for (int i = 0; i <= 10000; i++)
     {
-        timer.update();
         getImu();
-        timer.regulate();
     }
 }
 
