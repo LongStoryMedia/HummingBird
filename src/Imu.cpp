@@ -188,10 +188,10 @@ AccelGyro Imu::filterAg()
     }
 
     // Integrate rate of change of quaternion to yield quaternion
-    q.q0 += qDot1 * timer.delta;
-    q.q1 += qDot2 * timer.delta;
-    q.q2 += qDot3 * timer.delta;
-    q.q3 += qDot4 * timer.delta;
+    q.q0 += qDot1 * fcTimer.delta;
+    q.q1 += qDot2 * fcTimer.delta;
+    q.q2 += qDot3 * fcTimer.delta;
+    q.q3 += qDot4 * fcTimer.delta;
 
     // Normalise quaternion
     recipNorm = invSqrt(q.q0 * q.q0 + q.q1 * q.q1 + q.q2 * q.q2 + q.q3 * q.q3);

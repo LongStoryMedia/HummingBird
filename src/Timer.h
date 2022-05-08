@@ -4,9 +4,9 @@
 class Timer
 {
 public:
-    Timer(uint16_t hz);
+    Timer(uint16_t hz, uint16_t priority);
 
-    void regulate(void (*func)(), uint16_t priority);
+    void regulate(void (*func)());
     void update();
     void setClock(Timer *innerTimer = NULL);
     bool timesUp();

@@ -48,10 +48,12 @@
     defined(USS_RT_PIN) || \
     defined(USS_UP_PIN)
 #define USE_PROXIMITY_DETECTION
+#define USE_USS
 #endif
 
 #if defined(USS_DN_PIN)
 #define USE_USS_ALT
+#define USE_USS
 #endif
 //========================================================================================================================//
 #include "types.h"
@@ -62,6 +64,10 @@
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "MPU6050.h"
+
+#if defined(USE_USS)
+#include "HCSR04.h"
+#endif
 
 #if defined(USE_ALT)
 #if defined(USE_MPL3115A2)
@@ -86,12 +92,19 @@
 //                                                 GLOBALS                                                                //
 //========================================================================================================================//
 
-extern uint32_t print_counter, serial_counter;
-extern uint32_t blink_counter, blink_delay;
-extern bool blinkAlternate;
-extern Timer timer;
-extern Timer timerOl;
 extern PropConfig propConfig;
+extern Timer fcTimer;
+extern Timer radioTimer;
+#if defined(USE_ALT)
+extern Timer altTimer;
+#endif
+
+#if defined(USE_PROXIMITY_DETECTION)
+extern Proximity proximity;
+extern Timer proximityTimer;
+#elif defined(USE_USS)
+extern Timer ussTimer;
+#endif
 
 extern Rx rx;
 extern Esc esc;
@@ -169,10 +182,6 @@ extern Proximity proximity;
 //========================================================================================================================//
 
 float invSqrt(float x);
-void setupBlink(int numBlinks, int upTime, int downTime);
-void loopBlink();
-void loopRate();
-template <class T>
-void debug(T data);
+int multiplyFast(int a, int b);
 
 #endif

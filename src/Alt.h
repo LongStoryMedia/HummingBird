@@ -9,10 +9,14 @@ private:
 #else
     MPL3115A2 baro;
 #endif
+#if defined(USE_USS_ALT)
+    HCSR04 ussAlt = HCSR04(USS_DN_PIN, USS_TRIG_PIN);
+    uint32_t prevUssDistance;
+#endif
     float prevAlt;
-    const float filterParam = 0.0008;
-    uint32_t lastUpdate;
-    void setReal();
+
+    template <class T>
+    void filterAltData(T prevVal, T currVal, float filterParam);
 
 public:
     Alt();
@@ -24,11 +28,14 @@ public:
     void init(TwoWire *wire);
     bool setAltLock(bool locked);
     float getAlt();
+    uint32_t getAltUss();
     float lockedAlt;
     uint32_t lockedThrust;
     lockState altLocked;
-    float realAlt;
     float alt;
+#if defined(USE_USS_ALT)
+    uint32_t ussDistance;
+#endif
 };
 
 #endif

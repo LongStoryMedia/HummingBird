@@ -14,43 +14,58 @@ void Alt::init(TwoWire *wire)
 {
     // this altitude must be known (or provided by GPS etc.)
     // altitude from mn (https://whatismyelevation.com/)
-    baro.init(300, timerOl.totalLoopTime, wire);
+    baro.init(300, radioTimer.totalLoopTime, wire);
+#if defined(USE_USS_ALT)
+    ussAlt.init();
+    attachInterrupt(
+        digitalPinToInterrupt(ussAlt.echoPin),
+        ussAlt.getInterrupt(),
+        CHANGE);
+    ussAlt.start();
+#endif
 }
 
 float Alt::getAlt()
 {
     prevAlt = alt;
-    noInterrupts();
+    // noInterrupts();
     alt = baro.read();
-    interrupts();
+    // interrupts();
 
-    if (prevAlt == 0)
-    {
-        prevAlt = alt;
-    }
-
-    // filter noise
-    if (abs(alt - prevAlt) > 100)
-    {
-        alt = prevAlt;
-    }
-
-    // try to get an update if we haven't seen one in a while
-    // if (timer.now - lastUpdate > Timer::hzToUs(timer.loopRate / 20))
-    // {
-    //     alt = baro.read();
-    // }
-
-    // only integrate on change
-    if (alt != prevAlt)
-    {
-        float err = alt - prevAlt;
-        // LP filter alt data
-        alt = (1.0 - filterParam) * prevAlt + filterParam * alt;
-        alt += err * timerOl.delta;
-        realAlt = alt;
-        lastUpdate = micros();
-    }
+    filterAltData<float>(prevAlt, alt, 0.0008);
 
     return alt;
+}
+
+uint32_t Alt::getAltUss()
+{
+#if defined(USE_USS_ALT)
+    prevUssDistance = ussDistance;
+    ussDistance = ussAlt.ping();
+
+    filterAltData<uint32_t>(prevUssDistance, ussDistance, 80.5);
+    Serial.print("Distance: ");
+    Serial.print(ussDistance);
+    Serial.println(" cm");
+
+    return ussDistance;
+#endif
+}
+
+template <class T>
+void Alt::filterAltData(T prevVal, T currVal, float filterParam)
+{
+    if (prevVal == 0)
+    {
+        prevVal = currVal;
+    }
+
+    // only integrate on change
+    if (currVal != prevVal)
+    {
+        float err = currVal - prevVal;
+        // LP filter alt data
+        currVal = (1.0 - filterParam) * prevVal + filterParam * currVal;
+        currVal += err * altTimer.delta;
+    }
 }

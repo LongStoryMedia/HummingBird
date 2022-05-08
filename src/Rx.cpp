@@ -19,7 +19,7 @@ State Rx::getPacket()
         packet.pitch = 0;
         packet.roll = 0;
         packet.yaw = 0;
-        packet.thrust = 0;
+        packet.thrust = prevPacket.thrust > 350 ? 350 : prevPacket.thrust--;
     }
 
     if (radio.failureDetected)
@@ -27,7 +27,7 @@ State Rx::getPacket()
         radio.failureDetected = false;
         Serial.println(F("Radio failure detected, restarting radio"));
         radio.powerDown();
-        delay(250);
+        delayMicroseconds(20);
         radio.powerUp();
         radio.flush_rx();
         initRc();
@@ -50,7 +50,6 @@ State Rx::getPacket()
     packet.pitch = (1.0 - b) * prevPacket.pitch + b * packet.pitch;
     packet.yaw = (1.0 - b) * prevPacket.yaw + b * packet.yaw;
     prevPacket = packet;
-    failSafe();
     return packet;
 }
 
@@ -82,31 +81,4 @@ void Rx::initRc()
     // radio.printDetails();       // (smaller) function that prints raw register values
     // radio.printPrettyDetails(); // (larger) function that prints human readable data
     rxt = micros();
-}
-
-void Rx::failSafe()
-{
-    int check1 = 0;
-    int check2 = 0;
-    int check3 = 0;
-    int check4 = 0;
-
-    // Triggers for failure criteria
-    if (packet.thrust > 1000 || packet.thrust <= 0)
-        check1 = 1;
-    if (packet.roll > 500 || packet.roll < -500)
-        check2 = 1;
-    if (packet.pitch > 500 || packet.pitch < -500)
-        check3 = 1;
-    if (packet.yaw > 500 || packet.yaw < -500)
-        check4 = 1;
-
-    // If any failures, set to default failsafe values
-    if ((check1 + check2 + check3 + check4) > 0)
-    {
-        packet.thrust = 0;
-        packet.roll = 0;
-        packet.pitch = 0;
-        packet.yaw = 0;
-    }
 }

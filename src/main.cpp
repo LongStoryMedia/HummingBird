@@ -4,10 +4,8 @@
 //                                                 GLOBALS                                                     //
 //=============================================================================================================//
 
-unsigned long print_counter;
-bool blinkAlternate;
-Timer timer(5000);
-Timer timerOl(100);
+Timer fcTimer(5000, 50);
+Timer radioTimer(600, 75);
 State packet;
 Rx rx;
 Esc esc;
@@ -15,13 +13,11 @@ Pid pid;
 Imu imu;
 #if defined(USE_ALT)
 Alt alt;
+Timer altTimer(250, 150);
 #endif
 #if defined(USE_PROXIMITY_DETECTION)
 Proximity proximity;
 #endif
-
-IntervalTimer fcTimer;
-IntervalTimer dataTimer;
 
 #if (PROP_CONFIG == 0)
 Prop __p1{Prop::clockwise, Prop::positive, Prop::negative};
@@ -42,15 +38,20 @@ PropConfig propConfig{__p1, __p2, __p3, __p4};
 //=============================================================================================================//
 
 /**
- * @brief frequently updated
+ * @brief core flight logic
  *
  */
-void innerLoop();
+void flightLoop();
 /**
- * @brief periodically updated
+ * @brief gets radio commands and scales for control loop
  *
  */
-void outerLoop();
+void radioLoop();
+/**
+ * @brief gets baro data and applies to control loops
+ *
+ */
+void altLoop();
 
 void setup()
 {
@@ -65,41 +66,35 @@ void setup()
 
   pid.init();
   rx.init();
-#if defined(USE_ALT)
-  alt.init(&ALT_WIRE);
-#endif
 #if defined(USE_PROXIMITY_DETECTION)
   proximity.init();
 #endif
   imu.init(&IMU_WIRE); // Initialize IMU communication
   imu.calibrate();     // helps to warm up IMU and Madgwick filter before finally entering main loop
+#if defined(USE_ALT)
+  alt.init(&ALT_WIRE);
+#endif
   esc.arm();
-  setupBlink(3, 160, 70); // numBlinks, upTime (ms), downTime (ms)
-  timer.regulate(innerLoop, 50);
-  timerOl.regulate(outerLoop, 100);
+  // run loops
+  fcTimer.regulate(flightLoop);
+  radioTimer.regulate(radioLoop);
+  altTimer.regulate(altLoop);
 }
 
 void loop()
 {
 }
 
-void outerLoop()
+void radioLoop()
 {
-  timerOl.update();
-  loopBlink(); // indicate we are in main loop with short blink every 1.5 seconds
-#if defined(USE_ALT)
-  alt.getAlt();
-#endif
-#if defined(USE_PROXIMITY_DETECTION)
-  obstacles obs = proximity.scan();
-#endif
+  radioTimer.update();
   packet = rx.getPacket();
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
 }
 
-void innerLoop()
+void flightLoop()
 {
-  timer.update();
+  fcTimer.update();
   Commands commands;
   if (packet.thrust > 10)
   {
@@ -113,46 +108,15 @@ void innerLoop()
   esc.setSpeed(commands);
 }
 
-//=============================================================================================================//
-//                                                      FUNCTIONS                                              //
-//=============================================================================================================//
-
-void loopBlink()
+void altLoop()
 {
-  // DESCRIPTION: Blink LED on board to indicate main loop is running
-  /*
-   * It looks cool.
-   */
-  unsigned long blink_counter;
-  unsigned long blink_delay;
-  if (timer.now - blink_counter > blink_delay)
-  {
-    blink_counter = micros();
-    digitalWrite(13, blinkAlternate ? HIGH : LOW); // pin 13 is built in LED
-
-    if (blinkAlternate == 1)
-    {
-      blinkAlternate = 0;
-      blink_delay = 100000;
-    }
-    else if (blinkAlternate == 0)
-    {
-      blinkAlternate = 1;
-      blink_delay = 2000000;
-    }
-  }
-}
-
-void setupBlink(int numBlinks, int upTime, int downTime)
-{
-  // DESCRIPTION: Simple function to make LED on board blink as desired
-  for (int j = 1; j <= numBlinks; j++)
-  {
-    digitalWrite(13, LOW);
-    delay(downTime);
-    digitalWrite(13, HIGH);
-    delay(upTime);
-  }
+  altTimer.update();
+#if defined(USE_ALT)
+  alt.getAlt();
+#endif
+#if defined(USE_USS_ALT)
+  alt.getAltUss();
+#endif
 }
 
 //=========================================================================================//
@@ -177,12 +141,21 @@ float invSqrt(float x)
   return y;
 }
 
-template <class T>
-void debug(T data)
+int multiplyFast(int a, int b)
 {
-  if (timer.now - print_counter > 10000)
+  int n1 = abs(a), n2 = abs(b), result = 0;
+  bool neg = false;
+  if (min(a, b) < 0 && max(a, b) >= 0)
+    neg = true;
+  while (n2 > 0)
   {
-    print_counter = micros();
-    Serial.println(data);
+    if (n2 & 1 == 1)
+      result += n1;
+    n2 >>= 1;
+    n1 <<= 1;
   }
+  if (neg)
+    return (~(result) + 1);
+  else
+    return result;
 }

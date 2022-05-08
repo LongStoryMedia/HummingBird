@@ -1,9 +1,10 @@
 #include "config.h"
 
-Timer::Timer(uint16_t hz)
+Timer::Timer(uint16_t hz, uint16_t priority)
 {
     loopRate = hz;
     totalLoopTime = Timer::hzToUs(hz);
+    timer.priority(priority);
 }
 
 bool Timer::timesUp()
@@ -11,10 +12,9 @@ bool Timer::timesUp()
     return totalLoopTime <= (micros() - now);
 }
 
-void Timer::regulate(void (*func)(), uint16_t priority)
+void Timer::regulate(void (*func)())
 {
     timer.begin(func, totalLoopTime);
-    timer.priority(priority);
 }
 
 void Timer::update()

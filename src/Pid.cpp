@@ -125,7 +125,7 @@ void Pid::integrateAlt(State packet)
   if (alt.altLocked == Alt::lockState::locked)
   {
     errorAlt = alt.lockedAlt - alt.alt;
-    integralAlt = prevIntegralAlt + errorAlt * timer.delta;
+    integralAlt = prevIntegralAlt + errorAlt * fcTimer.delta;
     integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
     desiredState.thrust = desiredState.thrust + (KP_ALT * errorAlt) + (KI_ALT * integralAlt);
     // limit increment/decrement
@@ -162,24 +162,24 @@ void Pid::angleLoop(const AccelGyro &imu)
   // Outer loop - PID on angle
   // Roll
   error.roll = desiredState.roll - imu.accel.roll;
-  integralOl.roll = prevIntegralOl.roll + error.roll * timer.delta;
+  integralOl.roll = prevIntegralOl.roll + error.roll * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
     integralOl.roll = 0;
   }
   integralOl.roll = constrain(integralOl.roll, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-  derivative.roll = (imu.accel.roll - prevImu.accel.roll) / timer.delta;
+  derivative.roll = (imu.accel.roll - prevImu.accel.roll) / fcTimer.delta;
   ol.roll = kAngle.roll.Kp * error.roll + kAngle.roll.Ki * integralOl.roll - kAngle.roll.Kd * derivative.roll;
 
   // Pitch
   error.pitch = desiredState.pitch - imu.accel.pitch;
-  integralOl.pitch = prevIntegralOl.pitch + error.pitch * timer.delta;
+  integralOl.pitch = prevIntegralOl.pitch + error.pitch * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
     integralOl.pitch = 0;
   }
   integralOl.pitch = constrain(integralOl.pitch, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-  derivative.pitch = (imu.accel.pitch - prevImu.accel.pitch) / timer.delta;
+  derivative.pitch = (imu.accel.pitch - prevImu.accel.pitch) / fcTimer.delta;
   ol.pitch = kAngle.pitch.Kp * error.pitch + kAngle.pitch.Ki * integralOl.pitch - kAngle.pitch.Kd * derivative.pitch;
 }
 
@@ -188,24 +188,24 @@ void Pid::rateLoop(const AccelGyro &imu)
   // Inner loop - PID on rate
   // Roll
   error.roll = ol.roll - imu.gyro.roll;
-  integral.roll = prevIntegral.roll + error.roll * timer.delta;
+  integral.roll = prevIntegral.roll + error.roll * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
     integral.roll = 0;
   }
   integral.roll = constrain(integral.roll, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-  derivative.roll = (error.roll - prevError.roll) / timer.delta;
+  derivative.roll = (error.roll - prevError.roll) / fcTimer.delta;
   out.roll = .01 * (kRate.roll.Kp * error.roll + kRate.roll.Ki * integral.roll + kRate.roll.Kd * derivative.roll); // scaled by .01 to bring within -1 to 1 range
 
   // Pitch
   error.pitch = ol.pitch - imu.gyro.pitch;
-  integral.pitch = prevIntegral.pitch + error.pitch * timer.delta;
+  integral.pitch = prevIntegral.pitch + error.pitch * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
     integral.pitch = 0;
   }
   integral.pitch = constrain(integral.pitch, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-  derivative.pitch = (error.pitch - prevError.pitch) / timer.delta;
+  derivative.pitch = (error.pitch - prevError.pitch) / fcTimer.delta;
   out.pitch = .01 * (kRate.pitch.Kp * error.pitch + kRate.pitch.Ki * integral.pitch + kRate.pitch.Kd * derivative.pitch); // scaled by .01 to bring within -1 to 1 range
 }
 
@@ -222,13 +222,13 @@ Commands Pid::control(const AccelGyro &imu)
   rateLoop(imu);
   // Yaw
   error.yaw = desiredState.yaw - imu.gyro.yaw;
-  integral.yaw = prevIntegral.yaw + error.yaw * timer.delta;
+  integral.yaw = prevIntegral.yaw + error.yaw * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
     integral.yaw = 0;
   }
   integral.yaw = constrain(integral.yaw, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-  derivative.yaw = (error.yaw - prevError.yaw) / timer.delta;
+  derivative.yaw = (error.yaw - prevError.yaw) / fcTimer.delta;
   out.yaw = .01 * (kRate.yaw.Kp * error.yaw + kRate.yaw.Ki * integral.yaw + kRate.yaw.Kd * derivative.yaw); // scaled by .01 to bring within -1 to 1 range
 
   // Serial.print("roll: ");
