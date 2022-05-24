@@ -89,6 +89,7 @@ void radioLoop()
 {
   radioTimer.update();
   packet = rx.getPacket();
+  Serial.println(packet.thrust);
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
 }
 
@@ -145,17 +146,28 @@ int multiplyFast(int a, int b)
 {
   int n1 = abs(a), n2 = abs(b), result = 0;
   bool neg = false;
+
   if (min(a, b) < 0 && max(a, b) >= 0)
+  {
     neg = true;
+  }
+
   while (n2 > 0)
   {
-    if (n2 & 1 == 1)
+    if ((n2 & 1) == 1)
+    {
       result += n1;
+    }
     n2 >>= 1;
     n1 <<= 1;
   }
+
   if (neg)
+  {
     return (~(result) + 1);
+  }
   else
+  {
     return result;
+  }
 }

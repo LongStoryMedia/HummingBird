@@ -10,21 +10,12 @@ void Rx::init()
 
 State Rx::getPacket()
 {
-
     uint32_t loopTime = micros();
 
     if (loopTime > rxt + 250000)
     {
         radio.failureDetected = true;
-        packet.pitch = 0;
-        packet.roll = 0;
-        packet.yaw = 0;
-        packet.thrust = prevPacket.thrust > 350 ? 350 : prevPacket.thrust--;
-    }
-
-    if (radio.failureDetected)
-    {
-        radio.failureDetected = false;
+        packet.thrust = 0;
         Serial.println(F("Radio failure detected, restarting radio"));
         radio.powerDown();
         delayMicroseconds(20);
@@ -32,15 +23,22 @@ State Rx::getPacket()
         radio.flush_rx();
         initRc();
     }
-
-    if (radio.available())
-    {
-        radio.read(&packet, packetSize);
-        rxt = loopTime;
-    }
     else
     {
-        connectionLoss = true;
+        if (radio.available())
+        {
+            if (radio.failureDetected)
+            {
+                radio.failureDetected = false;
+            }
+            radio.read(&packet, packetSize);
+            rxt = loopTime;
+        }
+
+        if (abs(packet.thrust - prevPacket.thrust) > 200 && !radio.failureDetected)
+        {
+            packet.thrust = prevPacket.thrust > 0 ? prevPacket.thrust - 1 : 0;
+        }
     }
 
     // Low-pass the critical commands and update previous values

@@ -18,22 +18,22 @@
 #define MAX_ROLL 30.0f        // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_PITCH 30.0f       // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
 #define MAX_YAW 160.0f        // Max yaw rate in deg/sec
-#define KP_ROLL_ANGLE 0.125f  // Roll P-gain - angle mode
+#define KP_ROLL_ANGLE 0.135f  // Roll P-gain - angle mode
 #define KI_ROLL_ANGLE 0.2f    // Roll I-gain - angle mode
 #define KD_ROLL_ANGLE 0.0f    // Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0)
 #define B_LOOP_ROLL 0.8f      // Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
-#define KP_PITCH_ANGLE 0.175f // Pitch P-gain - angle mode
+#define KP_PITCH_ANGLE 0.185f // Pitch P-gain - angle mode
 #define KI_PITCH_ANGLE 0.2f   // Pitch I-gain - angle mode
 #define KD_PITCH_ANGLE 0.0f   // Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
 #define B_LOOP_PITCH 0.8f     // Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
 #define KP_ROLL_RATE 0.05f    // Roll P-gain - rate mode
-#define KI_ROLL_RATE 0.1f     // Roll I-gain - rate mode
+#define KI_ROLL_RATE 0.11f    // Roll I-gain - rate mode
 #define KD_ROLL_RATE 0.0f     // Roll D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
 #define KP_PITCH_RATE 0.05f   // Pitch P-gain - rate mode
-#define KI_PITCH_RATE 0.1f    // Pitch I-gain - rate mode
+#define KI_PITCH_RATE 0.11f   // Pitch I-gain - rate mode
 #define KD_PITCH_RATE 0.0f    // Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
-#define KP_YAW 0.1f           // Yaw P-gain
-#define KI_YAW 0.15f          // Yaw I-gain
+#define KP_YAW 0.11f          // Yaw P-gain
+#define KI_YAW 0.17f          // Yaw I-gain
 #define KD_YAW 0.00001f       // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 #define KP_ALT 0.175f
 #define KI_ALT 0.15f
