@@ -8,7 +8,7 @@ void Rx::init()
     initRc();
 }
 
-State Rx::getPacket()
+Input Rx::getPacket()
 {
     uint32_t loopTime = micros();
 

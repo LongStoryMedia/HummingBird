@@ -3,14 +3,14 @@
 
 #include <Arduino.h>
 
-typedef struct State
+typedef struct Input
 {
     int16_t yaw;
     int16_t pitch;
     int16_t roll;
     uint16_t thrust;
     uint8_t lockAlt;
-} State;
+} Input;
 
 typedef struct
 {
@@ -19,7 +19,8 @@ typedef struct
     float roll;
     float thrust;
     float alt;
-} ScaledState;
+    float zVelocity;
+} State;
 
 typedef struct
 {
@@ -41,7 +42,7 @@ typedef struct
     float accel;    // Accelerometer LP filter paramter, (MPU6050 default: 0.14. MPU9250 default: 0.2)
     float gyro;     // Gyro LP filter paramter, (MPU6050 default: 0.1. MPU9250 default: 0.17)
     float mag;      // Magnetometer LP filter parameter
-} Filter;
+} FilterParams;
 
 typedef struct
 {

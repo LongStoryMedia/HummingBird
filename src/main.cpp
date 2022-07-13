@@ -5,8 +5,10 @@
 //=============================================================================================================//
 
 Timer fcTimer(5000, 50);
-Timer radioTimer(600, 75);
-State packet;
+Timer radioTimer(500, 75);
+Input packet;
+volatile State state;
+volatile State prevState;
 Rx rx;
 Esc esc;
 Pid pid;
@@ -89,6 +91,10 @@ void radioLoop()
 {
   radioTimer.update();
   packet = rx.getPacket();
+  // packet.thrust = 300;
+  // packet.pitch = 0;
+  // packet.roll = 0;
+  // packet.yaw = 0;
   Serial.println(packet.thrust);
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
 }
@@ -142,7 +148,7 @@ float invSqrt(float x)
   return y;
 }
 
-int multiplyFast(int a, int b)
+int multiplyFast(int a, int b) // 5 5
 {
   int n1 = abs(a), n2 = abs(b), result = 0;
   bool neg = false;
@@ -154,12 +160,12 @@ int multiplyFast(int a, int b)
 
   while (n2 > 0)
   {
-    if ((n2 & 1) == 1)
+    if ((n2 & 1) == 1) // 5 & 1 == 1, 2 & 1 != 1, 1 & 1 == 1
     {
-      result += n1;
+      result += n1; // 0 + 5 = 5, 5 + 20 = 25
     }
-    n2 >>= 1;
-    n1 <<= 1;
+    n2 >>= 1; // 2, 1, 0 (exit condition)
+    n1 <<= 1; // 10, 20
   }
 
   if (neg)

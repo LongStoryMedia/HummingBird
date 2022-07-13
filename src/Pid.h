@@ -6,8 +6,6 @@ class Pid
 private:
     float integratorLimit;
     uint16_t integratorThreashold;
-    volatile ScaledState desiredState;
-    volatile ScaledState prevDesiredState;
     CoefficientSet kAngle;
     CoefficientSet kRate;
     YPR out;
@@ -30,7 +28,7 @@ private:
     float lockedDesiredThrust;
     float errorThrust;
     float mix(Prop prop);
-    void integrateAlt(State packet);
+    void integrateAlt(Input packet);
     bool isPreTakeoff();
 
 public:
@@ -39,7 +37,7 @@ public:
     uint16_t r2;
     uint16_t r3;
     uint16_t r4;
-    void setDesiredState(State packet);
+    void setDesiredState(Input packet);
     Commands control(const AccelGyro &imu);
 
     enum mode

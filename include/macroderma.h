@@ -12,29 +12,29 @@
 
 // #define USE_PWM
 
-#define I_TH 100
+#define I_TH 250
 #define KL 30.0f
-#define I_LIMIT 20.0f         // Integrator saturation level, mostly for safety (default 25.0)
-#define MAX_ROLL 30.0f        // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
-#define MAX_PITCH 30.0f       // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
-#define MAX_YAW 160.0f        // Max yaw rate in deg/sec
-#define KP_ROLL_ANGLE 0.125f  // Roll P-gain - angle mode
-#define KI_ROLL_ANGLE 0.2f    // Roll I-gain - angle mode
-#define KD_ROLL_ANGLE 0.0f    // Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0)
-#define B_LOOP_ROLL 0.8f      // Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
-#define KP_PITCH_ANGLE 0.175f // Pitch P-gain - angle mode
-#define KI_PITCH_ANGLE 0.2f   // Pitch I-gain - angle mode
-#define KD_PITCH_ANGLE 0.0f   // Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
-#define B_LOOP_PITCH 0.8f     // Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
-#define KP_ROLL_RATE 0.05f    // Roll P-gain - rate mode
-#define KI_ROLL_RATE 0.1f     // Roll I-gain - rate mode
-#define KD_ROLL_RATE 0.0f     // Roll D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
-#define KP_PITCH_RATE 0.05f   // Pitch P-gain - rate mode
-#define KI_PITCH_RATE 0.1f    // Pitch I-gain - rate mode
-#define KD_PITCH_RATE 0.0f    // Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
-#define KP_YAW 0.1f           // Yaw P-gain
-#define KI_YAW 0.15f          // Yaw I-gain
-#define KD_YAW 0.00001f       // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
+#define I_LIMIT 25.0f        // Integrator saturation level, mostly for safety (default 25.0)
+#define MAX_ROLL 30.0f       // Max roll angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
+#define MAX_PITCH 30.0f      // Max pitch angle in degrees for angle mode (maximum 60 degrees), deg/sec for rate mode
+#define MAX_YAW 160.0f       // Max yaw rate in deg/sec
+#define KP_ROLL_ANGLE 0.2f   // Roll P-gain - angle mode
+#define KI_ROLL_ANGLE 0.65f  // Roll I-gain - angle mode
+#define KD_ROLL_ANGLE 0.0f   // Roll D-gain - angle mode (if using controlANGLE2(), set to 0.0)
+#define B_LOOP_ROLL 0.7f     // Roll damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
+#define KP_PITCH_ANGLE 0.2f  // Pitch P-gain - angle mode
+#define KI_PITCH_ANGLE 0.65f // Pitch I-gain - angle mode
+#define KD_PITCH_ANGLE 0.0f  // Pitch D-gain - angle mode (if using controlANGLE2(), set to 0.0)
+#define B_LOOP_PITCH 0.7f    // Pitch damping term for controlANGLE2(), lower is more damping (must be between 0 to 1)
+#define KP_ROLL_RATE 0.04f   // Roll P-gain - rate mode
+#define KI_ROLL_RATE 0.15f   // Roll I-gain - rate mode
+#define KD_ROLL_RATE 0.0f    // Roll D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
+#define KP_PITCH_RATE 0.04f  // Pitch P-gain - rate mode
+#define KI_PITCH_RATE 0.15f  // Pitch I-gain - rate mode
+#define KD_PITCH_RATE 0.0f   // Pitch D-gain - rate mode (be careful when increasing too high, motors will begin to overheat!)
+#define KP_YAW 0.3f          // Yaw P-gain
+#define KI_YAW 0.3f          // Yaw I-gain
+#define KD_YAW 0.00005f      // Yaw D-gain (be careful when increasing too high, motors will begin to overheat!)
 #define KP_ALT 0.175f
 #define KI_ALT 0.15f
 #define ALT_CONSTRAINT_ABS 0.01f
@@ -72,10 +72,10 @@
 #define OFFSET(type, axis) OFFSET_##axis_##type
 
 // hardware configuration
-#define M1_PIN 2
-#define M2_PIN 4
-#define M3_PIN 5
-#define M4_PIN 3
+#define M1_PIN 3
+#define M2_PIN 2
+#define M3_PIN 4
+#define M4_PIN 5
 
 #define CE_NRF24 10
 #define CSN_NRF24 9
@@ -90,8 +90,8 @@
 #define ALT_WIRE Wire
 #define IMU_WIRE Wire
 
-// #define USS_DN_PIN 22
-// #define USS_TRIG_PIN 23
+#define USS_DN_PIN 22
+#define USS_TRIG_PIN 23
 
 // #define CALIBRATION_MODE
 // averaging 10000 readings each time

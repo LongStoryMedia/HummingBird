@@ -57,6 +57,8 @@
 #endif
 //========================================================================================================================//
 #include "types.h"
+#include "Filter.h"
+#include "Timer.h"
 
 #include <Wire.h> //I2c communication
 #include <SPI.h>  //SPI communication
@@ -82,12 +84,10 @@
 #include "Proximity.h"
 #endif
 
-#include "Timer.h"
 #include "Imu.h"
 #include "Rx.h"
 #include "Esc.h"
 #include "Pid.h"
-
 //========================================================================================================================//
 //                                                 GLOBALS                                                                //
 //========================================================================================================================//
@@ -106,6 +106,8 @@ extern Timer proximityTimer;
 extern Timer ussTimer;
 #endif
 
+extern volatile State state;
+extern volatile State prevState;
 extern Rx rx;
 extern Esc esc;
 extern Pid pid;

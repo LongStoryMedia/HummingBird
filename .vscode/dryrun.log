@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/scott.long/Nextcloud/platformio/HummingBird'
+make: Leaving directory `/Users/scott.long/Nextcloud/platformio/HummingBird'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+

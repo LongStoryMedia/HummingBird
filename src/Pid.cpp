@@ -89,25 +89,25 @@ void Pid::init()
   kRate.yaw.Kd = KD_YAW;
 }
 
-void Pid::setDesiredState(State packet)
+void Pid::setDesiredState(Input packet)
 {
 #if defined(USE_ALT)
   integrateAlt(packet);
 #else
-  desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
+  state.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
 #endif
 
-  desiredState.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
-  desiredState.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
-  desiredState.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
+  state.roll = constrain(packet.roll / 500.0, -1.0, 1.0) * MAX_ROLL;
+  state.pitch = constrain(packet.pitch / 500.0, -1.0, 1.0) * MAX_PITCH;
+  state.yaw = constrain(-packet.yaw / 500.0, -1.0, 1.0) * MAX_YAW;
 
 #if IMU_ORIENTATION == 0
-  desiredState.roll *= -1.0;
-  desiredState.pitch *= -1.0;
+  state.roll *= -1.0;
+  state.pitch *= -1.0;
 #endif
 }
 
-void Pid::integrateAlt(State packet)
+void Pid::integrateAlt(Input packet)
 {
 #if defined(USE_ALT)
   if (alt.altLocked != (Alt::lockState)packet.lockAlt)
@@ -118,7 +118,7 @@ void Pid::integrateAlt(State packet)
       alt.lockedAlt = alt.getAlt();
       alt.lockedThrust = packet.thrust;
       lockedDesiredThrust = packet.thrust / 1000.0;
-      desiredState.thrust = lockedDesiredThrust;
+      state.thrust = lockedDesiredThrust;
     }
   }
 
@@ -127,13 +127,13 @@ void Pid::integrateAlt(State packet)
     errorAlt = alt.lockedAlt - alt.alt;
     integralAlt = prevIntegralAlt + errorAlt * fcTimer.delta;
     integralAlt = constrain(integralAlt, -integratorLimit, integratorLimit); // saturate integrator to prevent unsafe buildup
-    desiredState.thrust = desiredState.thrust + (KP_ALT * errorAlt) + (KI_ALT * integralAlt);
+    state.thrust = state.thrust + (KP_ALT * errorAlt) + (KI_ALT * integralAlt);
     // limit increment/decrement
-    float lowerLimit = desiredState.thrust - ALT_CONSTRAINT_INC;
-    float upperLimit = desiredState.thrust + ALT_CONSTRAINT_INC;
-    desiredState.thrust = constrain(desiredState.thrust, lowerLimit, upperLimit);
+    float lowerLimit = state.thrust - ALT_CONSTRAINT_INC;
+    float upperLimit = state.thrust + ALT_CONSTRAINT_INC;
+    state.thrust = constrain(state.thrust, lowerLimit, upperLimit);
     // absolute throttle limit
-    desiredState.thrust = constrain(desiredState.thrust, lockedDesiredThrust - ALT_CONSTRAINT_ABS, lockedDesiredThrust + ALT_CONSTRAINT_ABS);
+    state.thrust = constrain(state.thrust, lockedDesiredThrust - ALT_CONSTRAINT_ABS, lockedDesiredThrust + ALT_CONSTRAINT_ABS);
     prevIntegralAlt = integralAlt;
   }
   else
@@ -141,9 +141,9 @@ void Pid::integrateAlt(State packet)
     errorAlt = 0;
     integralAlt = 0;
     prevIntegralAlt = 0;
-    desiredState.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
+    state.thrust = constrain(packet.thrust / 1000.0, 0.0, 1.0);
   }
-  // Serial.println(desiredState.thrust);
+  // Serial.println(state.thrust);
 #endif
 }
 
@@ -154,14 +154,14 @@ float Pid::mix(Prop prop)
 
 bool Pid::isPreTakeoff()
 {
-  return desiredState.thrust < (I_TH / 1000.0);
+  return state.thrust < (I_TH / 1000.0);
 }
 
 void Pid::angleLoop(const AccelGyro &imu)
 {
   // Outer loop - PID on angle
   // Roll
-  error.roll = desiredState.roll - imu.accel.roll;
+  error.roll = state.roll - imu.accel.roll;
   integralOl.roll = prevIntegralOl.roll + error.roll * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
@@ -172,7 +172,7 @@ void Pid::angleLoop(const AccelGyro &imu)
   ol.roll = kAngle.roll.Kp * error.roll + kAngle.roll.Ki * integralOl.roll - kAngle.roll.Kd * derivative.roll;
 
   // Pitch
-  error.pitch = desiredState.pitch - imu.accel.pitch;
+  error.pitch = state.pitch - imu.accel.pitch;
   integralOl.pitch = prevIntegralOl.pitch + error.pitch * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
@@ -217,11 +217,11 @@ Commands Pid::control(const AccelGyro &imu)
   ol.pitch *= KL;
   ol.roll = constrain(ol.roll, -240.0, 240.0);
   ol.pitch = constrain(ol.pitch, -240.0, 240.0);
-  ol.roll = (1.0 - B_LOOP_ROLL) * prevDesiredState.roll + B_LOOP_ROLL * ol.roll;
-  ol.pitch = (1.0 - B_LOOP_PITCH) * prevDesiredState.pitch + B_LOOP_PITCH * ol.pitch;
+  ol.roll = (1.0 - B_LOOP_ROLL) * prevState.roll + B_LOOP_ROLL * ol.roll;
+  ol.pitch = (1.0 - B_LOOP_PITCH) * prevState.pitch + B_LOOP_PITCH * ol.pitch;
   rateLoop(imu);
   // Yaw
-  error.yaw = desiredState.yaw - imu.gyro.yaw;
+  error.yaw = state.yaw - imu.gyro.yaw;
   integral.yaw = prevIntegral.yaw + error.yaw * fcTimer.delta;
   if (isPreTakeoff())
   { // don't let integrator build if throttle is too low
@@ -242,13 +242,13 @@ Commands Pid::control(const AccelGyro &imu)
   prevIntegralOl = integralOl;
   prevIntegral = integral;
   prevImu = imu;
-  prevDesiredState.roll = ol.roll;
-  prevDesiredState.pitch = ol.pitch;
+  prevState.roll = ol.roll;
+  prevState.pitch = ol.pitch;
 
-  float m1 = desiredState.thrust + mix(propConfig.p1);
-  float m2 = desiredState.thrust + mix(propConfig.p2);
-  float m3 = desiredState.thrust + mix(propConfig.p3);
-  float m4 = desiredState.thrust + mix(propConfig.p4);
+  float m1 = state.thrust + mix(propConfig.p1);
+  float m2 = state.thrust + mix(propConfig.p2);
+  float m3 = state.thrust + mix(propConfig.p3);
+  float m4 = state.thrust + mix(propConfig.p4);
   // scale to protocol
   float m1Scaled = map(m1, 0.0F, 1.0F, (float)COMMANDS_LOW, (float)COMMANDS_HIGH);
   float m2Scaled = map(m2, 0.0F, 1.0F, (float)COMMANDS_LOW, (float)COMMANDS_HIGH);

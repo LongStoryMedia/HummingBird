@@ -9,7 +9,6 @@ public:
     void regulate(void (*func)());
     void update();
     void setClock(Timer *innerTimer = NULL);
-    bool timesUp();
     static float hzToUs(int speed);
 
     float delta;
@@ -19,6 +18,8 @@ public:
     uint32_t timeRemaining;
     uint32_t totalLoopTime;
     bool updated;
+    float actualRate;
+    uint8_t lowRateCount;
 
 private:
     IntervalTimer timer;

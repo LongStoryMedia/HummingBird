@@ -115,8 +115,8 @@ AccelGyro Imu::getImu()
     ag -= agError;
 #endif
     // LP filter accelerometer/gyro data
-    ag = agPrev * (1.0f - filter.accel) + ag * filter.accel;
-    agPrev = ag;
+    // filter.lowPass<AccelGyro>(agPrev, ag, filterParams.accel);
+    ag = (agPrev * (1.0 - filterParams.accel)) + (ag * filterParams.accel);
 
     return filterAg();
 }
@@ -181,10 +181,10 @@ AccelGyro Imu::filterAg()
         s3 *= recipNorm;
 
         // Apply feedback step
-        qDot1 -= filter.madgwick * s0;
-        qDot2 -= filter.madgwick * s1;
-        qDot3 -= filter.madgwick * s2;
-        qDot4 -= filter.madgwick * s3;
+        qDot1 -= filterParams.madgwick * s0;
+        qDot2 -= filterParams.madgwick * s1;
+        qDot3 -= filterParams.madgwick * s2;
+        qDot4 -= filterParams.madgwick * s3;
     }
 
     // Integrate rate of change of quaternion to yield quaternion
