@@ -35,10 +35,10 @@ State Rx::getPacket()
             rxt = loopTime;
         }
 
-        if (abs(packet.thrust - prevPacket.thrust) > 200 && !radio.failureDetected)
-        {
-            packet.thrust = prevPacket.thrust > 0 ? prevPacket.thrust - 1 : 0;
-        }
+        // if (abs(packet.thrust - prevPacket.thrust) > 200 && !radio.failureDetected)
+        // {
+        //     packet.thrust = prevPacket.thrust > 0 ? prevPacket.thrust - 1 : 0;
+        // }
     }
 
     // Low-pass the critical commands and update previous values
@@ -55,7 +55,7 @@ void Rx::initRc()
 {
     // initialize the transceiver on the SPI bus
     radio.begin();
-    // radio.setDataRate(RF24_2MBPS);
+    radio.setDataRate(RF24_250KBPS);
     // radio.setPALevel(RF24_PA_MAX); // RF24_PA_MAX is default.
     // radio.txDelay = 0;
     // radio.disableCRC();
