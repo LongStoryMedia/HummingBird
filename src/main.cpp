@@ -4,8 +4,8 @@
 //                                                 GLOBALS                                                     //
 //=============================================================================================================//
 
-Timer fcTimer(5000, 50);
-Timer radioTimer(600, 75);
+Timer fcTimer(4000, 50);
+Timer radioTimer(200, 75);
 State packet;
 Rx rx;
 Esc esc;
@@ -89,7 +89,6 @@ void radioLoop()
 {
   radioTimer.update();
   packet = rx.getPacket();
-  Serial.println(packet.thrust);
   pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
 }
 
