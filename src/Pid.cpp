@@ -89,7 +89,7 @@ void Pid::init()
   kRate.yaw.Kd = KD_YAW;
 }
 
-void Pid::setDesiredState(Input packet)
+void Pid::setState(Input packet)
 {
 #if defined(USE_ALT)
   integrateAlt(packet);

@@ -91,12 +91,7 @@ void radioLoop()
 {
   radioTimer.update();
   packet = rx.getPacket();
-  // packet.thrust = 300;
-  // packet.pitch = 0;
-  // packet.roll = 0;
-  // packet.yaw = 0;
-  Serial.println(packet.thrust);
-  pid.setDesiredState(packet); // convert raw commands to normalized values based on saturated control limits
+  pid.setState(packet); // convert raw commands to normalized values based on saturated control limits
 }
 
 void flightLoop()

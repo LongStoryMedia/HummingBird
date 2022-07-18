@@ -37,7 +37,7 @@ public:
     uint16_t r2;
     uint16_t r3;
     uint16_t r4;
-    void setDesiredState(Input packet);
+    void setState(Input packet);
     Commands control(const AccelGyro &imu);
 
     enum mode
