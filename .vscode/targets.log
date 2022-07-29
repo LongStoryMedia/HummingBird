@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
 
-# Make data base, printed on Sun Jul 17 15:21:54 2022
+# Make data base, printed on Thu Jul 28 15:57:22 2022
 
 # Variables
 
@@ -21,6 +21,8 @@ JAVA_18_HOME = /Library/Java/JavaVirtualMachines/jdk-17.0.3.1.jdk/Contents/Home
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
 CPPFLAGS = -I/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/Include
+# environment
+PLATFORMIO_IDE = 2.5.0
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # automatic
@@ -40,7 +42,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 VSCODE_CWD = /
 # environment
-PATH = /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/scott.long/go/bin
+NO_PROXY = 127.0.0.1
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
@@ -54,7 +56,7 @@ JAVA_8_HOME = /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.Ps1Znee1Ij/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.EZFAKpcRUq/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -68,11 +70,11 @@ HOME = /Users/scott.long
 # default
 MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/scott.long/Library/Application Support/Code/CachedData/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a
+VSCODE_CODE_CACHE_PATH = /Users/scott.long/Library/Application Support/Code/CachedData/3b889b090b5ad5793f524b5d1d39fda662b96a2a
 # environment
 LOGNAME = scott.long
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # environment
 ZSH = /Users/scott.long/.oh-my-zsh
 # environment
@@ -80,14 +82,17 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # environment
-XPC_FLAGS = 0x0
+PLATFORMIO_PATH = /Users/scott.long/.platformio/python3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/scott.long/go/bin
 # default
 MAKE = $(MAKE_COMMAND)
 # default
 MAKECMDGOALS := all
- 
+# environment
+PATH = /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/Users/scott.long/go/bin
 # environment
 SHLVL = 1
+# environment
+XPC_FLAGS = 0x0
 # environment
 JAVA_HOME = /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 # default
@@ -111,7 +116,7 @@ TMPDIR = /var/folders/_w/dqfylpbn3tj8rry9xjsrv_91bjpxvt/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/scott.long/Library/Application Support/Code/1.69.1-main.sock
+VSCODE_IPC_HOOK = /Users/scott.long/Library/Application Support/Code/1.69.2-main.sock
 # environment
 MallocNanoZone = 0
 # makefile
@@ -121,7 +126,7 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.5202852.5202858
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.6095784.6095790
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
@@ -134,6 +139,8 @@ COMMAND_MODE = unix2003
 MAKEFILES := 
 # automatic
 <F = $(notdir $<)
+# environment
+PLATFORMIO_CALLER = vscode
 # environment
 PAGER = less
 # environment
@@ -153,9 +160,9 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 61017
+VSCODE_PID = 77032
 # variable set hash-table stats:
-# Load=71/1024=7%, Rehash=0, Collisions=1/92=1%
+# Load=75/1024=7%, Rehash=0, Collisions=3/96=3%
 
 # Pattern-specific Variable Values
 
@@ -163,7 +170,7 @@ VSCODE_PID = 61017
 
 # Directories
 
-# . (device 16777232, inode 2016791): 11 files, no impossibilities.
+# . (device 16777234, inode 2016791): 11 files, no impossibilities.
 
 # 11 files, no impossibilities in 1 directories.
 
@@ -237,7 +244,7 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Sun Jul 17 15:21:54 2022
+# Finished Make data base on Thu Jul 28 15:57:22 2022
 
  
 make: *** No rule to make target `all'.  Stop.

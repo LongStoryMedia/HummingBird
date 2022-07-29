@@ -117,6 +117,7 @@ AccelGyro Imu::getImu()
     // LP filter accelerometer/gyro data
     // filter.lowPass<AccelGyro>(agPrev, ag, filterParams.accel);
     ag = (agPrev * (1.0 - filterParams.accel)) + (ag * filterParams.accel);
+    agPrev = ag;
 
     return filterAg();
 }

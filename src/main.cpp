@@ -1,11 +1,12 @@
 #include "config.h"
+#include <Servo.h>
 
 //=============================================================================================================//
 //                                                 GLOBALS                                                     //
 //=============================================================================================================//
 
 Timer fcTimer(5000, 50);
-Timer radioTimer(500, 75);
+Timer radioTimer(250, 100);
 Input packet;
 volatile State state;
 volatile State prevState;
@@ -20,6 +21,7 @@ Timer altTimer(250, 150);
 #if defined(USE_PROXIMITY_DETECTION)
 Proximity proximity;
 #endif
+Servo cameraServo;
 
 #if (PROP_CONFIG == 0)
 Prop __p1{Prop::clockwise, Prop::positive, Prop::negative};
