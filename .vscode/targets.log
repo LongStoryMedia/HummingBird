@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
 
-# Make data base, printed on Thu Jul 28 15:57:22 2022
+# Make data base, printed on Fri Jul 29 09:53:42 2022
 
 # Variables
 
@@ -20,9 +20,9 @@ JAVA_18_HOME = /Library/Java/JavaVirtualMachines/jdk-17.0.3.1.jdk/Contents/Home
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
-CPPFLAGS = -I/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/Include
+CPPFLAGS = -I/opt/homebrew/Cellar/unixodbc/2.3.11/include
 # environment
-PLATFORMIO_IDE = 2.5.0
+PLATFORMIO_IDE = 2.5.1
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # automatic
@@ -52,11 +52,13 @@ AZ_PROD_RG = EHP-EUS-BEDROCK-DEV-RG
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
+LDFLAGS = -L/opt/homebrew/Cellar/unixodbc/2.3.11/lib
+# environment
 JAVA_8_HOME = /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.EZFAKpcRUq/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.C2r6tCgfui/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -160,9 +162,9 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 77032
+VSCODE_PID = 1433
 # variable set hash-table stats:
-# Load=75/1024=7%, Rehash=0, Collisions=3/96=3%
+# Load=76/1024=7%, Rehash=0, Collisions=3/97=3%
 
 # Pattern-specific Variable Values
 
@@ -170,7 +172,7 @@ VSCODE_PID = 77032
 
 # Directories
 
-# . (device 16777234, inode 2016791): 11 files, no impossibilities.
+# . (device 16777232, inode 2016791): 11 files, no impossibilities.
 
 # 11 files, no impossibilities in 1 directories.
 
@@ -244,7 +246,7 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Thu Jul 28 15:57:22 2022
+# Finished Make data base on Fri Jul 29 09:53:42 2022
 
  
 make: *** No rule to make target `all'.  Stop.
